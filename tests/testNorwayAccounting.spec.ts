@@ -544,6 +544,161 @@ test('Norwegian purchase credit note reverses expense and input VAT', async (t) 
   );
 });
 
+test('Norwegian credit-note refunds settle through bank', async (t) => {
+  const salesCreditRows = await fyo.db.getAll(ModelNameEnum.SalesInvoice, {
+    fields: ['name'],
+    filters: {
+      returnAgainst: 'SINV-1001',
+      submitted: true,
+      cancelled: false,
+    },
+  });
+  const salesCredit = (await fyo.doc.getDoc(
+    ModelNameEnum.SalesInvoice,
+    salesCreditRows[0].name as string
+  )) as SalesInvoice;
+
+  t.equal(
+    salesCredit.outstandingAmount?.float,
+    -12500,
+    'paid sales invoice credit note creates NOK 12,500 refund liability'
+  );
+
+  const customerRefund = salesCredit.getPayment() as Payment;
+  t.equal(customerRefund.paymentType, 'Pay', 'customer refund is a Pay payment');
+  t.equal(
+    customerRefund.amount?.float,
+    12500,
+    'customer refund payment amount is positive NOK 12,500'
+  );
+  t.equal(
+    customerRefund.for?.[0]?.amount?.float,
+    12500,
+    'customer refund reference amount is positive'
+  );
+
+  await customerRefund.set({
+    paymentMethod: 'Bank',
+    account: 'Test Bank',
+    referenceId: 'BANK-REFUND-SALE-001',
+    clearanceDate: new Date(),
+  });
+  await customerRefund.runFormulas();
+  await customerRefund.sync();
+  await customerRefund.submit();
+
+  const customerRefundEntries = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['account', 'debit', 'credit'],
+      filters: { referenceName: customerRefund.name! },
+    }
+  );
+  const customerRefundByAccount = Object.fromEntries(
+    customerRefundEntries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(
+      customerRefundByAccount['Kundefordringer - 15000']?.debit as string
+    ).float,
+    12500,
+    'customer refund debits receivables NOK 12,500'
+  );
+  t.equal(
+    fyo.pesa(customerRefundByAccount['Test Bank']?.credit as string).float,
+    12500,
+    'customer refund credits bank NOK 12,500'
+  );
+
+  await salesCredit.load();
+  t.equal(
+    salesCredit.outstandingAmount?.float,
+    0,
+    'sales credit note is fully refunded'
+  );
+
+  const purchaseCreditRows = await fyo.db.getAll(
+    ModelNameEnum.PurchaseInvoice,
+    {
+      fields: ['name'],
+      filters: {
+        returnAgainst: 'PINV-1001',
+        submitted: true,
+        cancelled: false,
+      },
+    }
+  );
+  const purchaseCredit = (await fyo.doc.getDoc(
+    ModelNameEnum.PurchaseInvoice,
+    purchaseCreditRows[0].name as string
+  )) as PurchaseInvoice;
+
+  t.equal(
+    purchaseCredit.outstandingAmount?.float,
+    -12500,
+    'paid purchase invoice credit note creates NOK 12,500 supplier receivable'
+  );
+
+  const supplierRefund = purchaseCredit.getPayment() as Payment;
+  t.equal(
+    supplierRefund.paymentType,
+    'Receive',
+    'supplier refund is a Receive payment'
+  );
+  t.equal(
+    supplierRefund.amount?.float,
+    12500,
+    'supplier refund payment amount is positive NOK 12,500'
+  );
+  t.equal(
+    supplierRefund.for?.[0]?.amount?.float,
+    12500,
+    'supplier refund reference amount is positive'
+  );
+
+  await supplierRefund.set({
+    paymentMethod: 'Bank',
+    paymentAccount: 'Test Bank',
+    referenceId: 'BANK-REFUND-PURCHASE-001',
+    clearanceDate: new Date(),
+  });
+  await supplierRefund.runFormulas();
+  await supplierRefund.sync();
+  await supplierRefund.submit();
+
+  const supplierRefundEntries = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['account', 'debit', 'credit'],
+      filters: { referenceName: supplierRefund.name! },
+    }
+  );
+  const supplierRefundByAccount = Object.fromEntries(
+    supplierRefundEntries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(supplierRefundByAccount['Test Bank']?.debit as string).float,
+    12500,
+    'supplier refund debits bank NOK 12,500'
+  );
+  t.equal(
+    fyo.pesa(
+      supplierRefundByAccount['Leverandørgjeld - 24000']?.credit as string
+    ).float,
+    12500,
+    'supplier refund credits payables NOK 12,500'
+  );
+
+  await purchaseCredit.load();
+  t.equal(
+    purchaseCredit.outstandingAmount?.float,
+    0,
+    'purchase credit note is fully refunded'
+  );
+});
+
 test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) => {
   const cases = [
     {

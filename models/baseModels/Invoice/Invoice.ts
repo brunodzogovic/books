@@ -1501,9 +1501,7 @@ export abstract class Invoice extends Transactional {
         paymentType = PaymentTypeEnum.Receive;
       }
     }
-    const paymentAmount = this.isReturn
-      ? outstandingAmount
-      : outstandingAmount?.abs();
+    const paymentAmount = outstandingAmount.abs();
 
     const data = {
       party: this.party,
@@ -1516,7 +1514,7 @@ export abstract class Invoice extends Transactional {
         {
           referenceType: this.schemaName,
           referenceName: this.name,
-          amount: this.isReturn ? this.grandTotal : outstandingAmount,
+          amount: outstandingAmount.abs(),
         },
       ],
     };
