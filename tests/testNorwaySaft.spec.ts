@@ -1016,6 +1016,95 @@ test('Norwegian SAF-T preserves mixed-rate and zero-VAT classifications', async 
   );
 });
 
+test('Norwegian SAF-T carries pre-period postings into in-period reversals', async (t) => {
+  const now = new Date();
+  const today = [
+    String(now.getFullYear()).padStart(4, '0'),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+  ].join('-');
+
+  const originalDate = new Date(now.getFullYear(), 7, 31, 12, 0, 0);
+
+  const journalEntry = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
+    entryType: 'Journal Entry',
+    date: originalDate,
+    referenceNumber: 'JE-CROSS-PERIOD-001',
+    userRemark: 'Temporary pre-period accrual',
+    accounts: [
+      {
+        account: 'Driftsmaterialer - 65500',
+        debit: 750,
+        credit: 0,
+      },
+      {
+        account: 'Midlertidig åpningskonto - 19990',
+        debit: 0,
+        credit: 750,
+      },
+    ],
+  }) as JournalEntry;
+
+  await journalEntry.runFormulas();
+  await journalEntry.sync();
+  await journalEntry.submit();
+  await journalEntry.cancel('Pre-period accrual reversed in current period');
+
+  const result = await buildNorwegianSaftFinancial140(fyo, {
+    fromDate: today,
+    toDate: today,
+    createdDate: today,
+    softwareVersion: '0.37.0-test',
+  });
+
+  const originalTransactionId =
+    `<TransactionID>${journalEntry.name}</TransactionID>`;
+  const reversalPrefix =
+    `<TransactionID>${journalEntry.name}-REV-`;
+
+  t.ok(
+    !result.xml.includes(originalTransactionId),
+    'cross-period export excludes original posting before selection start'
+  );
+  t.ok(
+    result.xml.includes(reversalPrefix),
+    'cross-period export includes the in-period reversal transaction'
+  );
+
+  const reversalStart = result.xml.indexOf(reversalPrefix);
+  const reversalEnd = result.xml.indexOf('</Transaction>', reversalStart);
+  const reversalXml = result.xml.slice(reversalStart, reversalEnd);
+
+  t.ok(
+    reversalXml.includes('<TransactionType>Reversal</TransactionType>') &&
+      reversalXml.includes('Pre-period accrual reversed in current period'),
+    'cross-period reversal preserves reversal semantics and cancellation reason'
+  );
+
+  t.ok(
+    result.xml.includes(
+      '<AccountID>65500</AccountID>\n        <AccountDescription>Driftsmaterialer</AccountDescription>\n        <GroupingCategory>annenDriftskostnad</GroupingCategory>\n        <GroupingCode>7700</GroupingCode>\n        <AccountType>GL</AccountType>\n        <OpeningDebitBalance>750.00</OpeningDebitBalance>\n        <ClosingDebitBalance>0.00</ClosingDebitBalance>'
+    ),
+    'cross-period export carries original debit into opening balance and reversal into closing balance'
+  );
+
+  t.ok(
+    result.xml.includes(
+      '<AccountID>19990</AccountID>\n        <AccountDescription>Midlertidig åpningskonto</AccountDescription>\n        <GroupingCategory>balanseverdiForOmloepsmiddel</GroupingCategory>\n        <GroupingCode>1570</GroupingCode>\n        <AccountType>GL</AccountType>\n        <OpeningCreditBalance>750.00</OpeningCreditBalance>\n        <ClosingDebitBalance>0.00</ClosingDebitBalance>'
+    ),
+    'cross-period export carries original credit into opening balance and reversal into closing balance'
+  );
+
+  const xsdValidation = await validateAgainstOfficialSaft140Xsd(result.xml);
+  t.equal(
+    xsdValidation.valid,
+    true,
+    xsdValidation.valid
+      ? 'cross-period reversal SAF-T export remains XSD-valid'
+      : `cross-period reversal SAF-T XSD validation failed: ${xsdValidation.output}`
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });
