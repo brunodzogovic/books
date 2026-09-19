@@ -362,7 +362,15 @@ export abstract class Invoice extends Transactional {
         'Payment',
         paymentId
       )) as Payment;
-      await paymentDoc.cancel();
+      const cancellationReason = this.get('cancellationReason');
+      const parentReason =
+        typeof cancellationReason === 'string' && cancellationReason.trim()
+          ? cancellationReason.trim()
+          : 'Parent invoice cancelled';
+
+      await paymentDoc.cancel(
+        `Automatically cancelled with ${this.schema.label} ${this.name ?? ''}: ${parentReason}`
+      );
     }
   }
 

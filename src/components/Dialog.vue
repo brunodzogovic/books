@@ -39,6 +39,25 @@
               <p class="text-base">{{ d }}</p>
             </div>
           </template>
+          <div v-if="input" class="flex flex-col gap-2">
+            <label v-if="input.label" class="text-sm font-medium">
+              {{ input.label }}
+            </label>
+            <textarea
+              v-if="input.multiline"
+              v-model="inputValue"
+              rows="4"
+              class="w-full rounded-md border dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+              :placeholder="input.placeholder"
+            />
+            <input
+              v-else
+              v-model="inputValue"
+              class="w-full rounded-md border dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm"
+              :placeholder="input.placeholder"
+            />
+          </div>
+
           <div class="flex justify-end gap-4 mt-4">
             <Button
               v-for="(b, index) of buttons"
@@ -46,6 +65,7 @@
               :key="b.label"
               style="min-width: 5rem"
               :type="b.isPrimary ? 'primary' : 'secondary'"
+              :disabled="Boolean(b.isPrimary && input?.required && !inputValue.trim())"
               @click="() => handleClick(index)"
             >
               {{ b.label }}
@@ -58,7 +78,11 @@
 </template>
 <script lang="ts">
 import { getIconConfig } from 'src/utils/interactive';
-import { DialogButton, ToastType } from 'src/utils/types';
+import {
+  DialogButton,
+  DialogInputOptions,
+  ToastType,
+} from 'src/utils/types';
 import { defineComponent, nextTick, PropType, ref } from 'vue';
 import Button from './Button.vue';
 import FeatherIcon from './FeatherIcon.vue';
@@ -76,6 +100,10 @@ export default defineComponent({
       type: Array as PropType<DialogButton[]>,
       required: true,
     },
+    input: {
+      type: Object as PropType<DialogInputOptions>,
+      required: false,
+    },
   },
   setup() {
     return {
@@ -84,7 +112,10 @@ export default defineComponent({
     };
   },
   data() {
-    return { open: false };
+    return {
+      open: false,
+      inputValue: this.input?.value ?? '',
+    };
   },
   computed: {
     config() {
@@ -142,7 +173,7 @@ export default defineComponent({
     },
     handleClick(index: number) {
       const button = this.buttons[index];
-      button.action();
+      button.action(this.inputValue);
       this.open = false;
     },
   },

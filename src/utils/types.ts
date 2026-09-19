@@ -105,16 +105,25 @@ export type PrintValues = {
   doc: Record<string, unknown>;
 };
 
+export interface DialogInputOptions {
+  label?: string;
+  placeholder?: string;
+  value?: string;
+  required?: boolean;
+  multiline?: boolean;
+}
+
 export interface DialogOptions {
   title: string;
   type?: ToastType;
   detail?: string | string[];
+  input?: DialogInputOptions;
   buttons?: DialogButton[];
 }
 
 export type DialogButton = {
   label: string;
-  action: () => unknown;
+  action: (inputValue?: string) => unknown;
   isPrimary?: boolean;
   isEscape?: boolean;
 };

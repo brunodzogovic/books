@@ -68,3 +68,7 @@
 
 "Lock Accounting Through","Lås regnskap til og med"
 "Accounting is locked through ${lockDate}. Transactions dated ${postingDate} cannot be posted or reversed in that period.","Regnskapet er låst til og med ${lockDate}. Transaksjoner datert ${postingDate} kan ikke bokføres eller reverseres i denne perioden."
+
+"Cancellation Reason","Årsak til annullering"
+"Explain why this posted document is being reversed","Forklar hvorfor det bokførte dokumentet blir reversert"
+"Cancellation reason is required for Norwegian accounting records.","Årsak til annullering er påkrevd for norske regnskapsbilag."

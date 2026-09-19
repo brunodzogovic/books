@@ -1,0 +1,13 @@
+{
+  "name": "PurchaseInvoice",
+  "fields": [
+    {
+      "fieldname": "cancellationReason",
+      "label": "Cancellation Reason",
+      "fieldtype": "Text",
+      "readOnly": true,
+      "section": "References",
+      "description": "Reason recorded when a posted Norwegian accounting document is cancelled or reversed."
+    }
+  ]
+}

@@ -1,4 +1,6 @@
+import { t } from 'fyo';
 import { Doc } from 'fyo/model/doc';
+import { ValidationError } from 'fyo/utils/errors';
 import { ModelNameEnum } from 'models/types';
 import { validateNorwegianAccountingPeriod } from 'regional/noPeriodLock';
 import { LedgerPosting } from './LedgerPosting';
@@ -44,6 +46,30 @@ export abstract class Transactional extends Doc {
   }
 
   abstract getPosting(): Promise<LedgerPosting | null>;
+
+  override async cancel(reason?: string): Promise<void> {
+    const isNorwegian =
+      this.fyo.singles.SystemSettings?.countryCode === 'no';
+    const hasCancellationReasonField =
+      this.fieldMap.cancellationReason !== undefined;
+
+    if (isNorwegian && hasCancellationReasonField) {
+      const existingReason = this.get('cancellationReason');
+      const cancellationReason =
+        (reason ?? (typeof existingReason === 'string' ? existingReason : ''))
+          .trim();
+
+      if (!cancellationReason) {
+        throw new ValidationError(
+          t`Cancellation reason is required for Norwegian accounting records.`
+        );
+      }
+
+      await this.set('cancellationReason', cancellationReason);
+    }
+
+    await super.cancel();
+  }
 
   async validate() {
     await super.validate();

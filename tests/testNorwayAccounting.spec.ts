@@ -868,7 +868,7 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
 
   let reversalBlocked = false;
   try {
-    await openInvoice.cancel();
+    await openInvoice.cancel('Period close correction test');
   } catch (error) {
     reversalBlocked = true;
     t.match(
@@ -919,9 +919,32 @@ test('Norwegian cancelled postings remain immutable and auditable', async (t) =>
 
   t.equal(originalEntries.length, 3, 'submitted invoice creates three ledger entries');
 
-  await invoice.cancel();
+  let missingReasonBlocked = false;
+  try {
+    await invoice.cancel();
+  } catch (error) {
+    missingReasonBlocked = true;
+    t.match(
+      (error as Error).message,
+      /Cancellation reason is required/,
+      'cancellation without a reason is rejected'
+    );
+  }
+  t.equal(
+    missingReasonBlocked,
+    true,
+    'Norwegian cancellation requires an audit reason'
+  );
+
+  const cancellationReason = 'Customer order was entered twice';
+  await invoice.cancel(cancellationReason);
 
   t.equal(invoice.isCancelled, true, 'invoice is marked cancelled');
+  t.equal(
+    invoice.get('cancellationReason'),
+    cancellationReason,
+    'cancellation reason is stored on the cancelled document'
+  );
   t.equal(
     invoice.canDelete,
     false,

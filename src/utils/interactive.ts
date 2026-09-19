@@ -14,9 +14,9 @@ export async function showDialog<DO extends DialogOptions>(options: DO) {
     const buttons = preWrappedButtons.map((config) => {
       return {
         ...config,
-        action: async () => {
+        action: async (inputValue?: string) => {
           try {
-            resolve(await config.action());
+            resolve(await config.action(inputValue));
           } catch (error) {
             reject(error);
           }

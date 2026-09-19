@@ -160,16 +160,35 @@ export async function cancelDocWithPrompt(doc: Doc) {
     }
   }
 
+  const requiresCancellationReason =
+    fyo.singles.SystemSettings?.countryCode === 'no' &&
+    doc instanceof Transactional &&
+    doc.fieldMap.cancellationReason !== undefined;
+
   return (await showDialog({
     title: t`Cancel ${getDocReferenceLabel(doc)}?`,
     detail,
     type: 'warning',
+    ...(requiresCancellationReason
+      ? {
+          input: {
+            label: t`Cancellation Reason`,
+            placeholder: t`Explain why this posted document is being reversed`,
+            required: true,
+            multiline: true,
+          },
+        }
+      : {}),
     buttons: [
       {
         label: t`Yes`,
-        async action() {
+        async action(reason?: string) {
           try {
-            await doc.cancel();
+            if (doc instanceof Transactional) {
+              await doc.cancel(reason);
+            } else {
+              await doc.cancel();
+            }
           } catch (err) {
             await handleErrorWithDialog(err as Error, doc);
             return false;

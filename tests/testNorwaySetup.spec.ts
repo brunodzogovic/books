@@ -74,6 +74,30 @@ test('setup Norwegian company', async (t) => {
     ),
     'Norwegian accounting settings has period lock date'
   );
+  t.ok(
+    fyo.schemaMap.SalesInvoice?.fields.some(
+      ({ fieldname }) => fieldname === 'cancellationReason'
+    ),
+    'Norwegian sales invoices record cancellation reasons'
+  );
+  t.ok(
+    fyo.schemaMap.PurchaseInvoice?.fields.some(
+      ({ fieldname }) => fieldname === 'cancellationReason'
+    ),
+    'Norwegian purchase invoices record cancellation reasons'
+  );
+  t.ok(
+    fyo.schemaMap.Payment?.fields.some(
+      ({ fieldname }) => fieldname === 'cancellationReason'
+    ),
+    'Norwegian payments record cancellation reasons'
+  );
+  t.ok(
+    fyo.schemaMap.JournalEntry?.fields.some(
+      ({ fieldname }) => fieldname === 'cancellationReason'
+    ),
+    'Norwegian journal entries record cancellation reasons'
+  );
 
   t.ok(await fyo.db.exists('Account', 'Kundefordringer - 15000'));
   t.ok(await fyo.db.exists('Account', 'Leverandørgjeld - 24000'));
