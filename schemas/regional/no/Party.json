@@ -7,6 +7,14 @@
       "fieldtype": "Data",
       "section": "Billing",
       "description": "Norwegian organization number for the customer or supplier."
+    },
+    {
+      "fieldname": "vatRegistered",
+      "label": "VAT Registered",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "Billing",
+      "description": "Whether the customer or supplier is registered in the Norwegian VAT Register."
     }
   ],
   "quickEditFields": [
@@ -17,6 +25,7 @@
     "currency",
     "role",
     "organizationNumber",
+    "vatRegistered",
     "taxId"
   ]
 }

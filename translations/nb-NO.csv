@@ -56,3 +56,9 @@
 "Delivery Date and Time","Leveringstidspunkt"
 "Delivery Place","Leveringssted"
 "Credit Note For","Kreditnota for"
+
+"Organization number is required before submitting a Norwegian sales invoice.","Organisasjonsnummer er påkrevd før en norsk salgsfaktura kan bokføres."
+"Payment due date is required on Norwegian sales invoices.","Betalingsfrist er påkrevd på norske salgsfakturaer."
+"Delivery date and time is required on Norwegian sales invoices.","Leveringstidspunkt er påkrevd på norske salgsfakturaer."
+"Delivery place is required on Norwegian sales invoices.","Leveringssted er påkrevd på norske salgsfakturaer."
+"Norwegian sales invoices require the customer to have an address or organization number.","Norske salgsfakturaer krever at kunden har adresse eller organisasjonsnummer."

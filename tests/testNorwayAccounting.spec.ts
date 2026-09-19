@@ -45,6 +45,7 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
     role: 'Customer',
     email: 'kunde@example.invalid',
     organizationNumber: '987654325',
+    vatRegistered: true,
   });
   await customer.runFormulas();
   await customer.sync();
@@ -58,6 +59,11 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
     customer.get('organizationNumber'),
     '987654325',
     'customer keeps Norwegian organization number'
+  );
+  t.equal(
+    customer.get('vatRegistered'),
+    true,
+    'customer keeps Norwegian VAT registration status'
   );
 
   const service = fyo.doc.getNewDoc(ModelNameEnum.Item, {
@@ -75,6 +81,11 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
   const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
     account: receivableAccount,
     party: customerName,
+    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10),
+    deliveryDate: new Date().toISOString(),
+    deliveryPlace: 'Oslo',
     items: [
       {
         item: serviceName,
@@ -522,7 +533,12 @@ test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) =
     const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
       account: 'Kundefordringer - 15000',
       party: 'Norsk Testkunde AS',
-      items: [
+    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10),
+    deliveryDate: new Date().toISOString(),
+    deliveryPlace: 'Oslo',
+    items: [
         {
           item: vatCase.itemName,
           quantity: 1,
@@ -606,6 +622,51 @@ test('Norwegian VAT summary aggregates by SAF-T classification', async (t) => {
   t.equal(byCode['5']?.vatAmount, 0, 'zero-rated VAT amount is zero');
   t.equal(byCode['6']?.basis, 10000, 'outside-scope basis remains reportable');
   t.equal(byCode['6']?.vatAmount, 0, 'outside-scope VAT amount is zero');
+});
+
+test('Norwegian sales invoice blocks missing compliance fields', async (t) => {
+  const customer = fyo.doc.getNewDoc(ModelNameEnum.Party, {
+    name: 'Kunde uten identifikasjon',
+    role: 'Customer',
+    email: 'ingenid@example.invalid',
+  });
+  await customer.runFormulas();
+  await customer.sync();
+
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Kunde uten identifikasjon',
+    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10),
+    deliveryDate: new Date().toISOString(),
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: 'Konsulenttjeneste',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await invoice.runFormulas();
+  await invoice.sync();
+
+  let threw = false;
+  try {
+    await invoice.submit();
+  } catch (error) {
+    threw = true;
+    t.match(
+      (error as Error).message,
+      /address or organization number/,
+      'missing customer identification is rejected'
+    );
+  }
+
+  t.equal(threw, true, 'non-compliant Norwegian sales invoice is blocked');
 });
 
 test.onFinish(async () => {
