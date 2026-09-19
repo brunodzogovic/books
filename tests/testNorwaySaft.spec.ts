@@ -7,10 +7,12 @@ import {
   getSaftAccountId,
   getSaftPartyId,
   getNorwegianSaftGrouping,
+  NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT,
   NORWEGIAN_SAF_T_VERSION,
 } from 'regional/noSaft';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
+import norwayCoa from 'fixtures/verified/no.json';
 
 const fyo = getTestFyo();
 const dbPath = getTestDbPath();
@@ -450,6 +452,70 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
       code: '1920',
     },
     'derives bank grouping from account type'
+  );
+
+  const starterAccountNumbers: string[] = [];
+  const collectAccountNumbers = (node: unknown) => {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+
+    const record = node as Record<string, unknown>;
+    if (typeof record.accountNumber === 'string') {
+      starterAccountNumbers.push(record.accountNumber);
+    }
+
+    for (const value of Object.values(record)) {
+      collectAccountNumbers(value);
+    }
+  };
+  collectAccountNumbers(norwayCoa.tree);
+
+  t.equal(
+    starterAccountNumbers.length,
+    61,
+    'Norwegian SME starter chart exposes 61 numbered accounts'
+  );
+  t.equal(
+    starterAccountNumbers.filter(
+      (accountNumber) =>
+        !NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT[accountNumber]
+    ).length,
+    0,
+    'starter chart has a SAF-T grouping for every numbered account'
+  );
+
+  t.deepEqual(
+    getNorwegianSaftGrouping({
+      name: 'Salgsinntekt, redusert sats - 31000',
+      rootType: 'Income',
+    }),
+    { category: 'salgsinntekt', code: '3000' },
+    'reduced-rate taxable sales map to taxable-sales grouping'
+  );
+  t.deepEqual(
+    getNorwegianSaftGrouping({
+      name: 'Salgsinntekt, fritatt for MVA - 32000',
+      rootType: 'Income',
+    }),
+    { category: 'salgsinntekt', code: '3100' },
+    'zero-rated sales map to zero-rate sales grouping'
+  );
+  t.deepEqual(
+    getNorwegianSaftGrouping({
+      name: 'Lån fra kredittinstitusjoner - 22400',
+      rootType: 'Liability',
+    }),
+    { category: 'langsiktigGjeld', code: '2220' },
+    'long-term credit-institution debt maps to official bank-debt grouping'
+  );
+  t.deepEqual(
+    getNorwegianSaftGrouping({
+      name: 'Kontorrekvisita - 68000',
+      rootType: 'Expense',
+    }),
+    { category: 'annenDriftskostnad', code: '6995' },
+    'office supplies map to official office and communications grouping'
   );
 });
 

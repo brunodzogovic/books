@@ -355,6 +355,88 @@ async function buildGeneralLedgerAccountsXml(
   return lines;
 }
 
+export const NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT: Record<
+  string,
+  SaftGrouping
+> = {
+  '12000': { category: 'balanseverdiForAnleggsmiddel', code: '1205' },
+  '12500': { category: 'balanseverdiForAnleggsmiddel', code: '1205' },
+  '12800': { category: 'balanseverdiForAnleggsmiddel', code: '1280' },
+  '12900': { category: 'balanseverdiForAnleggsmiddel', code: '1290' },
+  '12990': { category: 'balanseverdiForAnleggsmiddel', code: '1295' },
+
+  '14000': { category: 'balanseverdiForOmloepsmiddel', code: '1400' },
+  '15000': { category: 'balanseverdiForOmloepsmiddel', code: '1500' },
+  '15700': { category: 'balanseverdiForOmloepsmiddel', code: '1570' },
+  '17000': { category: 'balanseverdiForOmloepsmiddel', code: '1570' },
+  '19000': { category: 'balanseverdiForOmloepsmiddel', code: '1900' },
+  '19200': { category: 'balanseverdiForOmloepsmiddel', code: '1920' },
+  '19990': { category: 'balanseverdiForOmloepsmiddel', code: '1570' },
+
+  '20000': { category: 'egenkapital', code: '2000' },
+  '20200': { category: 'egenkapital', code: '2020' },
+  '20500': { category: 'egenkapital', code: '2050' },
+  '20800': { category: 'egenkapital', code: '2080' },
+
+  '22400': { category: 'langsiktigGjeld', code: '2220' },
+  '24000': { category: 'kortsiktigGjeld', code: '2400' },
+  '25000': { category: 'kortsiktigGjeld', code: '2500' },
+  '26000': { category: 'kortsiktigGjeld', code: '2600' },
+  '27000': { category: 'kortsiktigGjeld', code: '2740' },
+  '27010': { category: 'kortsiktigGjeld', code: '2740' },
+  '27020': { category: 'kortsiktigGjeld', code: '2740' },
+  '27100': { category: 'kortsiktigGjeld', code: '2740' },
+  '27110': { category: 'kortsiktigGjeld', code: '2740' },
+  '27120': { category: 'kortsiktigGjeld', code: '2740' },
+  '27400': { category: 'kortsiktigGjeld', code: '2740' },
+  '27700': { category: 'kortsiktigGjeld', code: '2770' },
+  '29300': { category: 'kortsiktigGjeld', code: '2949' },
+  '29400': { category: 'kortsiktigGjeld', code: '2949' },
+  '29600': { category: 'kortsiktigGjeld', code: '2980' },
+  '29610': { category: 'kortsiktigGjeld', code: '2990' },
+  '29900': { category: 'kortsiktigGjeld', code: '2990' },
+
+  '30000': { category: 'salgsinntekt', code: '3000' },
+  '31000': { category: 'salgsinntekt', code: '3000' },
+  '32000': { category: 'salgsinntekt', code: '3100' },
+  '39000': { category: 'annenDriftsinntekt', code: '3900' },
+
+  '40000': { category: 'varekostnad', code: '4005' },
+  '40900': { category: 'varekostnad', code: '4005' },
+  '43900': { category: 'varekostnad', code: '4295' },
+
+  '50000': { category: 'loennskostnad', code: '5000' },
+  '50900': { category: 'loennskostnad', code: '5000' },
+  '54000': { category: 'loennskostnad', code: '5400' },
+  '59000': { category: 'loennskostnad', code: '5900' },
+
+  '60000': { category: 'annenDriftskostnad', code: '6000' },
+  '63000': { category: 'annenDriftskostnad', code: '6300' },
+  '65000': { category: 'annenDriftskostnad', code: '6500' },
+  '65500': { category: 'annenDriftskostnad', code: '7700' },
+  '67000': { category: 'annenDriftskostnad', code: '6700' },
+  '68000': { category: 'annenDriftskostnad', code: '6995' },
+  '69000': { category: 'annenDriftskostnad', code: '6995' },
+  '71400': { category: 'annenDriftskostnad', code: '7165' },
+  '73200': { category: 'annenDriftskostnad', code: '7330' },
+  '75000': { category: 'annenDriftskostnad', code: '7500' },
+  '77400': { category: 'annenDriftskostnad', code: '7700' },
+  '77700': { category: 'annenDriftskostnad', code: '7700' },
+  '77900': { category: 'annenDriftskostnad', code: '7700' },
+  '78300': { category: 'annenDriftskostnad', code: '7830' },
+
+  '80500': { category: 'finansinntekt', code: '8050' },
+  '81500': { category: 'finanskostnad', code: '8150' },
+  '83000': { category: 'skattekostnad', code: '8300' },
+};
+
+/**
+ * Mapping follows Skatteetaten's Grouping Category Code 2025-2026 codelist.
+ * The CirreniX/Frappe Books starter chart intentionally uses a compact,
+ * conventional account set, so several local accounts map to the closest
+ * applicable official grouping code rather than sharing the same account
+ * number as that code.
+ */
 export function getNorwegianSaftGrouping(account: SaftAccount): SaftGrouping {
   const accountId = getSaftAccountId(account.name);
 
@@ -385,45 +467,7 @@ export function getNorwegianSaftGrouping(account: SaftAccount): SaftGrouping {
     return accountTypeMap[account.accountType];
   }
 
-  const prefix = /^\d{5,}$/.test(accountId) ? accountId.slice(0, 4) : '';
-
-  const directMap: Record<string, SaftGrouping> = {
-    '1280': { category: 'balanseverdiForAnleggsmiddel', code: '1280' },
-    '1290': { category: 'balanseverdiForAnleggsmiddel', code: '1290' },
-    '1400': { category: 'balanseverdiForOmloepsmiddel', code: '1400' },
-    '1500': { category: 'balanseverdiForOmloepsmiddel', code: '1500' },
-    '1570': { category: 'balanseverdiForOmloepsmiddel', code: '1570' },
-    '1900': { category: 'balanseverdiForOmloepsmiddel', code: '1900' },
-    '1920': { category: 'balanseverdiForOmloepsmiddel', code: '1920' },
-    '2000': { category: 'egenkapital', code: '2000' },
-    '2020': { category: 'egenkapital', code: '2020' },
-    '2050': { category: 'egenkapital', code: '2050' },
-    '2080': { category: 'egenkapital', code: '2080' },
-    '2400': { category: 'kortsiktigGjeld', code: '2400' },
-    '2500': { category: 'kortsiktigGjeld', code: '2500' },
-    '2600': { category: 'kortsiktigGjeld', code: '2600' },
-    '2740': { category: 'kortsiktigGjeld', code: '2740' },
-    '2770': { category: 'kortsiktigGjeld', code: '2770' },
-    '2990': { category: 'kortsiktigGjeld', code: '2990' },
-    '3000': { category: 'salgsinntekt', code: '3000' },
-    '3100': { category: 'salgsinntekt', code: '3100' },
-    '3200': { category: 'salgsinntekt', code: '3200' },
-    '3900': { category: 'annenDriftsinntekt', code: '3900' },
-    '5000': { category: 'loennskostnad', code: '5000' },
-    '5400': { category: 'loennskostnad', code: '5400' },
-    '5900': { category: 'loennskostnad', code: '5900' },
-    '6000': { category: 'annenDriftskostnad', code: '6000' },
-    '6300': { category: 'annenDriftskostnad', code: '6300' },
-    '6500': { category: 'annenDriftskostnad', code: '6500' },
-    '6700': { category: 'annenDriftskostnad', code: '6700' },
-    '7500': { category: 'annenDriftskostnad', code: '7500' },
-    '7830': { category: 'annenDriftskostnad', code: '7830' },
-    '8050': { category: 'finansinntekt', code: '8050' },
-    '8150': { category: 'finanskostnad', code: '8150' },
-    '8300': { category: 'skattekostnad', code: '8300' },
-  };
-
-  const grouping = directMap[prefix];
+  const grouping = NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT[accountId];
   if (grouping) {
     return grouping;
   }
