@@ -290,6 +290,140 @@ test('Norwegian supplier payment settles payable through bank', async (t) => {
   );
 });
 
+test('Norwegian reduced VAT rates calculate and post correctly', async (t) => {
+  const customerName = 'Norsk Testkunde AS';
+  const receivableAccount = 'Kundefordringer - 15000';
+
+  const cases = [
+    {
+      itemName: 'Testtjeneste 15 prosent',
+      tax: 'Utgående MVA 15 %',
+      vatAccount: 'Utgående MVA, 15 % - 27010',
+      rate: 15,
+      expectedVat: 1500,
+      expectedGross: 11500,
+    },
+    {
+      itemName: 'Testtjeneste 12 prosent',
+      tax: 'Utgående MVA 12 %',
+      vatAccount: 'Utgående MVA, 12 % - 27020',
+      rate: 12,
+      expectedVat: 1200,
+      expectedGross: 11200,
+    },
+  ];
+
+  for (const vatCase of cases) {
+    const item = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+      name: vatCase.itemName,
+      itemType: 'Service',
+      for: 'Sales',
+      unit: 'Unit',
+      rate: 10000,
+      tax: vatCase.tax,
+      incomeAccount: 'Salgsinntekt, redusert sats - 31000',
+      expenseAccount: 'Varekostnad - 40000',
+    });
+    await item.sync();
+
+    const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+      account: receivableAccount,
+      party: customerName,
+      items: [
+        {
+          item: vatCase.itemName,
+          quantity: 1,
+          rate: 10000,
+          tax: vatCase.tax,
+        },
+      ],
+    }) as SalesInvoice;
+
+    await invoice.runFormulas();
+
+    t.equal(
+      invoice.taxes?.[0]?.amount?.float,
+      vatCase.expectedVat,
+      `${vatCase.rate}% VAT is calculated correctly`
+    );
+    t.equal(
+      invoice.grandTotal?.float,
+      vatCase.expectedGross,
+      `${vatCase.rate}% gross total is calculated correctly`
+    );
+
+    await invoice.sync();
+    await invoice.submit();
+
+    const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+      fields: ['account', 'debit', 'credit'],
+      filters: { referenceName: invoice.name! },
+    });
+
+    const vatEntry = entries.find(
+      (entry) => entry.account === vatCase.vatAccount
+    );
+
+    t.equal(
+      fyo.pesa(vatEntry?.credit as string).float,
+      vatCase.expectedVat,
+      `${vatCase.rate}% output VAT posts to the correct Norwegian account`
+    );
+  }
+});
+
+test('Norwegian sales credit note reverses revenue and output VAT', async (t) => {
+  const original = (await fyo.doc.getDoc(
+    ModelNameEnum.SalesInvoice,
+    'SINV-1001'
+  )) as SalesInvoice;
+
+  const creditNote = (await original.getReturnDoc()) as SalesInvoice;
+  await creditNote.runFormulas();
+
+  t.equal(creditNote.netTotal?.float, -10000, 'credit note net total is -10,000');
+  t.equal(
+    creditNote.grandTotal?.float,
+    -12500,
+    'credit note gross total is -12,500'
+  );
+  t.equal(
+    creditNote.taxes?.[0]?.amount?.float,
+    -2500,
+    'credit note reverses NOK 2,500 output VAT'
+  );
+
+  await creditNote.sync();
+  await creditNote.submit();
+
+  const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+    fields: ['account', 'debit', 'credit'],
+    filters: { referenceName: creditNote.name! },
+  });
+
+  const byAccount = Object.fromEntries(
+    entries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(
+      byAccount['Salgsinntekt, avgiftspliktig, 25 % - 30000']?.debit as string
+    ).float,
+    10000,
+    'credit note debits sales revenue NOK 10,000'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Utgående MVA, 25 % - 27000']?.debit as string).float,
+    2500,
+    'credit note debits output VAT NOK 2,500'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Kundefordringer - 15000']?.credit as string).float,
+    12500,
+    'credit note credits receivables NOK 12,500'
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });
