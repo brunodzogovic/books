@@ -24,14 +24,14 @@ export class SalesInvoice extends Invoice {
     const exchangeRate = this.exchangeRate ?? 1;
     const posting: LedgerPosting = new LedgerPosting(this, this.fyo);
     if (this.isReturn) {
-      await posting.credit(this.account!, this.baseGrandTotal!);
+      await posting.credit(this.account!, this.baseGrandTotal!.abs());
     } else {
       await posting.debit(this.account!, this.baseGrandTotal!);
     }
 
     for (const item of this.items!) {
       if (this.isReturn) {
-        await posting.debit(item.account!, item.amount!.mul(exchangeRate));
+        await posting.debit(item.account!, item.amount!.mul(exchangeRate).abs());
         continue;
       }
       await posting.credit(item.account!, item.amount!.mul(exchangeRate));
@@ -64,7 +64,7 @@ export class SalesInvoice extends Invoice {
     if (this.taxes) {
       for (const tax of this.taxes) {
         if (this.isReturn) {
-          await posting.debit(tax.account!, tax.amount!.mul(exchangeRate));
+          await posting.debit(tax.account!, tax.amount!.mul(exchangeRate).abs());
           continue;
         }
         await posting.credit(tax.account!, tax.amount!.mul(exchangeRate));

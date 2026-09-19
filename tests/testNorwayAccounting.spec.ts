@@ -424,6 +424,60 @@ test('Norwegian sales credit note reverses revenue and output VAT', async (t) =>
   );
 });
 
+test('Norwegian purchase credit note reverses expense and input VAT', async (t) => {
+  const original = (await fyo.doc.getDoc(
+    ModelNameEnum.PurchaseInvoice,
+    'PINV-1001'
+  )) as PurchaseInvoice;
+
+  const creditNote = (await original.getReturnDoc()) as PurchaseInvoice;
+  await creditNote.runFormulas();
+
+  t.equal(
+    creditNote.netTotal?.float,
+    -10000,
+    'purchase credit note net total is -10,000'
+  );
+  t.equal(
+    creditNote.grandTotal?.float,
+    -12500,
+    'purchase credit note gross total is -12,500'
+  );
+  t.equal(
+    creditNote.taxes?.[0]?.amount?.float,
+    -2500,
+    'purchase credit note reverses NOK 2,500 input VAT'
+  );
+
+  await creditNote.sync();
+  await creditNote.submit();
+
+  const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+    fields: ['account', 'debit', 'credit'],
+    filters: { referenceName: creditNote.name! },
+  });
+
+  const byAccount = Object.fromEntries(
+    entries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(byAccount['Leverandørgjeld - 24000']?.debit as string).float,
+    12500,
+    'purchase credit note debits payables NOK 12,500'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Fremmede tjenester - 67000']?.credit as string).float,
+    10000,
+    'purchase credit note credits expense NOK 10,000'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Inngående MVA, 25 % - 27100']?.credit as string).float,
+    2500,
+    'purchase credit note credits input VAT NOK 2,500'
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });
