@@ -76,3 +76,8 @@
 "Corrects Invoice","Korrigerer faktura"
 "Correction Reason","Korrigeringsårsak"
 "Correction reason is required on Norwegian credit notes.","Korrigeringsårsak er påkrevd på norske kreditnotaer."
+
+"Norwegian VAT Snapshot","Norsk MVA-øyeblikksbilde"
+"Norwegian VAT mapping is required for tax template ${taxName}.","Norsk MVA-kobling er påkrevd for avgiftsmalen ${taxName}."
+"Norwegian VAT tax template ${taxName} has no valid tax details.","Den norske MVA-malen ${taxName} har ingen gyldige avgiftsdetaljer."
+"VAT mapping is missing for ${schemaName} ${name}, tax template ${taxItem.tax}.","MVA-kobling mangler for ${schemaName} ${name}, avgiftsmal ${taxItem.tax}."

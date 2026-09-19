@@ -6,6 +6,8 @@ import SalesInvoice from './SalesInvoice.json';
 import PurchaseInvoice from './PurchaseInvoice.json';
 import Payment from './Payment.json';
 import JournalEntry from './JournalEntry.json';
+import SalesInvoiceItem from './SalesInvoiceItem.json';
+import PurchaseInvoiceItem from './PurchaseInvoiceItem.json';
 
 export default [
   AccountingSettings,
@@ -14,5 +16,7 @@ export default [
   PurchaseInvoice,
   Payment,
   JournalEntry,
+  SalesInvoiceItem,
+  PurchaseInvoiceItem,
   Tax,
 ] as SchemaStub[];

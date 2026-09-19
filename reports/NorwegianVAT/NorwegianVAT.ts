@@ -1,5 +1,6 @@
 import { Fyo, t } from 'fyo';
 import { Action } from 'fyo/model/types';
+import { ValidationError } from 'fyo/utils/errors';
 import { DateTime } from 'luxon';
 import { Invoice } from 'models/baseModels/Invoice/Invoice';
 import { ModelNameEnum } from 'models/types';
@@ -48,13 +49,24 @@ export async function getNorwegianVatSummary(
       const taxItems = await invoice.getTaxItems();
 
       for (const taxItem of taxItems) {
-        const tax = await fyo.doc.getDoc('Tax', taxItem.tax);
-        const taxCode = (tax?.get('taxCode') as string | undefined) ?? '';
-        const standardTaxCode =
-          (tax?.get('standardTaxCode') as string | undefined) ?? '';
+        let taxCode = taxItem.taxCode ?? '';
+        let standardTaxCode = taxItem.standardTaxCode ?? '';
+
+        /*
+         * Legacy invoices created before VAT snapshots were introduced can
+         * still be reported using the current tax-template mapping.
+         */
+        if (!taxCode || !standardTaxCode) {
+          const tax = await fyo.doc.getDoc('Tax', taxItem.tax);
+          taxCode = (tax?.get('taxCode') as string | undefined) ?? '';
+          standardTaxCode =
+            (tax?.get('standardTaxCode') as string | undefined) ?? '';
+        }
 
         if (!taxCode || !standardTaxCode) {
-          continue;
+          throw new ValidationError(
+            t`VAT mapping is missing for ${schemaName} ${name}, tax template ${taxItem.tax}.`
+          );
         }
 
         const key = `${standardTaxCode}:${taxCode}`;

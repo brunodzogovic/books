@@ -1,0 +1,13 @@
+{
+  "name": "PurchaseInvoiceItem",
+  "fields": [
+    {
+      "fieldname": "norwegianVatSnapshot",
+      "label": "Norwegian VAT Snapshot",
+      "fieldtype": "Text",
+      "hidden": true,
+      "readOnly": true,
+      "description": "Immutable VAT classification and tax-detail snapshot captured when a Norwegian invoice is submitted."
+    }
+  ]
+}

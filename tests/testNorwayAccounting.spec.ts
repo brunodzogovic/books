@@ -113,6 +113,34 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
   await invoice.sync();
   await invoice.submit();
 
+  const vatSnapshot = JSON.parse(
+    String(invoice.items?.[0]?.get('norwegianVatSnapshot') ?? '{}')
+  ) as {
+    taxCode?: string;
+    standardTaxCode?: string;
+    details?: { account?: string; rate?: number }[];
+  };
+  t.equal(
+    vatSnapshot.taxCode,
+    'NO-OUT-25',
+    'submitted sales invoice snapshots Norwegian VAT code'
+  );
+  t.equal(
+    vatSnapshot.standardTaxCode,
+    '3',
+    'submitted sales invoice snapshots SAF-T VAT classification'
+  );
+  t.equal(
+    vatSnapshot.details?.[0]?.rate,
+    25,
+    'submitted sales invoice snapshots VAT rate'
+  );
+  t.equal(
+    vatSnapshot.details?.[0]?.account,
+    'Utgående MVA, 25 % - 27000',
+    'submitted sales invoice snapshots VAT account'
+  );
+
   const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
     fields: ['account', 'debit', 'credit'],
     filters: { referenceName: invoice.name! },
@@ -820,6 +848,114 @@ test('Norwegian VAT summary aggregates by SAF-T classification', async (t) => {
   t.equal(byCode['5']?.vatAmount, 0, 'zero-rated VAT amount is zero');
   t.equal(byCode['6']?.basis, 10000, 'outside-scope basis remains reportable');
   t.equal(byCode['6']?.vatAmount, 0, 'outside-scope VAT amount is zero');
+});
+
+test('Norwegian VAT reporting preserves submitted classification', async (t) => {
+  const year = new Date().getFullYear();
+  const tax = await fyo.doc.getDoc('Tax', 'Utgående MVA 15 %');
+
+  const originalTaxCode = tax.get('taxCode') as string;
+  const originalStandardTaxCode = tax.get('standardTaxCode') as string;
+
+  await tax.set({
+    taxCode: 'NO-CHANGED-AFTER-POSTING',
+    standardTaxCode: '99',
+  });
+  await tax.sync();
+
+  const rows = await getNorwegianVatSummary(
+    fyo,
+    `${year}-01-01`,
+    `${year}-12-31`
+  );
+  const originalClassification = rows.find(
+    ({ standardTaxCode }) => standardTaxCode === '31'
+  );
+  const rewrittenClassification = rows.find(
+    ({ standardTaxCode }) => standardTaxCode === '99'
+  );
+
+  t.equal(
+    originalClassification?.basis,
+    10000,
+    'submitted 15% VAT basis keeps SAF-T code 31 after template edit'
+  );
+  t.equal(
+    originalClassification?.vatAmount,
+    1500,
+    'submitted 15% VAT amount keeps historical classification'
+  );
+  t.equal(
+    rewrittenClassification,
+    undefined,
+    'editing a tax template does not rewrite posted VAT history'
+  );
+
+  await tax.set({
+    taxCode: originalTaxCode,
+    standardTaxCode: originalStandardTaxCode,
+  });
+  await tax.sync();
+});
+
+test('Norwegian invoice blocks unmapped VAT templates', async (t) => {
+  const tax = fyo.doc.getNewDoc('Tax', {
+    name: 'Uklassifisert norsk MVA',
+    details: [
+      {
+        account: 'Utgående MVA, 25 % - 27000',
+        rate: 25,
+      },
+    ],
+  });
+  await tax.sync();
+
+  const item = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: 'Uklassifisert MVA-test',
+    itemType: 'Service',
+    for: 'Sales',
+    unit: 'Unit',
+    rate: 1000,
+    tax: 'Uklassifisert norsk MVA',
+    incomeAccount: 'Salgsinntekt, avgiftspliktig, 25 % - 30000',
+    expenseAccount: 'Varekostnad - 40000',
+  });
+  await item.sync();
+
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Norsk Testkunde AS',
+    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10),
+    deliveryDate: new Date().toISOString(),
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: 'Uklassifisert MVA-test',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Uklassifisert norsk MVA',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await invoice.runFormulas();
+  await invoice.sync();
+
+  let blocked = false;
+  try {
+    await invoice.submit();
+  } catch (error) {
+    blocked = true;
+    t.match(
+      (error as Error).message,
+      /Norwegian VAT mapping is required/,
+      'unmapped Norwegian VAT template is rejected'
+    );
+  }
+
+  t.equal(blocked, true, 'unmapped VAT invoice cannot be submitted');
 });
 
 test('Norwegian foreign-currency invoice states VAT in NOK', async (t) => {

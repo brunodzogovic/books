@@ -57,6 +57,10 @@ import { SalesInvoice } from '../SalesInvoice/SalesInvoice';
 import { SalesInvoiceItem } from '../SalesInvoiceItem/SalesInvoiceItem';
 import { PricingRuleItem } from '../PricingRuleItem/PricingRuleItem';
 import { getLinkedEntries } from 'src/utils/doc';
+import {
+  buildNorwegianVatSnapshot,
+  parseNorwegianVatSnapshot,
+} from 'regional/noVatSnapshot';
 
 export type TaxDetail = {
   account: string;
@@ -74,6 +78,8 @@ export type ReturnedItemData =
 export type InvoiceTaxItem = {
   tax: string;
   details: TaxDetail;
+  taxCode?: string;
+  standardTaxCode?: string;
   exchangeRate?: number;
   fullAmount: Money;
   taxAmount: Money;
@@ -228,6 +234,8 @@ export abstract class Invoice extends Transactional {
   }
 
   async beforeSubmit() {
+    await this._snapshotNorwegianVat();
+
     const partyDoc = (await this.fyo.doc.getDoc(
       ModelNameEnum.Party,
       this.party
@@ -290,6 +298,33 @@ export abstract class Invoice extends Transactional {
           t`Correction reason is required on Norwegian credit notes.`
         );
       }
+    }
+  }
+
+  async _snapshotNorwegianVat() {
+    if (this.fyo.singles.SystemSettings?.countryCode !== 'no') {
+      return;
+    }
+
+    for (const item of this.items ?? []) {
+      if (!item.tax) {
+        continue;
+      }
+
+      const existingSnapshot = parseNorwegianVatSnapshot(
+        item.get('norwegianVatSnapshot')
+      );
+
+      /*
+       * Credit notes copy the original invoice item. Preserve that original
+       * snapshot so later changes to a tax template cannot rewrite history.
+       */
+      if (this.isReturn && existingSnapshot) {
+        continue;
+      }
+
+      const snapshot = await buildNorwegianVatSnapshot(this.fyo, item.tax);
+      await item.set('norwegianVatSnapshot', JSON.stringify(snapshot));
     }
   }
 
@@ -448,8 +483,31 @@ export abstract class Invoice extends Transactional {
         continue;
       }
 
-      const tax = await this.getTax(item.tax);
-      for (const details of (tax.details ?? []) as TaxDetail[]) {
+      let detailsList: TaxDetail[];
+      let taxCode: string | undefined;
+      let standardTaxCode: string | undefined;
+
+      const norwegianSnapshot =
+        this.fyo.singles.SystemSettings?.countryCode === 'no'
+          ? parseNorwegianVatSnapshot(item.get('norwegianVatSnapshot'))
+          : null;
+
+      if (norwegianSnapshot) {
+        detailsList = norwegianSnapshot.details;
+        taxCode = norwegianSnapshot.taxCode;
+        standardTaxCode = norwegianSnapshot.standardTaxCode;
+      } else {
+        const tax = await this.getTax(item.tax);
+        detailsList = (tax.details ?? []) as TaxDetail[];
+
+        if (this.fyo.singles.SystemSettings?.countryCode === 'no') {
+          taxCode = (tax.get('taxCode') as string | undefined) ?? '';
+          standardTaxCode =
+            (tax.get('standardTaxCode') as string | undefined) ?? '';
+        }
+      }
+
+      for (const details of detailsList) {
         let amount = item.amount!;
 
         if (this.isReturn && amount.isPositive()) {
@@ -472,6 +530,8 @@ export abstract class Invoice extends Transactional {
           const taxItem: InvoiceTaxItem = {
             tax: item.tax,
             details,
+            taxCode,
+            standardTaxCode,
             exchangeRate: this.exchangeRate ?? 1,
             fullAmount: amount,
             taxAmount: amount.mul(details.rate / 100),

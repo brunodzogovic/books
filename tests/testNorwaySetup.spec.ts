@@ -109,6 +109,18 @@ test('setup Norwegian company', async (t) => {
     'Norwegian purchase credit notes expose original invoice reference'
   );
   t.ok(
+    fyo.schemaMap.SalesInvoiceItem?.fields.some(
+      ({ fieldname }) => fieldname === 'norwegianVatSnapshot'
+    ),
+    'Norwegian sales invoice items snapshot VAT mapping'
+  );
+  t.ok(
+    fyo.schemaMap.PurchaseInvoiceItem?.fields.some(
+      ({ fieldname }) => fieldname === 'norwegianVatSnapshot'
+    ),
+    'Norwegian purchase invoice items snapshot VAT mapping'
+  );
+  t.ok(
     fyo.schemaMap.Payment?.fields.some(
       ({ fieldname }) => fieldname === 'cancellationReason'
     ),
