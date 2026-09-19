@@ -72,6 +72,7 @@ export type ReturnedItemData =
     };
 
 export type InvoiceTaxItem = {
+  tax: string;
   details: TaxDetail;
   exchangeRate?: number;
   fullAmount: Money;
@@ -446,6 +447,7 @@ export abstract class Invoice extends Transactional {
           }
 
           const taxItem: InvoiceTaxItem = {
+            tax: item.tax,
             details,
             exchangeRate: this.exchangeRate ?? 1,
             fullAmount: amount,

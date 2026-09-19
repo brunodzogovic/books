@@ -138,6 +138,12 @@ function getReportSidebar() {
         name: 'trial-balance',
         route: '/report/TrialBalance',
       },
+      {
+        label: t`Norwegian VAT Summary`,
+        name: 'norwegian-vat',
+        route: '/report/NorwegianVAT',
+        hidden: () => fyo.singles.SystemSettings?.countryCode !== 'no',
+      },
     ],
   };
 }

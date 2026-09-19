@@ -2,6 +2,7 @@ import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
+import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
 import { ModelNameEnum } from 'models/types';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -568,6 +569,32 @@ test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) =
       `${vatCase.tax} produces no VAT ledger amount`
     );
   }
+});
+
+test('Norwegian VAT summary aggregates by SAF-T classification', async (t) => {
+  const year = new Date().getFullYear();
+  const rows = await getNorwegianVatSummary(
+    fyo,
+    `${year}-01-01`,
+    `${year}-12-31`
+  );
+
+  const byCode = Object.fromEntries(
+    rows.map((row) => [row.standardTaxCode, row])
+  );
+
+  t.equal(byCode['3']?.basis, 0, '25% output VAT basis nets to zero after credit note');
+  t.equal(byCode['3']?.vatAmount, 0, '25% output VAT nets to zero after credit note');
+  t.equal(byCode['31']?.basis, 10000, '15% output VAT basis is NOK 10,000');
+  t.equal(byCode['31']?.vatAmount, 1500, '15% output VAT amount is NOK 1,500');
+  t.equal(byCode['33']?.basis, 10000, '12% output VAT basis is NOK 10,000');
+  t.equal(byCode['33']?.vatAmount, 1200, '12% output VAT amount is NOK 1,200');
+  t.equal(byCode['1']?.basis, 0, '25% input VAT basis nets to zero after credit note');
+  t.equal(byCode['1']?.vatAmount, 0, '25% input VAT nets to zero after credit note');
+  t.equal(byCode['5']?.basis, 10000, 'zero-rated basis remains reportable');
+  t.equal(byCode['5']?.vatAmount, 0, 'zero-rated VAT amount is zero');
+  t.equal(byCode['6']?.basis, 10000, 'outside-scope basis remains reportable');
+  t.equal(byCode['6']?.vatAmount, 0, 'outside-scope VAT amount is zero');
 });
 
 test.onFinish(async () => {
