@@ -6,6 +6,8 @@ import path from 'path';
 import fetch from 'node-fetch';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
+import { Payment } from 'models/baseModels/Payment/Payment';
+import { JournalEntry } from 'models/baseModels/JournalEntry/JournalEntry';
 import { ModelNameEnum } from 'models/types';
 import {
   buildNorwegianSaftFinancial140,
@@ -599,6 +601,171 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     xsdValidation.valid
       ? 'generated XML validates against Skatteetaten SAF-T Financial 1.40 XSD'
       : `SAF-T 1.40 XSD validation failed: ${xsdValidation.output}`
+  );
+
+  // restore the current VAT template after historical-mapping test
+  await outputTax.set({
+    taxCode: 'NO-OUT-25',
+    standardTaxCode: '3',
+  });
+  await outputTax.sync();
+});
+
+test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', async (t) => {
+  const year = new Date().getFullYear();
+
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'SAF-T Testkunde AS',
+    dueDate: `${year}-10-06`,
+    deliveryDate: `${year}-09-22T12:00:00.000Z`,
+    deliveryPlace: 'Oslo',
+    date: new Date(`${year}-09-22T12:00:00.000Z`),
+    items: [
+      {
+        item: 'SAF-T konsulenttjeneste',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await invoice.runFormulas();
+  await invoice.sync();
+  await invoice.submit();
+
+  const payment = invoice.getPayment() as Payment;
+  await payment.set({
+    paymentMethod: 'Bank',
+    paymentAccount: 'Test Bank',
+    referenceId: 'BANK-AUDIT-001',
+    clearanceDate: new Date(`${year}-09-23T12:00:00.000Z`),
+    date: new Date(`${year}-09-23T12:00:00.000Z`),
+  });
+  await payment.runFormulas();
+  await payment.sync();
+  await payment.submit();
+
+  const creditNote = (await invoice.getReturnDoc()) as SalesInvoice;
+  await creditNote.set({
+    correctionReason: 'Customer received a full correction',
+    date: new Date(`${year}-09-24T12:00:00.000Z`),
+  });
+  await creditNote.runFormulas();
+  await creditNote.sync();
+  await creditNote.submit();
+
+  const journalEntry = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
+    entryType: 'Journal Entry',
+    date: new Date(),
+    referenceNumber: 'JE-AUDIT-001',
+    userRemark: 'Temporary audit accrual',
+    accounts: [
+      {
+        account: 'Kontorrekvisita - 68000',
+        debit: 500,
+        credit: 0,
+      },
+      {
+        account: 'Test Bank',
+        debit: 0,
+        credit: 500,
+      },
+    ],
+  }) as JournalEntry;
+
+  await journalEntry.runFormulas();
+  await journalEntry.sync();
+  await journalEntry.submit();
+  await journalEntry.cancel('Temporary audit accrual reversed after review');
+
+  const result = await buildNorwegianSaftFinancial140(fyo, {
+    fromDate: `${year}-01-01`,
+    toDate: `${year}-12-31`,
+    createdDate: `${year}-09-24`,
+    softwareVersion: '0.37.0-test',
+  });
+
+  const creditStart = result.xml.indexOf(
+    `<TransactionID>${creditNote.name}</TransactionID>`
+  );
+  const creditEnd = result.xml.indexOf('</Transaction>', creditStart);
+  const creditXml = result.xml.slice(creditStart, creditEnd);
+
+  t.ok(
+    creditXml.includes('<VoucherType>SCN</VoucherType>') &&
+      creditXml.includes('<VoucherDescription>Sales credit note</VoucherDescription>'),
+    'sales credit note has a distinct SAF-T voucher type'
+  );
+  t.ok(
+    creditXml.includes(
+      `<SourceDocumentID>${invoice.name}</SourceDocumentID>`
+    ),
+    'credit-note lines reference the corrected invoice'
+  );
+  t.ok(
+    creditXml.includes('Customer received a full correction'),
+    'credit-note transaction preserves correction reason'
+  );
+  t.ok(
+    creditXml.includes('<DebitTaxAmount>') &&
+      creditXml.includes('<TaxCode>NO-OUT-25</TaxCode>'),
+    'credit note preserves reversed output VAT semantics'
+  );
+
+  const paymentStart = result.xml.indexOf(
+    `<TransactionID>${payment.name}</TransactionID>`
+  );
+  const paymentEnd = result.xml.indexOf('</Transaction>', paymentStart);
+  const paymentXml = result.xml.slice(paymentStart, paymentEnd);
+
+  t.ok(
+    paymentXml.includes('<VoucherType>P</VoucherType>') &&
+      paymentXml.includes('<ReferenceNumber>BANK-AUDIT-001</ReferenceNumber>'),
+    'payment exports its bank reference'
+  );
+  t.ok(
+    paymentXml.includes(
+      `<SourceDocumentID>${invoice.name}</SourceDocumentID>`
+    ) &&
+      paymentXml.includes('<CustomerID>987654325</CustomerID>'),
+    'payment subledger line references both customer and source invoice'
+  );
+
+  const journalStart = result.xml.indexOf(
+    `<TransactionID>${journalEntry.name}</TransactionID>`
+  );
+  const journalEnd = result.xml.indexOf('</Transaction>', journalStart);
+  const journalXml = result.xml.slice(journalStart, journalEnd);
+
+  t.ok(
+    journalXml.includes('<VoucherType>JE</VoucherType>') &&
+      journalXml.includes('<ReferenceNumber>JE-AUDIT-001</ReferenceNumber>') &&
+      journalXml.includes('Temporary audit accrual'),
+    'journal entry preserves voucher, reference, and remark semantics'
+  );
+
+  const reversalStart = result.xml.indexOf(
+    `<TransactionID>${journalEntry.name}-REV-`
+  );
+  const reversalEnd = result.xml.indexOf('</Transaction>', reversalStart);
+  const reversalXml = result.xml.slice(reversalStart, reversalEnd);
+
+  t.ok(
+    reversalStart >= 0 &&
+      reversalXml.includes('<TransactionType>Reversal</TransactionType>') &&
+      reversalXml.includes('Temporary audit accrual reversed after review'),
+    'cancelled journal entry exports a traceable reversal with reason'
+  );
+
+  const xsdValidation = await validateAgainstOfficialSaft140Xsd(result.xml);
+  t.equal(
+    xsdValidation.valid,
+    true,
+    xsdValidation.valid
+      ? 'audit-semantic SAF-T export remains XSD-valid'
+      : `audit-semantic SAF-T XSD validation failed: ${xsdValidation.output}`
   );
 });
 

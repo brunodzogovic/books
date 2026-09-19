@@ -1,6 +1,8 @@
 import { Fyo, t } from 'fyo';
 import { ValidationError } from 'fyo/utils/errors';
 import { Invoice } from 'models/baseModels/Invoice/Invoice';
+import { Payment } from 'models/baseModels/Payment/Payment';
+import { JournalEntry } from 'models/baseModels/JournalEntry/JournalEntry';
 
 const SAF_T_NAMESPACE = 'urn:StandardAuditFile-Taxation-Financial:NO';
 export const NORWEGIAN_SAF_T_VERSION = '1.40';
@@ -82,6 +84,17 @@ type SaftAccount = {
 type SaftGrouping = {
   category: string;
   code: string;
+};
+
+type SaftTransactionContext = {
+  voucher: {
+    type: string;
+    description: string;
+  };
+  description: string;
+  referenceNumber: string;
+  sourceDocumentId?: string;
+  sourceDocumentOnSubledgerOnly?: boolean;
 };
 
 export type NorwegianSaftExportResult = {
@@ -855,7 +868,8 @@ async function buildTransactionXml(
   const date = group.date;
   const period = Number(date.slice(5, 7));
   const year = Number(date.slice(0, 4));
-  const voucher = getVoucherMetadata(group.referenceType, group.isReversal);
+  const context = await getTransactionContext(fyo, group);
+  const voucher = context.voucher;
   const taxInformationByAccount = await getTransactionTaxInformation(
     fyo,
     group
@@ -875,9 +889,7 @@ async function buildTransactionXml(
     `        <TransactionType>${
       group.isReversal ? 'Reversal' : 'Normal'
     }</TransactionType>`,
-    `        <Description>${escapeXml(
-      `${voucher.description} ${group.referenceName}`
-    )}</Description>`,
+    `        <Description>${escapeXml(context.description)}</Description>`,
     `        <SystemEntryDate>${date}</SystemEntryDate>`,
     `        <GLPostingDate>${date}</GLPostingDate>`,
   ];
@@ -889,7 +901,8 @@ async function buildTransactionXml(
         group,
         parties,
         taxInformationByAccount[row.account] ?? [],
-        foreignAmount
+        foreignAmount,
+        context
       )
     );
   }
@@ -903,7 +916,8 @@ function buildLineXml(
   group: TransactionGroup,
   parties: SaftParty[],
   taxInformation: SaftLineTaxInformation[],
-  foreignAmount: SaftForeignAmount | null
+  foreignAmount: SaftForeignAmount | null,
+  context: SaftTransactionContext
 ): string[] {
   const debit = toAmount(row.debit);
   const credit = toAmount(row.credit);
@@ -921,6 +935,10 @@ function buildLineXml(
   );
 
   const partyXml = getLinePartyXml(row, group, parties);
+  const sourceDocumentXml = getLineSourceDocumentXml(
+    context,
+    partyXml.length > 0
+  );
   const taxInformationXml = buildTaxInformationXml(
     row,
     taxInformation
@@ -932,6 +950,7 @@ function buildLineXml(
     `          <AccountID>${escapeXml(
       getSaftAccountId(row.account)
     )}</AccountID>`,
+    ...sourceDocumentXml,
     ...partyXml,
     `          <Description>${escapeXml(
       `${group.referenceType} ${group.referenceName}`
@@ -939,9 +958,122 @@ function buildLineXml(
     ...amountXml,
     ...taxInformationXml,
     `          <ReferenceNumber>${escapeXml(
-      group.referenceName
+      context.referenceNumber
     )}</ReferenceNumber>`,
     '        </Line>',
+  ];
+}
+
+async function getTransactionContext(
+  fyo: Fyo,
+  group: TransactionGroup
+): Promise<SaftTransactionContext> {
+  let isCreditNote = false;
+  let correctionReason = '';
+  let cancellationReason = '';
+  let sourceDocumentId: string | undefined;
+  let sourceDocumentOnSubledgerOnly = false;
+  let referenceNumber = group.referenceName;
+  let extraDescription = '';
+
+  if (
+    group.referenceType === 'SalesInvoice' ||
+    group.referenceType === 'PurchaseInvoice'
+  ) {
+    const invoice = (await fyo.doc.getDoc(
+      group.referenceType,
+      group.referenceName
+    )) as Invoice;
+
+    sourceDocumentId = String(invoice.get('returnAgainst') ?? '').trim() || undefined;
+    isCreditNote = !!sourceDocumentId;
+    correctionReason = String(invoice.get('correctionReason') ?? '').trim();
+    cancellationReason = String(
+      invoice.get('cancellationReason') ?? ''
+    ).trim();
+
+    if (isCreditNote && correctionReason) {
+      extraDescription = correctionReason;
+    }
+  } else if (group.referenceType === 'Payment') {
+    const payment = (await fyo.doc.getDoc(
+      group.referenceType,
+      group.referenceName
+    )) as Payment;
+
+    referenceNumber =
+      String(payment.get('referenceId') ?? '').trim() || group.referenceName;
+
+    const references = payment.for ?? [];
+    if (references.length === 1) {
+      sourceDocumentId =
+        String(references[0].get('referenceName') ?? '').trim() || undefined;
+      sourceDocumentOnSubledgerOnly = true;
+    }
+
+    cancellationReason = String(
+      payment.get('cancellationReason') ?? ''
+    ).trim();
+  } else if (group.referenceType === 'JournalEntry') {
+    const journalEntry = (await fyo.doc.getDoc(
+      group.referenceType,
+      group.referenceName
+    )) as JournalEntry;
+
+    referenceNumber =
+      String(journalEntry.get('referenceNumber') ?? '').trim() ||
+      group.referenceName;
+    extraDescription = String(
+      journalEntry.get('userRemark') ?? ''
+    ).trim();
+    cancellationReason = String(
+      journalEntry.get('cancellationReason') ?? ''
+    ).trim();
+  }
+
+  const voucher = getVoucherMetadata(
+    group.referenceType,
+    group.isReversal,
+    isCreditNote
+  );
+
+  if (group.isReversal && cancellationReason) {
+    extraDescription = cancellationReason;
+  }
+
+  const description = [
+    voucher.description,
+    group.referenceName,
+    extraDescription,
+  ]
+    .filter(Boolean)
+    .join(': ');
+
+  return {
+    voucher,
+    description,
+    referenceNumber,
+    sourceDocumentId,
+    sourceDocumentOnSubledgerOnly,
+  };
+}
+
+function getLineSourceDocumentXml(
+  context: SaftTransactionContext,
+  isSubledgerLine: boolean
+): string[] {
+  if (!context.sourceDocumentId) {
+    return [];
+  }
+
+  if (context.sourceDocumentOnSubledgerOnly && !isSubledgerLine) {
+    return [];
+  }
+
+  return [
+    `          <SourceDocumentID>${escapeXml(
+      context.sourceDocumentId
+    )}</SourceDocumentID>`,
   ];
 }
 
@@ -1267,11 +1399,16 @@ export function getSaftAccountId(accountName: string): string {
 
 function getVoucherMetadata(
   referenceType: string,
-  isReversal: boolean
+  isReversal: boolean,
+  isCreditNote = false
 ): { type: string; description: string } {
   const map: Record<string, { type: string; description: string }> = {
-    SalesInvoice: { type: 'SI', description: 'Sales invoice' },
-    PurchaseInvoice: { type: 'PI', description: 'Purchase invoice' },
+    SalesInvoice: isCreditNote
+      ? { type: 'SCN', description: 'Sales credit note' }
+      : { type: 'SI', description: 'Sales invoice' },
+    PurchaseInvoice: isCreditNote
+      ? { type: 'PCN', description: 'Purchase credit note' }
+      : { type: 'PI', description: 'Purchase invoice' },
     Payment: { type: 'P', description: 'Payment' },
     JournalEntry: { type: 'JE', description: 'Journal entry' },
   };
