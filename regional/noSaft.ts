@@ -489,21 +489,19 @@ async function loadSaftParties(fyo: Fyo): Promise<SaftParty[]> {
   })) as unknown as SaftParty[];
 }
 
-async function buildMasterFilesXml(
+async function loadSaftTaxes(
   fyo: Fyo,
-  parties: SaftParty[],
   rawRows: RawLedgerRow[],
   fromDate: string,
   toDate: string
-): Promise<string> {
-  const customers = parties.filter(
-    ({ role }) => role === 'Customer' || role === 'Both'
-  );
-  const suppliers = parties.filter(
-    ({ role }) => role === 'Supplier' || role === 'Both'
-  );
+): Promise<SaftTax[]> {
+  const taxes = new Map<string, SaftTax>();
 
-  const taxes: SaftTax[] = [];
+  const addTax = (tax: SaftTax) => {
+    const key = [tax.taxCode, tax.standardTaxCode, tax.rate].join('|');
+    taxes.set(key, tax);
+  };
+
   const taxRows = (await fyo.db.getAllRaw('Tax', {
     fields: ['name', 'taxCode', 'standardTaxCode'],
     orderBy: 'name',
@@ -534,13 +532,101 @@ async function buildMasterFilesXml(
       continue;
     }
 
-    taxes.push({
+    addTax({
       name: row.name,
       taxCode,
       standardTaxCode,
       rate: Number(firstDetail.get('rate')),
     });
   }
+
+  /*
+   * A posted Norwegian invoice carries an immutable VAT snapshot. Include
+   * every historical code used by transactions in the export period so later
+   * edits to a Tax template cannot leave journal-line TaxCode values without a
+   * matching TaxTable entry.
+   */
+  const invoiceReferences = new Map<string, string>();
+  for (const row of rawRows) {
+    const date = normalizeDate(row.date);
+    if (date < fromDate || date > toDate) {
+      continue;
+    }
+
+    if (
+      row.referenceType !== 'SalesInvoice' &&
+      row.referenceType !== 'PurchaseInvoice'
+    ) {
+      continue;
+    }
+
+    invoiceReferences.set(
+      `${row.referenceType}|${row.referenceName}`,
+      row.referenceType
+    );
+  }
+
+  for (const reference of invoiceReferences.keys()) {
+    const [referenceType, referenceName] = reference.split('|');
+    const invoice = (await fyo.doc.getDoc(
+      referenceType,
+      referenceName
+    )) as Invoice;
+
+    for (const taxItem of await invoice.getTaxItems()) {
+      const taxCode = taxItem.taxCode?.trim();
+      const standardTaxCode = taxItem.standardTaxCode?.trim();
+
+      if (!taxCode || !standardTaxCode) {
+        throw new ValidationError(
+          t`SAF-T historical VAT mapping is incomplete for ${referenceType} ${referenceName}.`
+        );
+      }
+
+      addTax({
+        name: taxItem.tax,
+        taxCode,
+        standardTaxCode,
+        rate: taxItem.details.rate,
+      });
+    }
+  }
+
+  return [...taxes.values()].sort((a, b) => {
+    const standardCompare = a.standardTaxCode.localeCompare(b.standardTaxCode);
+    if (standardCompare) {
+      return standardCompare;
+    }
+
+    const codeCompare = a.taxCode.localeCompare(b.taxCode);
+    if (codeCompare) {
+      return codeCompare;
+    }
+
+    return a.rate - b.rate;
+  });
+}
+
+async function buildMasterFilesXml(
+  fyo: Fyo,
+  parties: SaftParty[],
+  rawRows: RawLedgerRow[],
+  fromDate: string,
+  toDate: string
+): Promise<string> {
+  const customers = parties.filter(
+    ({ role }) => role === 'Customer' || role === 'Both'
+  );
+  const suppliers = parties.filter(
+    ({ role }) => role === 'Supplier' || role === 'Both'
+  );
+
+  const taxes = await loadSaftTaxes(
+    fyo,
+    rawRows,
+    fromDate,
+    toDate
+  );
 
   const lines = ['  <MasterFiles>'];
 

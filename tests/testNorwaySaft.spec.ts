@@ -226,6 +226,13 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   await euroInvoice.sync();
   await euroInvoice.submit();
 
+  const outputTax = await fyo.doc.getDoc('Tax', 'Utgående MVA 25 %');
+  await outputTax.set({
+    taxCode: 'NO-OUT-25-CHANGED',
+    standardTaxCode: '32',
+  });
+  await outputTax.sync();
+
   const result = await buildNorwegianSaftFinancial140(fyo, {
     fromDate: `${year}-01-01`,
     toDate: `${year}-12-31`,
@@ -389,6 +396,16 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
       result.xml.includes('<StandardTaxCode>3</StandardTaxCode>') &&
       result.xml.includes('<TaxPercentage>25</TaxPercentage>'),
     'exports Norwegian VAT code mapping'
+  );
+  t.ok(
+    result.xml.includes('<TaxCode>NO-OUT-25-CHANGED</TaxCode>') &&
+      result.xml.includes('<StandardTaxCode>32</StandardTaxCode>'),
+    'exports current VAT template mapping'
+  );
+  t.ok(
+    result.xml.includes('<TaxCode>NO-OUT-25</TaxCode>') &&
+      result.xml.includes('<StandardTaxCode>3</StandardTaxCode>'),
+    'historical TaxTable mapping survives later tax-template edits'
   );
 
   const salesTransactionStart = result.xml.indexOf(
