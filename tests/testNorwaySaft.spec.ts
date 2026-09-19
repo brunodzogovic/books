@@ -767,6 +767,52 @@ test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', a
       ? 'audit-semantic SAF-T export remains XSD-valid'
       : `audit-semantic SAF-T XSD validation failed: ${xsdValidation.output}`
   );
+
+  const subPeriod = await buildNorwegianSaftFinancial140(fyo, {
+    fromDate: `${year}-09-23`,
+    toDate: `${year}-09-24`,
+    createdDate: `${year}-09-24`,
+    softwareVersion: '0.37.0-test',
+  });
+
+  t.equal(
+    subPeriod.numberOfEntries,
+    2,
+    'sub-period SAF-T exports only payment and credit-note transactions'
+  );
+  t.ok(
+    !subPeriod.xml.includes(
+      `<TransactionID>${invoice.name}</TransactionID>`
+    ) &&
+      subPeriod.xml.includes(
+        `<TransactionID>${payment.name}</TransactionID>`
+      ) &&
+      subPeriod.xml.includes(
+        `<TransactionID>${creditNote.name}</TransactionID>`
+      ),
+    'sub-period excludes pre-period invoice but keeps in-period activity'
+  );
+  t.ok(
+    subPeriod.xml.includes(
+      '<AccountID>15000</AccountID>\n        <AccountDescription>Kundefordringer</AccountDescription>\n        <GroupingCategory>balanseverdiForOmloepsmiddel</GroupingCategory>\n        <GroupingCode>1500</GroupingCode>\n        <AccountType>GL</AccountType>\n        <OpeningDebitBalance>3937.50</OpeningDebitBalance>\n        <ClosingDebitBalance>1437.50</ClosingDebitBalance>'
+    ),
+    'sub-period GL opening and closing balances carry forward earlier receivables'
+  );
+  t.ok(
+    subPeriod.xml.includes(
+      '<AccountID>15000</AccountID>\n          <OpeningDebitBalance>2687.50</OpeningDebitBalance>\n          <ClosingDebitBalance>187.50</ClosingDebitBalance>'
+    ),
+    'sub-period customer balance carries forward earlier customer activity'
+  );
+
+  const subPeriodXsd = await validateAgainstOfficialSaft140Xsd(subPeriod.xml);
+  t.equal(
+    subPeriodXsd.valid,
+    true,
+    subPeriodXsd.valid
+      ? 'sub-period SAF-T with opening balances remains XSD-valid'
+      : `sub-period SAF-T XSD validation failed: ${subPeriodXsd.output}`
+  );
 });
 
 test('Norwegian SAF-T preserves mixed-rate and zero-VAT classifications', async (t) => {
