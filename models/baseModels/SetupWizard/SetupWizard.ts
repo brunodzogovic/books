@@ -1,7 +1,8 @@
 import { t } from 'fyo';
 import { Doc } from 'fyo/model/doc';
-import { FormulaMap, ListsMap, ValidationMap } from 'fyo/model/types';
+import { FormulaMap, HiddenMap, ListsMap, ValidationMap } from 'fyo/model/types';
 import { validateEmail } from 'fyo/model/validationFunction';
+import { validateNorwegianOrganizationNumber } from 'regional/no';
 import { DateTime } from 'luxon';
 import { getCountryInfo, getFiscalYear } from 'utils/misc';
 
@@ -35,6 +36,7 @@ export function getCOAList() {
     { countryCode: 'mx', name: 'Mexico - Plan de Cuentas' },
     { countryCode: 'ni', name: 'Nicaragua - Catalogo de Cuentas' },
     { countryCode: 'nl', name: 'Netherlands - Grootboekschema' },
+    { countryCode: 'no', name: 'Norway - SME Chart of Accounts' },
     { countryCode: 'sg', name: 'Singapore - Chart of Accounts' },
     { countryCode: 'fr', name: 'France - Plan Comptable General' },
     /*  
@@ -77,6 +79,13 @@ export class SetupWizard extends Doc {
           return;
         }
 
+        if (this.country === 'Norway') {
+          return DateTime.local()
+            .set({ month: 1, day: 1 })
+            .startOf('day')
+            .toJSDate();
+        }
+
         const countryInfo = getCountryInfo();
         const fyStart =
           countryInfo[this.country as string]?.fiscal_year_start ?? '';
@@ -99,6 +108,13 @@ export class SetupWizard extends Doc {
 
         if (!this.country) {
           return;
+        }
+
+        if (this.country === 'Norway') {
+          return DateTime.local()
+            .set({ month: 12, day: 31 })
+            .startOf('day')
+            .toJSDate();
         }
 
         const countryInfo = getCountryInfo();
@@ -156,6 +172,16 @@ export class SetupWizard extends Doc {
 
   validations: ValidationMap = {
     email: validateEmail,
+    organizationNumber: validateNorwegianOrganizationNumber,
+  };
+
+  hidden: HiddenMap = {
+    organizationNumber: () => this.country !== 'Norway',
+    organizationForm: () => this.country !== 'Norway',
+    vatRegistered: () => this.country !== 'Norway',
+    companyAddress: () => this.country !== 'Norway',
+    postalCode: () => this.country !== 'Norway',
+    city: () => this.country !== 'Norway',
   };
 
   static lists: ListsMap = {

@@ -1,0 +1,95 @@
+{
+  "name": "AccountingSettings",
+  "fields": [
+    {
+      "fieldname": "organizationNumber",
+      "label": "Organization Number",
+      "fieldtype": "Data",
+      "placeholder": "123456785",
+      "section": "Norway"
+    },
+    {
+      "fieldname": "organizationForm",
+      "label": "Organization Form",
+      "fieldtype": "Select",
+      "section": "Norway",
+      "options": [
+        {
+          "value": "AS",
+          "label": "AS - Private Limited Company"
+        },
+        {
+          "value": "ASA",
+          "label": "ASA - Public Limited Company"
+        },
+        {
+          "value": "ENK",
+          "label": "ENK - Sole Proprietorship"
+        },
+        {
+          "value": "ANS",
+          "label": "ANS - General Partnership"
+        },
+        {
+          "value": "DA",
+          "label": "DA - Partnership with Shared Liability"
+        },
+        {
+          "value": "NUF",
+          "label": "NUF - Norwegian Registered Foreign Company"
+        },
+        {
+          "value": "SA",
+          "label": "SA - Cooperative"
+        },
+        {
+          "value": "STI",
+          "label": "STI - Foundation"
+        },
+        {
+          "value": "Other",
+          "label": "Other"
+        }
+      ]
+    },
+    {
+      "fieldname": "vatRegistered",
+      "label": "VAT Registered",
+      "fieldtype": "Check",
+      "default": false,
+      "section": "Norway"
+    },
+    {
+      "fieldname": "companyAddress",
+      "label": "Business Address",
+      "fieldtype": "Data",
+      "section": "Norway"
+    },
+    {
+      "fieldname": "postalCode",
+      "label": "Postal Code",
+      "fieldtype": "Data",
+      "section": "Norway"
+    },
+    {
+      "fieldname": "city",
+      "label": "City",
+      "fieldtype": "Data",
+      "section": "Norway"
+    }
+  ],
+  "quickEditFields": [
+    "fullname",
+    "email",
+    "companyName",
+    "country",
+    "organizationNumber",
+    "organizationForm",
+    "vatRegistered",
+    "companyAddress",
+    "postalCode",
+    "city",
+    "fiscalYearStart",
+    "fiscalYearEnd"
+  ]
+}

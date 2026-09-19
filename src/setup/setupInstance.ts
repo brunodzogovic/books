@@ -89,13 +89,19 @@ async function updateAccountingSettings(
     bankName,
     fiscalYearStart,
     fiscalYearEnd,
+    organizationNumber,
+    organizationForm,
+    vatRegistered,
+    companyAddress,
+    postalCode,
+    city,
   }: SetupWizardOptions,
   fyo: Fyo
 ) {
   const accountingSettings = (await fyo.doc.getDoc(
     'AccountingSettings'
   )) as AccountingSettings;
-  await accountingSettings.setAndSync({
+  const values = {
     companyName,
     country,
     fullname,
@@ -103,7 +109,20 @@ async function updateAccountingSettings(
     bankName,
     fiscalYearStart,
     fiscalYearEnd,
-  });
+  } as Record<string, string | boolean | null | undefined>;
+
+  if (country === 'Norway') {
+    Object.assign(values, {
+      organizationNumber,
+      organizationForm,
+      vatRegistered: vatRegistered ?? false,
+      companyAddress,
+      postalCode,
+      city,
+    });
+  }
+
+  await accountingSettings.setAndSync(values);
   return accountingSettings;
 }
 
@@ -232,7 +251,25 @@ async function setDefaultAccounts(fyo: Fyo) {
   );
 
   if (!isSet) {
-    await setDefaultAccount('roundOffAccount', fyo.t`Round Off`, fyo);
+    const standardRoundOffSet = await setDefaultAccount(
+      'roundOffAccount',
+      fyo.t`Round Off`,
+      fyo
+    );
+
+    if (!standardRoundOffSet) {
+      const roundOffAccounts = (await fyo.db.getAllRaw('Account', {
+        fields: ['name'],
+        filters: { isGroup: false, accountType: 'Round Off' },
+      })) as { name: string }[];
+
+      if (roundOffAccounts[0]?.name) {
+        await fyo.singles.AccountingSettings!.setAndSync(
+          'roundOffAccount',
+          roundOffAccounts[0].name
+        );
+      }
+    }
   }
 }
 

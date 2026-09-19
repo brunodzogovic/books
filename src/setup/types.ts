@@ -9,4 +9,10 @@ export interface SetupWizardOptions {
   fiscalYearStart: string;
   fiscalYearEnd: string;
   chartOfAccounts: string;
+  organizationNumber?: string | null;
+  organizationForm?: string | null;
+  vatRegistered?: boolean | null;
+  companyAddress?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
 }

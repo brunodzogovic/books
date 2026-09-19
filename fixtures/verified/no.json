@@ -1,0 +1,283 @@
+{
+  "countryCode": "no",
+  "name": "Norway - SME Chart of Accounts",
+  "note": "Open Norwegian SME starter chart using conventional five-digit account numbering. This is not a reproduction of the complete NS 4102:2023 standard.",
+  "tree": {
+    "Eiendeler": {
+      "Anleggsmidler": {
+        "Maskiner og anlegg": {
+          "accountNumber": "12000",
+          "accountType": "Fixed Asset"
+        },
+        "Inventar": {
+          "accountNumber": "12500",
+          "accountType": "Fixed Asset"
+        },
+        "Kontormaskiner og IT-utstyr": {
+          "accountNumber": "12800",
+          "accountType": "Fixed Asset"
+        },
+        "Andre driftsmidler": {
+          "accountNumber": "12900",
+          "accountType": "Fixed Asset"
+        },
+        "Akkumulerte avskrivninger": {
+          "accountNumber": "12990",
+          "accountType": "Accumulated Depreciation"
+        }
+      },
+      "Omløpsmidler": {
+        "Varelager": {
+          "accountNumber": "14000",
+          "accountType": "Stock"
+        },
+        "Kundefordringer": {
+          "accountNumber": "15000",
+          "accountType": "Receivable"
+        },
+        "Andre kortsiktige fordringer": {
+          "accountNumber": "15700"
+        },
+        "Forskuddsbetalte kostnader": {
+          "accountNumber": "17000"
+        },
+        "Kontanter": {
+          "accountNumber": "19000",
+          "accountType": "Cash"
+        },
+        "Bankinnskudd": {
+          "accountNumber": "19200",
+          "accountType": "Bank",
+          "isGroup": true
+        }
+      },
+      "Midlertidige kontoer": {
+        "Midlertidig åpningsbalanse": {
+          "accountNumber": "19990",
+          "accountType": "Temporary"
+        }
+      },
+      "rootType": "Asset"
+    },
+    "Egenkapital": {
+      "Aksjekapital": {
+        "accountNumber": "20000",
+        "accountType": "Equity"
+      },
+      "Overkurs": {
+        "accountNumber": "20200",
+        "accountType": "Equity"
+      },
+      "Annen egenkapital": {
+        "accountNumber": "20500",
+        "accountType": "Equity"
+      },
+      "Udekket tap": {
+        "accountNumber": "20800",
+        "accountType": "Equity"
+      },
+      "rootType": "Equity"
+    },
+    "Gjeld": {
+      "Langsiktig gjeld": {
+        "Lån fra kredittinstitusjoner": {
+          "accountNumber": "22400"
+        }
+      },
+      "Kortsiktig gjeld": {
+        "Leverandørgjeld": {
+          "accountNumber": "24000",
+          "accountType": "Payable"
+        },
+        "Betalbar skatt": {
+          "accountNumber": "25000"
+        },
+        "Skattetrekk": {
+          "accountNumber": "26000"
+        },
+        "Skyldige offentlige avgifter": {
+          "accountType": "Tax",
+          "isGroup": true,
+          "Utgående MVA, 25 %": {
+            "accountNumber": "27000",
+            "accountType": "Tax"
+          },
+          "Utgående MVA, 15 %": {
+            "accountNumber": "27010",
+            "accountType": "Tax"
+          },
+          "Utgående MVA, 12 %": {
+            "accountNumber": "27020",
+            "accountType": "Tax"
+          },
+          "Inngående MVA, 25 %": {
+            "accountNumber": "27100",
+            "accountType": "Tax"
+          },
+          "Inngående MVA, 15 %": {
+            "accountNumber": "27110",
+            "accountType": "Tax"
+          },
+          "Inngående MVA, 12 %": {
+            "accountNumber": "27120",
+            "accountType": "Tax"
+          },
+          "Oppgjørskonto MVA": {
+            "accountNumber": "27400",
+            "accountType": "Tax"
+          },
+          "Skyldig arbeidsgiveravgift": {
+            "accountNumber": "27700",
+            "accountType": "Tax"
+          }
+        },
+        "Skyldig lønn": {
+          "accountNumber": "29300"
+        },
+        "Skyldige feriepenger": {
+          "accountNumber": "29400"
+        },
+        "Påløpte kostnader": {
+          "accountNumber": "29600"
+        },
+        "Mottatte varer, ikke fakturert": {
+          "accountNumber": "29610",
+          "accountType": "Stock Received But Not Billed"
+        },
+        "Annen kortsiktig gjeld": {
+          "accountNumber": "29900"
+        }
+      },
+      "rootType": "Liability"
+    },
+    "Driftsinntekter": {
+      "Salgsinntekt, avgiftspliktig, 25 %": {
+        "accountNumber": "30000",
+        "accountType": "Income Account"
+      },
+      "Salgsinntekt, redusert sats": {
+        "accountNumber": "31000",
+        "accountType": "Income Account"
+      },
+      "Salgsinntekt, fritatt for MVA": {
+        "accountNumber": "32000",
+        "accountType": "Income Account"
+      },
+      "Annen driftsrelatert inntekt": {
+        "accountNumber": "39000",
+        "accountType": "Income Account"
+      },
+      "rootType": "Income"
+    },
+    "Kostnader": {
+      "Varekostnad": {
+        "Varekostnad": {
+          "accountNumber": "40000",
+          "accountType": "Cost of Goods Sold"
+        },
+        "Kostnader inkludert i lagerverdi": {
+          "accountNumber": "40900",
+          "accountType": "Expenses Included In Valuation"
+        },
+        "Lagerjustering": {
+          "accountNumber": "43900",
+          "accountType": "Stock Adjustment"
+        }
+      },
+      "Lønnskostnader": {
+        "Lønn": {
+          "accountNumber": "50000",
+          "accountType": "Expense Account"
+        },
+        "Feriepenger": {
+          "accountNumber": "50900",
+          "accountType": "Expense Account"
+        },
+        "Arbeidsgiveravgift": {
+          "accountNumber": "54000",
+          "accountType": "Expense Account"
+        },
+        "Annen personalkostnad": {
+          "accountNumber": "59000",
+          "accountType": "Expense Account"
+        }
+      },
+      "Andre driftskostnader": {
+        "Avskrivninger": {
+          "accountNumber": "60000",
+          "accountType": "Depreciation"
+        },
+        "Leie lokaler": {
+          "accountNumber": "63000",
+          "accountType": "Expense Account"
+        },
+        "Inventar og utstyr": {
+          "accountNumber": "65000",
+          "accountType": "Expense Account"
+        },
+        "Driftsmaterialer": {
+          "accountNumber": "65500",
+          "accountType": "Expense Account"
+        },
+        "Fremmede tjenester": {
+          "accountNumber": "67000",
+          "accountType": "Expense Account"
+        },
+        "Kontorrekvisita": {
+          "accountNumber": "68000",
+          "accountType": "Expense Account"
+        },
+        "Telefon og internett": {
+          "accountNumber": "69000",
+          "accountType": "Expense Account"
+        },
+        "Reisekostnader": {
+          "accountNumber": "71400",
+          "accountType": "Expense Account"
+        },
+        "Salgs- og reklamekostnader": {
+          "accountNumber": "73200",
+          "accountType": "Expense Account"
+        },
+        "Forsikringer": {
+          "accountNumber": "75000",
+          "accountType": "Expense Account"
+        },
+        "Avrunding": {
+          "accountNumber": "77400",
+          "accountType": "Round Off"
+        },
+        "Bank- og kortgebyrer": {
+          "accountNumber": "77700",
+          "accountType": "Expense Account"
+        },
+        "Annen driftskostnad": {
+          "accountNumber": "77900",
+          "accountType": "Expense Account"
+        },
+        "Tap på fordringer": {
+          "accountNumber": "78300",
+          "accountType": "Expense Account"
+        }
+      },
+      "Finanskostnader og skatt": {
+        "Rentekostnad": {
+          "accountNumber": "81500",
+          "accountType": "Expense Account"
+        },
+        "Skattekostnad": {
+          "accountNumber": "83000",
+          "accountType": "Expense Account"
+        }
+      },
+      "rootType": "Expense"
+    },
+    "Finansinntekter": {
+      "Renteinntekt": {
+        "accountNumber": "80500",
+        "accountType": "Income Account"
+      },
+      "rootType": "Income"
+    }
+  }
+}
