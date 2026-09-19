@@ -282,6 +282,18 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
     correctionReason: 'Duplicate project invoice',
   });
   await creditNote.runFormulas();
+
+  t.equal(
+    creditNote.netTotal?.float,
+    -8000,
+    'credit note preserves the original invoice line rate instead of current item master rate'
+  );
+  t.equal(
+    creditNote.grandTotal?.float,
+    -10000,
+    'credit note reverses the intended NOK 10,000 gross amount'
+  );
+
   await creditNote.sync();
   await creditNote.submit();
 

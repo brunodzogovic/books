@@ -174,6 +174,16 @@ export abstract class InvoiceItem extends Doc {
     },
     rate: {
       formula: async (fieldname) => {
+        /*
+         * A return/credit note must reverse the commercial rate that was
+         * actually posted on the source invoice. Repricing the copied line
+         * from the current Item/Price List can make the correction reverse a
+         * different amount when master data has changed since the invoice.
+         */
+        if (this.isReturn && this.rate) {
+          return this.rate;
+        }
+
         const rate = await getItemRate(this);
         if (!rate?.float && this.rate?.float) {
           return this.rate;
