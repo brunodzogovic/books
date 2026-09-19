@@ -50,6 +50,24 @@ test('setup Norwegian company', async (t) => {
     ),
     'Norwegian party schema has organization number'
   );
+  t.ok(
+    fyo.schemaMap.SalesInvoice?.fields.some(
+      ({ fieldname }) => fieldname === 'dueDate'
+    ),
+    'Norwegian sales invoice schema has payment due date'
+  );
+  t.ok(
+    fyo.schemaMap.SalesInvoice?.fields.some(
+      ({ fieldname }) => fieldname === 'deliveryDate'
+    ),
+    'Norwegian sales invoice schema has delivery date'
+  );
+  t.ok(
+    fyo.schemaMap.SalesInvoice?.fields.some(
+      ({ fieldname }) => fieldname === 'deliveryPlace'
+    ),
+    'Norwegian sales invoice schema has delivery place'
+  );
 
   t.ok(await fyo.db.exists('Account', 'Kundefordringer - 15000'));
   t.ok(await fyo.db.exists('Account', 'Leverandørgjeld - 24000'));

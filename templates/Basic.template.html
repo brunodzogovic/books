@@ -43,6 +43,18 @@
         <p class="py-2 text-base">{{ doc.date }}</p>
         <p class="py-2 text-base">{{ doc?.time }}</p>
       </div>
+      <p v-if="doc.dueDate" class="text-sm text-gray-600">
+        {{ t`Payment Due Date` }}: {{ doc.dueDate }}
+      </p>
+      <p v-if="doc.deliveryDate" class="text-sm text-gray-600">
+        {{ t`Delivery Date and Time` }}: {{ doc.deliveryDate }}
+      </p>
+      <p v-if="doc.deliveryPlace" class="text-sm text-gray-600">
+        {{ t`Delivery Place` }}: {{ doc.deliveryPlace }}
+      </p>
+      <p v-if="doc.returnAgainst" class="text-sm text-gray-600">
+        {{ t`Credit Note For` }}: {{ doc.returnAgainst }}
+      </p>
     </section>
 
     <!-- Party Details -->

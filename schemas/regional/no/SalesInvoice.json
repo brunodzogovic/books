@@ -1,0 +1,26 @@
+{
+  "name": "SalesInvoice",
+  "fields": [
+    {
+      "fieldname": "dueDate",
+      "label": "Payment Due Date",
+      "fieldtype": "Date",
+      "section": "Default",
+      "description": "Payment deadline shown on Norwegian sales documentation."
+    },
+    {
+      "fieldname": "deliveryDate",
+      "label": "Delivery Date and Time",
+      "fieldtype": "Datetime",
+      "section": "References",
+      "description": "Date and time the goods or services were delivered."
+    },
+    {
+      "fieldname": "deliveryPlace",
+      "label": "Delivery Place",
+      "fieldtype": "Data",
+      "section": "References",
+      "description": "Place where the goods or services were delivered."
+    }
+  ]
+}

@@ -399,6 +399,11 @@ test('Norwegian sales credit note reverses revenue and output VAT', async (t) =>
     -2500,
     'credit note reverses NOK 2,500 output VAT'
   );
+  t.equal(
+    creditNote.returnAgainst,
+    original.name,
+    'sales credit note references original invoice'
+  );
 
   await creditNote.sync();
   await creditNote.submit();

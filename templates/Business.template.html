@@ -43,6 +43,18 @@
             <p>{{ doc.date }}</p>
             <p>{{doc?.time }}</p>
           </div>
+          <p v-if="doc.dueDate">
+            {{ t`Payment Due Date` }}: {{ doc.dueDate }}
+          </p>
+          <p v-if="doc.deliveryDate">
+            {{ t`Delivery Date and Time` }}: {{ doc.deliveryDate }}
+          </p>
+          <p v-if="doc.deliveryPlace">
+            {{ t`Delivery Place` }}: {{ doc.deliveryPlace }}
+          </p>
+          <p v-if="doc.returnAgainst">
+            {{ t`Credit Note For` }}: {{ doc.returnAgainst }}
+          </p>
         </div>
       </section>
 
