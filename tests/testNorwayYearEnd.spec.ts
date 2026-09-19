@@ -4,6 +4,7 @@ import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
+import { Party } from 'models/baseModels/Party/Party';
 import { JournalEntry } from 'models/baseModels/JournalEntry/JournalEntry';
 import { ModelNameEnum } from 'models/types';
 import { buildNorwegianSaftFinancial140 } from 'regional/noSaft';
@@ -284,10 +285,10 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
   await creditNote.sync();
   await creditNote.submit();
 
-  const customerAfterCredit = await fyo.doc.getDoc(
+  const customerAfterCredit = (await fyo.doc.getDoc(
     ModelNameEnum.Party,
     customerName
-  );
+  )) as Party;
   await customerAfterCredit.load();
 
   t.equal(
