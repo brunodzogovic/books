@@ -925,6 +925,28 @@ test('Norwegian invoice blocks unmapped VAT templates', async (t) => {
     standardTaxCode: '',
   });
 
+  /*
+   * The Tax document created above is cached. Drop it so the invoice validation
+   * reloads the persisted legacy row instead of seeing the pre-migration values.
+   */
+  fyo.doc.removeFromCache('Tax', 'Uklassifisert norsk MVA');
+
+  const legacyTax = await fyo.db.get(
+    'Tax',
+    'Uklassifisert norsk MVA',
+    ['taxCode', 'standardTaxCode']
+  );
+  t.equal(
+    legacyTax.taxCode,
+    '',
+    'legacy VAT fixture has no internal tax code'
+  );
+  t.equal(
+    legacyTax.standardTaxCode,
+    '',
+    'legacy VAT fixture has no SAF-T VAT classification'
+  );
+
   const item = fyo.doc.getNewDoc(ModelNameEnum.Item, {
     name: 'Uklassifisert MVA-test',
     itemType: 'Service',
