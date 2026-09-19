@@ -77,6 +77,7 @@ export type ReturnedItemData =
 
 export type InvoiceTaxItem = {
   tax: string;
+  account?: string;
   details: TaxDetail;
   taxCode?: string;
   standardTaxCode?: string;
@@ -529,6 +530,7 @@ export abstract class Invoice extends Transactional {
 
           const taxItem: InvoiceTaxItem = {
             tax: item.tax,
+            account: item.account,
             details,
             taxCode,
             standardTaxCode,

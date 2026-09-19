@@ -1,5 +1,6 @@
 import { Fyo, t } from 'fyo';
 import { ValidationError } from 'fyo/utils/errors';
+import { Invoice } from 'models/baseModels/Invoice/Invoice';
 
 const SAF_T_NAMESPACE = 'urn:StandardAuditFile-Taxation-Financial:NO';
 export const NORWEGIAN_SAF_T_VERSION = '1.40';
@@ -53,6 +54,13 @@ type SaftPartyBalance = {
   accountId: string;
   opening: number;
   closing: number;
+};
+
+type SaftLineTaxInformation = {
+  taxCode: string;
+  rate: number;
+  taxBase: number;
+  taxAmount: number;
 };
 
 export type NorwegianSaftExportResult = {
@@ -175,7 +183,8 @@ export async function buildNorwegianSaftFinancial140(
     toDate
   );
 
-  const generalLedgerEntries = buildGeneralLedgerEntriesXml(
+  const generalLedgerEntries = await buildGeneralLedgerEntriesXml(
+    fyo,
     groups,
     totalDebit,
     totalCredit,
@@ -496,12 +505,13 @@ function formatRate(value: number): string {
   return String(value);
 }
 
-function buildGeneralLedgerEntriesXml(
+async function buildGeneralLedgerEntriesXml(
+  fyo: Fyo,
   groups: TransactionGroup[],
   totalDebit: number,
   totalCredit: number,
   parties: SaftParty[]
-): string {
+): Promise<string> {
   const lines = [
     '  <GeneralLedgerEntries>',
     `    <NumberOfEntries>${groups.length}</NumberOfEntries>`,
@@ -518,7 +528,7 @@ function buildGeneralLedgerEntriesXml(
     );
 
     for (const group of groups) {
-      lines.push(...buildTransactionXml(group, parties));
+      lines.push(...(await buildTransactionXml(fyo, group, parties)));
     }
 
     lines.push('    </Journal>');
@@ -528,14 +538,19 @@ function buildGeneralLedgerEntriesXml(
   return lines.join('\n');
 }
 
-function buildTransactionXml(
+async function buildTransactionXml(
+  fyo: Fyo,
   group: TransactionGroup,
   parties: SaftParty[]
-): string[] {
+): Promise<string[]> {
   const date = group.date;
   const period = Number(date.slice(5, 7));
   const year = Number(date.slice(0, 4));
   const voucher = getVoucherMetadata(group.referenceType, group.isReversal);
+  const taxInformationByAccount = await getTransactionTaxInformation(
+    fyo,
+    group
+  );
 
   const lines = [
     '      <Transaction>',
@@ -558,7 +573,14 @@ function buildTransactionXml(
   ];
 
   for (const row of group.rows) {
-    lines.push(...buildLineXml(row, group, parties));
+    lines.push(
+      ...buildLineXml(
+        row,
+        group,
+        parties,
+        taxInformationByAccount[row.account] ?? []
+      )
+    );
   }
 
   lines.push('      </Transaction>');
@@ -568,7 +590,8 @@ function buildTransactionXml(
 function buildLineXml(
   row: RawLedgerRow,
   group: TransactionGroup,
-  parties: SaftParty[]
+  parties: SaftParty[],
+  taxInformation: SaftLineTaxInformation[]
 ): string[] {
   const debit = toAmount(row.debit);
   const credit = toAmount(row.credit);
@@ -593,6 +616,10 @@ function buildLineXml(
         ];
 
   const partyXml = getLinePartyXml(row, group, parties);
+  const taxInformationXml = buildTaxInformationXml(
+    row,
+    taxInformation
+  );
 
   return [
     '        <Line>',
@@ -605,11 +632,102 @@ function buildLineXml(
       `${group.referenceType} ${group.referenceName}`
     )}</Description>`,
     ...amountXml,
+    ...taxInformationXml,
     `          <ReferenceNumber>${escapeXml(
       group.referenceName
     )}</ReferenceNumber>`,
     '        </Line>',
   ];
+}
+
+async function getTransactionTaxInformation(
+  fyo: Fyo,
+  group: TransactionGroup
+): Promise<Record<string, SaftLineTaxInformation[]>> {
+  if (
+    group.referenceType !== 'SalesInvoice' &&
+    group.referenceType !== 'PurchaseInvoice'
+  ) {
+    return {};
+  }
+
+  const invoice = (await fyo.doc.getDoc(
+    group.referenceType,
+    group.referenceName
+  )) as Invoice;
+
+  const byAccount: Record<string, Record<string, SaftLineTaxInformation>> = {};
+
+  for (const taxItem of await invoice.getTaxItems()) {
+    const account = taxItem.account;
+    const taxCode = taxItem.taxCode?.trim();
+    const standardTaxCode = taxItem.standardTaxCode?.trim();
+
+    if (!account || !taxCode || !standardTaxCode) {
+      throw new ValidationError(
+        t`SAF-T VAT information is incomplete for ${group.referenceType} ${group.referenceName}.`
+      );
+    }
+
+    const exchangeRate = taxItem.exchangeRate ?? 1;
+    const taxBase = Math.abs(taxItem.fullAmount.mul(exchangeRate).float);
+    const taxAmount = Math.abs(taxItem.taxAmount.mul(exchangeRate).float);
+    const key = `${taxCode}:${taxItem.details.rate}`;
+
+    byAccount[account] ??= {};
+    byAccount[account][key] ??= {
+      taxCode,
+      rate: taxItem.details.rate,
+      taxBase: 0,
+      taxAmount: 0,
+    };
+
+    byAccount[account][key].taxBase = roundMoney(
+      byAccount[account][key].taxBase + taxBase
+    );
+    byAccount[account][key].taxAmount = roundMoney(
+      byAccount[account][key].taxAmount + taxAmount
+    );
+  }
+
+  return Object.fromEntries(
+    Object.entries(byAccount).map(([account, values]) => [
+      account,
+      Object.values(values),
+    ])
+  );
+}
+
+function buildTaxInformationXml(
+  row: RawLedgerRow,
+  taxInformation: SaftLineTaxInformation[]
+): string[] {
+  if (!taxInformation.length) {
+    return [];
+  }
+
+  const isDebit = toAmount(row.debit) > 0;
+  const lines: string[] = [];
+
+  for (const tax of taxInformation) {
+    const amountTag = isDebit ? 'DebitTaxAmount' : 'CreditTaxAmount';
+
+    lines.push(
+      '          <TaxInformation>',
+      '            <TaxType>MVA</TaxType>',
+      `            <TaxCode>${escapeXml(tax.taxCode)}</TaxCode>`,
+      `            <TaxPercentage>${formatRate(tax.rate)}</TaxPercentage>`,
+      '            <Country>NO</Country>',
+      `            <TaxBase>${formatMoney(tax.taxBase)}</TaxBase>`,
+      '            <TaxBaseDescription>Amount</TaxBaseDescription>',
+      `            <${amountTag}>`,
+      `              <Amount>${formatMoney(tax.taxAmount)}</Amount>`,
+      `            </${amountTag}>`,
+      '          </TaxInformation>'
+    );
+  }
+
+  return lines;
 }
 
 function getLinePartyXml(

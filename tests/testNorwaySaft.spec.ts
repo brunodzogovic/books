@@ -256,6 +256,60 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     'exports Norwegian VAT code mapping'
   );
 
+  const salesTransactionStart = result.xml.indexOf(
+    `<TransactionID>${invoice.name}</TransactionID>`
+  );
+  const salesTransactionEnd = result.xml.indexOf(
+    '</Transaction>',
+    salesTransactionStart
+  );
+  const salesTransactionXml = result.xml.slice(
+    salesTransactionStart,
+    salesTransactionEnd
+  );
+
+  t.ok(
+    salesTransactionXml.includes(
+      '<AccountID>30000</AccountID>'
+    ) &&
+      salesTransactionXml.includes('<TaxInformation>') &&
+      salesTransactionXml.includes('<TaxCode>NO-OUT-25</TaxCode>') &&
+      salesTransactionXml.includes('<TaxBase>1000.00</TaxBase>') &&
+      salesTransactionXml.includes('<CreditTaxAmount>') &&
+      salesTransactionXml.includes('<Amount>250.00</Amount>'),
+    'attaches output VAT information to the sales revenue line'
+  );
+
+  const purchaseTransactionStart = result.xml.indexOf(
+    `<TransactionID>${purchaseInvoice.name}</TransactionID>`
+  );
+  const purchaseTransactionEnd = result.xml.indexOf(
+    '</Transaction>',
+    purchaseTransactionStart
+  );
+  const purchaseTransactionXml = result.xml.slice(
+    purchaseTransactionStart,
+    purchaseTransactionEnd
+  );
+
+  t.ok(
+    purchaseTransactionXml.includes(
+      '<AccountID>67000</AccountID>'
+    ) &&
+      purchaseTransactionXml.includes('<TaxInformation>') &&
+      purchaseTransactionXml.includes('<TaxCode>NO-IN-25</TaxCode>') &&
+      purchaseTransactionXml.includes('<TaxBase>1000.00</TaxBase>') &&
+      purchaseTransactionXml.includes('<DebitTaxAmount>') &&
+      purchaseTransactionXml.includes('<Amount>250.00</Amount>'),
+    'attaches input VAT information to the purchase expense line'
+  );
+
+  t.equal(
+    (result.xml.match(/<TaxInformation>/g) ?? []).length,
+    2,
+    'emits VAT information only on taxable base lines'
+  );
+
   t.equal(
     getSaftAccountId('Salgsinntekt, avgiftspliktig, 25 % - 30000'),
     '30000',
