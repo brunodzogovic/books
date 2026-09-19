@@ -553,9 +553,14 @@ test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) =
       filters: { referenceName: invoice.name! },
     });
 
-    const vatAccounts = entries.filter((entry) =>
-      (entry.account as string).includes('MVA')
-    );
+    const vatAccounts = entries.filter((entry) => {
+      const account = entry.account as string;
+      return (
+        account.startsWith('Utgående MVA') ||
+        account.startsWith('Inngående MVA') ||
+        account.startsWith('Oppgjørskonto MVA')
+      );
+    });
 
     t.equal(
       vatAccounts.length,
