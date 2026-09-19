@@ -1018,12 +1018,6 @@ test('Norwegian SAF-T preserves mixed-rate and zero-VAT classifications', async 
 
 test('Norwegian SAF-T carries pre-period postings into in-period reversals', async (t) => {
   const now = new Date();
-  const today = [
-    String(now.getFullYear()).padStart(4, '0'),
-    String(now.getMonth() + 1).padStart(2, '0'),
-    String(now.getDate()).padStart(2, '0'),
-  ].join('-');
-
   const originalDate = new Date(now.getFullYear(), 7, 31, 12, 0, 0);
 
   const journalEntry = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
@@ -1050,10 +1044,30 @@ test('Norwegian SAF-T carries pre-period postings into in-period reversals', asy
   await journalEntry.submit();
   await journalEntry.cancel('Pre-period accrual reversed in current period');
 
+  const reversalRows = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['date', 'reverts'],
+      filters: { referenceName: journalEntry.name! },
+    }
+  );
+  const reversalRow = reversalRows.find((row) => Boolean(row.reverts));
+  t.ok(reversalRow, 'cancellation creates linked reversal ledger entries');
+
+  const reversalDateValue = reversalRow?.date;
+  const reversalDate =
+    reversalDateValue instanceof Date
+      ? [
+          String(reversalDateValue.getFullYear()).padStart(4, '0'),
+          String(reversalDateValue.getMonth() + 1).padStart(2, '0'),
+          String(reversalDateValue.getDate()).padStart(2, '0'),
+        ].join('-')
+      : String(reversalDateValue).slice(0, 10);
+
   const result = await buildNorwegianSaftFinancial140(fyo, {
-    fromDate: today,
-    toDate: today,
-    createdDate: today,
+    fromDate: reversalDate,
+    toDate: reversalDate,
+    createdDate: reversalDate,
     softwareVersion: '0.37.0-test',
   });
 
