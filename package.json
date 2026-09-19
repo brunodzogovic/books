@@ -95,5 +95,6 @@
   "repository": {
     "url": "https://github.com/frappe/books"
   },
-  "license": "AGPL-3.0-only"
+  "license": "AGPL-3.0-only",
+  "packageManager": "yarn@1.22.18"
 }
