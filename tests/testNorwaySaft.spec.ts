@@ -1,4 +1,9 @@
 import setupInstance from 'src/setup/setupInstance';
+import { spawnSync } from 'child_process';
+import { promises as fs } from 'fs';
+import os from 'os';
+import path from 'path';
+import fetch from 'node-fetch';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { ModelNameEnum } from 'models/types';
@@ -16,6 +21,58 @@ import norwayCoa from 'fixtures/verified/no.json';
 
 const fyo = getTestFyo();
 const dbPath = getTestDbPath();
+
+const SAFT_140_XSD_URL =
+  'https://raw.githubusercontent.com/Skatteetaten/saf-t/05179521e435d82feb0b2d6c89a92a32a4f2d02f/SAF-T_Financial_1.4/Norwegian_SAF-T_Financial_Schema_v_1.40.xsd';
+
+async function validateAgainstOfficialSaft140Xsd(xml: string) {
+  const probe = spawnSync('xmllint', ['--version'], {
+    encoding: 'utf8',
+  });
+
+  if (probe.error) {
+    throw new Error(
+      'xmllint is required for SAF-T XSD validation. On Debian/Ubuntu/Linux Mint install package libxml2-utils.'
+    );
+  }
+
+  const tempDir = await fs.mkdtemp(
+    path.join(os.tmpdir(), 'frappe-books-saft-')
+  );
+  const xsdPath = path.join(
+    tempDir,
+    'Norwegian_SAF-T_Financial_Schema_v_1.40.xsd'
+  );
+  const xmlPath = path.join(tempDir, 'Norwegian_SAF-T_Financial_1.40.xml');
+
+  try {
+    const response = await fetch(SAFT_140_XSD_URL);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch official SAF-T 1.40 XSD: HTTP ${response.status}`
+      );
+    }
+
+    await fs.writeFile(xsdPath, await response.text(), 'utf8');
+    await fs.writeFile(xmlPath, xml, 'utf8');
+
+    const validation = spawnSync(
+      'xmllint',
+      ['--noout', '--schema', xsdPath, xmlPath],
+      { encoding: 'utf8' }
+    );
+
+    return {
+      valid: validation.status === 0,
+      output: [validation.stdout, validation.stderr]
+        .filter(Boolean)
+        .join('\n')
+        .trim(),
+    };
+  } finally {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+}
 
 test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t) => {
   const year = new Date().getFullYear();
@@ -516,6 +573,15 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     }),
     { category: 'annenDriftskostnad', code: '6995' },
     'office supplies map to official office and communications grouping'
+  );
+
+  const xsdValidation = await validateAgainstOfficialSaft140Xsd(result.xml);
+  t.equal(
+    xsdValidation.valid,
+    true,
+    xsdValidation.valid
+      ? 'generated XML validates against Skatteetaten SAF-T Financial 1.40 XSD'
+      : `SAF-T 1.40 XSD validation failed: ${xsdValidation.output}`
   );
 });
 
