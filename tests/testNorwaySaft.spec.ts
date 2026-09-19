@@ -769,6 +769,207 @@ test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', a
   );
 });
 
+test('Norwegian SAF-T preserves mixed-rate and zero-VAT classifications', async (t) => {
+  const year = new Date().getFullYear();
+
+  const reduced15 = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: 'SAF-T redusert 15 prosent',
+    itemType: 'Service',
+    for: 'Sales',
+    unit: 'Unit',
+    rate: 1000,
+    tax: 'Utgående MVA 15 %',
+    incomeAccount: 'Salgsinntekt, redusert sats - 31000',
+    expenseAccount: 'Varekostnad - 40000',
+  });
+  await reduced15.sync();
+
+  const reduced12 = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: 'SAF-T redusert 12 prosent',
+    itemType: 'Service',
+    for: 'Sales',
+    unit: 'Unit',
+    rate: 1000,
+    tax: 'Utgående MVA 12 %',
+    incomeAccount: 'Salgsinntekt, redusert sats - 31000',
+    expenseAccount: 'Varekostnad - 40000',
+  });
+  await reduced12.sync();
+
+  const mixedInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'SAF-T Testkunde AS',
+    dueDate: `${year}-10-10`,
+    deliveryDate: `${year}-09-26T12:00:00.000Z`,
+    deliveryPlace: 'Oslo',
+    date: new Date(`${year}-09-26T12:00:00.000Z`),
+    items: [
+      {
+        item: 'SAF-T redusert 15 prosent',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Utgående MVA 15 %',
+      },
+      {
+        item: 'SAF-T redusert 12 prosent',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Utgående MVA 12 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await mixedInvoice.runFormulas();
+  await mixedInvoice.sync();
+  await mixedInvoice.submit();
+
+  const zeroRatedItem = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: 'SAF-T nullsats',
+    itemType: 'Service',
+    for: 'Sales',
+    unit: 'Unit',
+    rate: 1000,
+    tax: 'MVA 0 % (fritatt)',
+    incomeAccount: 'Salgsinntekt, fritatt for MVA - 32000',
+    expenseAccount: 'Varekostnad - 40000',
+  });
+  await zeroRatedItem.sync();
+
+  const zeroRatedInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'SAF-T Testkunde AS',
+    dueDate: `${year}-10-11`,
+    deliveryDate: `${year}-09-27T12:00:00.000Z`,
+    deliveryPlace: 'Oslo',
+    date: new Date(`${year}-09-27T12:00:00.000Z`),
+    items: [
+      {
+        item: 'SAF-T nullsats',
+        quantity: 1,
+        rate: 1000,
+        tax: 'MVA 0 % (fritatt)',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await zeroRatedInvoice.runFormulas();
+  await zeroRatedInvoice.sync();
+  await zeroRatedInvoice.submit();
+
+  const outsideItem = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: 'SAF-T utenfor MVA',
+    itemType: 'Service',
+    for: 'Sales',
+    unit: 'Unit',
+    rate: 1000,
+    tax: 'Unntatt MVA',
+    incomeAccount: 'Salgsinntekt, fritatt for MVA - 32000',
+    expenseAccount: 'Varekostnad - 40000',
+  });
+  await outsideItem.sync();
+
+  const outsideInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'SAF-T Testkunde AS',
+    dueDate: `${year}-10-12`,
+    deliveryDate: `${year}-09-28T12:00:00.000Z`,
+    deliveryPlace: 'Oslo',
+    date: new Date(`${year}-09-28T12:00:00.000Z`),
+    items: [
+      {
+        item: 'SAF-T utenfor MVA',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Unntatt MVA',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await outsideInvoice.runFormulas();
+  await outsideInvoice.sync();
+  await outsideInvoice.submit();
+
+  const result = await buildNorwegianSaftFinancial140(fyo, {
+    fromDate: `${year}-01-01`,
+    toDate: `${year}-12-31`,
+    createdDate: `${year}-09-28`,
+    softwareVersion: '0.37.0-test',
+  });
+
+  const mixedStart = result.xml.indexOf(
+    `<TransactionID>${mixedInvoice.name}</TransactionID>`
+  );
+  const mixedEnd = result.xml.indexOf('</Transaction>', mixedStart);
+  const mixedXml = result.xml.slice(mixedStart, mixedEnd);
+
+  t.equal(
+    (mixedXml.match(/<TaxInformation>/g) ?? []).length,
+    2,
+    'mixed-rate invoice emits two VAT classifications on one revenue account'
+  );
+  t.ok(
+    mixedXml.includes('<TaxCode>NO-OUT-15</TaxCode>') &&
+      mixedXml.includes('<TaxPercentage>15</TaxPercentage>') &&
+      mixedXml.includes('<TaxBase>1000.00</TaxBase>') &&
+      mixedXml.includes('<Amount>150.00</Amount>'),
+    'mixed-rate invoice preserves 15 percent VAT information'
+  );
+  t.ok(
+    mixedXml.includes('<TaxCode>NO-OUT-12</TaxCode>') &&
+      mixedXml.includes('<TaxPercentage>12</TaxPercentage>') &&
+      mixedXml.includes('<TaxBase>1000.00</TaxBase>') &&
+      mixedXml.includes('<Amount>120.00</Amount>'),
+    'mixed-rate invoice preserves 12 percent VAT information'
+  );
+
+  const zeroStart = result.xml.indexOf(
+    `<TransactionID>${zeroRatedInvoice.name}</TransactionID>`
+  );
+  const zeroEnd = result.xml.indexOf('</Transaction>', zeroStart);
+  const zeroXml = result.xml.slice(zeroStart, zeroEnd);
+
+  t.ok(
+    zeroXml.includes('<TaxCode>NO-ZERO-DOM</TaxCode>') &&
+      zeroXml.includes('<TaxPercentage>0</TaxPercentage>') &&
+      zeroXml.includes('<TaxBase>1000.00</TaxBase>') &&
+      zeroXml.includes('<CreditTaxAmount>') &&
+      zeroXml.includes('<Amount>0.00</Amount>'),
+    'zero-rated sales remain explicitly classified in SAF-T'
+  );
+
+  const outsideStart = result.xml.indexOf(
+    `<TransactionID>${outsideInvoice.name}</TransactionID>`
+  );
+  const outsideEnd = result.xml.indexOf('</Transaction>', outsideStart);
+  const outsideXml = result.xml.slice(outsideStart, outsideEnd);
+
+  t.ok(
+    outsideXml.includes('<TaxCode>NO-OUTSIDE</TaxCode>') &&
+      outsideXml.includes('<TaxPercentage>0</TaxPercentage>') &&
+      outsideXml.includes('<TaxBase>1000.00</TaxBase>') &&
+      outsideXml.includes('<CreditTaxAmount>') &&
+      outsideXml.includes('<Amount>0.00</Amount>'),
+    'outside-scope sales remain explicitly classified in SAF-T'
+  );
+
+  t.ok(
+    result.xml.includes('<TaxCode>NO-ZERO-DOM</TaxCode>') &&
+      result.xml.includes('<StandardTaxCode>5</StandardTaxCode>') &&
+      result.xml.includes('<TaxCode>NO-OUTSIDE</TaxCode>') &&
+      result.xml.includes('<StandardTaxCode>6</StandardTaxCode>'),
+    'TaxTable preserves distinct standard codes for zero-rated and outside-scope sales'
+  );
+
+  const xsdValidation = await validateAgainstOfficialSaft140Xsd(result.xml);
+  t.equal(
+    xsdValidation.valid,
+    true,
+    xsdValidation.valid
+      ? 'VAT edge-case SAF-T export remains XSD-valid'
+      : `VAT edge-case SAF-T XSD validation failed: ${xsdValidation.output}`
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });
