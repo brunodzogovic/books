@@ -3,6 +3,7 @@ import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
+import { getPrintTemplatePropValues } from 'src/utils/printTemplates';
 import { ModelNameEnum } from 'models/types';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -627,6 +628,130 @@ test('Norwegian VAT summary aggregates by SAF-T classification', async (t) => {
   t.equal(byCode['5']?.vatAmount, 0, 'zero-rated VAT amount is zero');
   t.equal(byCode['6']?.basis, 10000, 'outside-scope basis remains reportable');
   t.equal(byCode['6']?.vatAmount, 0, 'outside-scope VAT amount is zero');
+});
+
+test('Norwegian foreign-currency invoice states VAT in NOK', async (t) => {
+  const customerName = 'Euro Testkunde AS';
+  const customer = fyo.doc.getNewDoc(ModelNameEnum.Party, {
+    name: customerName,
+    role: 'Customer',
+    email: 'euro@example.invalid',
+    organizationNumber: '987654325',
+    currency: 'EUR',
+  });
+  await customer.runFormulas();
+  await customer.sync();
+
+  const itemName = 'EUR konsulenttjeneste';
+  const item = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: itemName,
+    itemType: 'Service',
+    for: 'Sales',
+    unit: 'Unit',
+    rate: 100,
+    tax: 'Utgående MVA 25 %',
+    incomeAccount: 'Salgsinntekt, avgiftspliktig, 25 % - 30000',
+    expenseAccount: 'Varekostnad - 40000',
+  });
+  await item.sync();
+
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: customerName,
+    exchangeRate: 11.5,
+    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10),
+    deliveryDate: new Date().toISOString(),
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: itemName,
+        quantity: 1,
+        rate: 100,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await invoice.runFormulas();
+
+  t.equal(invoice.currency, 'EUR', 'invoice uses customer currency EUR');
+  t.equal(invoice.exchangeRate, 11.5, 'invoice locks supplied EUR/NOK exchange rate');
+  t.equal(invoice.netTotal?.float, 100, 'foreign-currency net total is EUR 100');
+  t.equal(invoice.taxes?.[0]?.amount?.float, 25, 'foreign-currency VAT is EUR 25');
+  t.equal(invoice.grandTotal?.float, 125, 'foreign-currency gross total is EUR 125');
+  t.equal(invoice.baseGrandTotal?.float, 1437.5, 'base grand total is NOK 1,437.50');
+
+  const printValues = await getPrintTemplatePropValues(invoice);
+  t.equal(
+    printValues.doc.companyCurrency,
+    'NOK',
+    'print data identifies NOK as company currency'
+  );
+  t.equal(
+    printValues.doc.showTaxInCompanyCurrency,
+    true,
+    'print data requires VAT disclosure in company currency'
+  );
+  t.match(
+    String(printValues.doc.taxTotalCompanyCurrency),
+    /287[,.]50/,
+    'print data exposes NOK 287.50 VAT'
+  );
+  t.match(
+    String(printValues.doc.netTotalCompanyCurrency),
+    /1.?150[,.]00/,
+    'print data exposes NOK 1,150.00 taxable basis'
+  );
+
+  await invoice.sync();
+  await invoice.submit();
+
+  const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+    fields: ['account', 'debit', 'credit'],
+    filters: { referenceName: invoice.name! },
+  });
+  const byAccount = Object.fromEntries(
+    entries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(byAccount['Kundefordringer - 15000']?.debit as string).float,
+    1437.5,
+    'receivable posts in NOK'
+  );
+  t.equal(
+    fyo.pesa(
+      byAccount['Salgsinntekt, avgiftspliktig, 25 % - 30000']?.credit as string
+    ).float,
+    1150,
+    'revenue posts in NOK'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Utgående MVA, 25 % - 27000']?.credit as string).float,
+    287.5,
+    'output VAT posts in NOK'
+  );
+
+  const year = new Date().getFullYear();
+  const vatRows = await getNorwegianVatSummary(
+    fyo,
+    `${year}-01-01`,
+    `${year}-12-31`
+  );
+  const standardCode3 = vatRows.find(({ standardTaxCode }) => standardTaxCode === '3');
+
+  t.equal(
+    standardCode3?.basis,
+    1150,
+    'VAT summary converts foreign taxable basis to NOK'
+  );
+  t.equal(
+    standardCode3?.vatAmount,
+    287.5,
+    'VAT summary converts foreign VAT to NOK'
+  );
 });
 
 test('Norwegian sales invoice blocks missing compliance fields', async (t) => {

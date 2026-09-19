@@ -163,6 +163,20 @@
         <p>{{ doc.totalDiscount }}</p>
       </div>
 
+      <div
+        v-if="doc.showTaxInCompanyCurrency"
+        class="pl-2 py-3 border-t text-sm text-gray-700"
+      >
+        <div class="flex justify-between">
+          <h3>{{ t`VAT in Company Currency` }} ({{ doc.companyCurrency }})</h3>
+          <p>{{ doc.taxTotalCompanyCurrency }}</p>
+        </div>
+        <div class="flex justify-between mt-1">
+          <h3>{{ t`Taxable Basis in Company Currency` }} ({{ doc.companyCurrency }})</h3>
+          <p>{{ doc.netTotalCompanyCurrency }}</p>
+        </div>
+      </div>
+
       <!-- Grand Total -->
       <div
         class="

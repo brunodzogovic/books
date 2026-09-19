@@ -162,6 +162,27 @@ export async function getPrintTemplatePropValues(
     ((doc.grandTotal as Money) ?? (doc.amount as Money)).float
   );
 
+  if (doc instanceof Invoice) {
+    const exchangeRate = doc.exchangeRate ?? 1;
+    const companyCurrency = doc.companyCurrency;
+    const taxTotalCompanyCurrency = (await doc.getTotalTax()).mul(exchangeRate);
+    const netTotalCompanyCurrency = (doc.netTotal ?? doc.fyo.pesa(0)).mul(
+      exchangeRate
+    );
+
+    (values.doc as PrintTemplateData).companyCurrency = companyCurrency;
+    (values.doc as PrintTemplateData).showTaxInCompanyCurrency =
+      doc.isMultiCurrency && !taxTotalCompanyCurrency.isZero();
+    (values.doc as PrintTemplateData).taxTotalCompanyCurrency = doc.fyo.format(
+      taxTotalCompanyCurrency,
+      ModelNameEnum.Currency
+    );
+    (values.doc as PrintTemplateData).netTotalCompanyCurrency = doc.fyo.format(
+      netTotalCompanyCurrency,
+      ModelNameEnum.Currency
+    );
+  }
+
   (values.doc as PrintTemplateData).date = getDate(doc.date as string);
 
   if (printSettings.displayTime) {
