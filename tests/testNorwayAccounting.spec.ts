@@ -118,6 +118,90 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
   );
 });
 
+test('Norwegian purchase invoice posts 25 percent input MVA correctly', async (t) => {
+  const supplierName = 'Norsk Testleverandør AS';
+  const payableAccount = 'Leverandørgjeld - 24000';
+  const purchaseItemName = 'Innkjøpt konsulenttjeneste';
+
+  const supplier = fyo.doc.getNewDoc(ModelNameEnum.Party, {
+    name: supplierName,
+    role: 'Supplier',
+    email: 'leverandor@example.invalid',
+  });
+  await supplier.runFormulas();
+  await supplier.sync();
+
+  t.equal(
+    supplier.defaultAccount,
+    payableAccount,
+    'supplier defaults to Norwegian payables account'
+  );
+
+  const purchaseItem = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: purchaseItemName,
+    itemType: 'Service',
+    for: 'Purchases',
+    unit: 'Unit',
+    rate: 10000,
+    tax: 'Inngående MVA 25 %',
+    incomeAccount: 'Salgsinntekt, avgiftspliktig, 25 % - 30000',
+    expenseAccount: 'Fremmede tjenester - 67000',
+  });
+  await purchaseItem.sync();
+
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.PurchaseInvoice, {
+    account: payableAccount,
+    party: supplierName,
+    items: [
+      {
+        item: purchaseItemName,
+        quantity: 1,
+        rate: 10000,
+        tax: 'Inngående MVA 25 %',
+      },
+    ],
+  }) as import('models/baseModels/PurchaseInvoice/PurchaseInvoice').PurchaseInvoice;
+
+  await invoice.runFormulas();
+
+  t.equal(invoice.netTotal?.float, 10000, 'purchase net total is NOK 10,000');
+  t.equal(invoice.grandTotal?.float, 12500, 'purchase gross total is NOK 12,500');
+  t.equal(invoice.taxes?.length, 1, 'purchase invoice has one VAT summary row');
+  t.equal(
+    invoice.taxes?.[0]?.amount?.float,
+    2500,
+    'input VAT is NOK 2,500'
+  );
+
+  await invoice.sync();
+  await invoice.submit();
+
+  const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+    fields: ['account', 'debit', 'credit'],
+    filters: { referenceName: invoice.name! },
+  });
+
+  const byAccount = Object.fromEntries(
+    entries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(byAccount['Fremmede tjenester - 67000']?.debit as string).float,
+    10000,
+    'expense debited NOK 10,000'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Inngående MVA, 25 % - 27100']?.debit as string).float,
+    2500,
+    'input VAT debited NOK 2,500'
+  );
+  t.equal(
+    fyo.pesa(byAccount[payableAccount]?.credit as string).float,
+    12500,
+    'payables credited NOK 12,500'
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });
