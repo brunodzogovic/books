@@ -478,6 +478,93 @@ test('Norwegian purchase credit note reverses expense and input VAT', async (t) 
   );
 });
 
+test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) => {
+  const cases = [
+    {
+      itemName: 'Nullsats testtjeneste',
+      tax: 'MVA 0 % (fritatt)',
+      expectedTaxCode: 'NO-ZERO-DOM',
+      expectedStandardCode: '5',
+    },
+    {
+      itemName: 'Unntatt testtjeneste',
+      tax: 'Unntatt MVA',
+      expectedTaxCode: 'NO-OUTSIDE',
+      expectedStandardCode: '6',
+    },
+  ];
+
+  for (const vatCase of cases) {
+    const item = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+      name: vatCase.itemName,
+      itemType: 'Service',
+      for: 'Sales',
+      unit: 'Unit',
+      rate: 10000,
+      tax: vatCase.tax,
+      incomeAccount: 'Salgsinntekt, fritatt for MVA - 32000',
+      expenseAccount: 'Varekostnad - 40000',
+    });
+    await item.sync();
+
+    const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+      account: 'Kundefordringer - 15000',
+      party: 'Norsk Testkunde AS',
+      items: [
+        {
+          item: vatCase.itemName,
+          quantity: 1,
+          rate: 10000,
+          tax: vatCase.tax,
+        },
+      ],
+    }) as SalesInvoice;
+
+    await invoice.runFormulas();
+
+    t.equal(
+      invoice.grandTotal?.float,
+      10000,
+      `${vatCase.tax} keeps gross equal to net`
+    );
+    t.equal(
+      invoice.taxes?.length ?? 0,
+      0,
+      `${vatCase.tax} creates no monetary VAT summary row`
+    );
+
+    const taxTemplate = await fyo.doc.getDoc('Tax', vatCase.tax);
+    t.equal(
+      taxTemplate?.get('taxCode'),
+      vatCase.expectedTaxCode,
+      `${vatCase.tax} keeps its distinct internal tax code`
+    );
+    t.equal(
+      taxTemplate?.get('standardTaxCode'),
+      vatCase.expectedStandardCode,
+      `${vatCase.tax} keeps its distinct SAF-T classification`
+    );
+
+    await invoice.sync();
+    await invoice.submit();
+
+    const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+      fields: ['account'],
+      filters: { referenceName: invoice.name! },
+    });
+
+    const vatAccounts = entries.filter((entry) =>
+      (entry.account as string).includes('MVA')
+    );
+
+    t.equal(
+      vatAccounts.length,
+      0,
+      `${vatCase.tax} produces no VAT ledger amount`
+    );
+  }
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });
