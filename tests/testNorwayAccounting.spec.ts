@@ -859,7 +859,7 @@ test('Norwegian VAT reporting preserves submitted classification', async (t) => 
 
   await tax.set({
     taxCode: 'NO-CHANGED-AFTER-POSTING',
-    standardTaxCode: '99',
+    standardTaxCode: '32',
   });
   await tax.sync();
 
@@ -872,7 +872,9 @@ test('Norwegian VAT reporting preserves submitted classification', async (t) => 
     ({ standardTaxCode }) => standardTaxCode === '31'
   );
   const rewrittenClassification = rows.find(
-    ({ standardTaxCode }) => standardTaxCode === '99'
+    ({ standardTaxCode }) =>
+      standardTaxCode === '32' &&
+      taxCode === 'NO-CHANGED-AFTER-POSTING'
   );
 
   t.equal(
@@ -901,6 +903,8 @@ test('Norwegian VAT reporting preserves submitted classification', async (t) => 
 test('Norwegian invoice blocks unmapped VAT templates', async (t) => {
   const tax = fyo.doc.getNewDoc('Tax', {
     name: 'Uklassifisert norsk MVA',
+    taxCode: 'NO-TEMP-25',
+    standardTaxCode: '3',
     details: [
       {
         account: 'Utgående MVA, 25 % - 27000',
@@ -909,6 +913,17 @@ test('Norwegian invoice blocks unmapped VAT templates', async (t) => {
     ],
   });
   await tax.sync();
+
+  /*
+   * Simulate an older/migrated database row that predates mandatory VAT
+   * classification. Database migration permits empty defaults specifically so
+   * existing books can open before the mapping is repaired.
+   */
+  await fyo.db.update('Tax', {
+    name: 'Uklassifisert norsk MVA',
+    taxCode: '',
+    standardTaxCode: '',
+  });
 
   const item = fyo.doc.getNewDoc(ModelNameEnum.Item, {
     name: 'Uklassifisert MVA-test',
