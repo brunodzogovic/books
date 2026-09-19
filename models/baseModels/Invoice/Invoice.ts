@@ -276,6 +276,21 @@ export abstract class Invoice extends Transactional {
     if (this.loyaltyProgram) {
       await validateLoyaltyProgram(this, this.loyaltyProgram);
     }
+
+    if (
+      this.fyo.singles.SystemSettings?.countryCode === 'no' &&
+      this.isReturn
+    ) {
+      const correctionReason = this.get('correctionReason');
+      if (
+        typeof correctionReason !== 'string' ||
+        !correctionReason.trim()
+      ) {
+        throw new ValidationError(
+          t`Correction reason is required on Norwegian credit notes.`
+        );
+      }
+    }
   }
 
   async afterSubmit() {

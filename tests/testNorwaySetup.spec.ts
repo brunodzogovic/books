@@ -81,10 +81,32 @@ test('setup Norwegian company', async (t) => {
     'Norwegian sales invoices record cancellation reasons'
   );
   t.ok(
+    fyo.schemaMap.SalesInvoice?.fields.some(
+      ({ fieldname }) => fieldname === 'correctionReason'
+    ),
+    'Norwegian sales credit notes have correction reason'
+  );
+  t.equal(
+    fyo.getField('SalesInvoice', 'returnAgainst')?.label,
+    'Corrects Invoice',
+    'Norwegian sales credit notes expose original invoice reference'
+  );
+  t.ok(
     fyo.schemaMap.PurchaseInvoice?.fields.some(
       ({ fieldname }) => fieldname === 'cancellationReason'
     ),
     'Norwegian purchase invoices record cancellation reasons'
+  );
+  t.ok(
+    fyo.schemaMap.PurchaseInvoice?.fields.some(
+      ({ fieldname }) => fieldname === 'correctionReason'
+    ),
+    'Norwegian purchase credit notes have correction reason'
+  );
+  t.equal(
+    fyo.getField('PurchaseInvoice', 'returnAgainst')?.label,
+    'Corrects Invoice',
+    'Norwegian purchase credit notes expose original invoice reference'
   );
   t.ok(
     fyo.schemaMap.Payment?.fields.some(

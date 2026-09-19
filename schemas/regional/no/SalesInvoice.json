@@ -29,6 +29,20 @@
       "readOnly": true,
       "section": "References",
       "description": "Reason recorded when a posted Norwegian accounting document is cancelled or reversed."
+    },
+    {
+      "fieldname": "returnAgainst",
+      "fieldtype": "Link",
+      "target": "SalesInvoice",
+      "label": "Corrects Invoice",
+      "section": "References"
+    },
+    {
+      "fieldname": "correctionReason",
+      "label": "Correction Reason",
+      "fieldtype": "Text",
+      "section": "References",
+      "description": "Reason the credit note or correcting document was issued."
     }
   ]
 }

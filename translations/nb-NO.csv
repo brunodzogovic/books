@@ -72,3 +72,7 @@
 "Cancellation Reason","Årsak til annullering"
 "Explain why this posted document is being reversed","Forklar hvorfor det bokførte dokumentet blir reversert"
 "Cancellation reason is required for Norwegian accounting records.","Årsak til annullering er påkrevd for norske regnskapsbilag."
+
+"Corrects Invoice","Korrigerer faktura"
+"Correction Reason","Korrigeringsårsak"
+"Correction reason is required on Norwegian credit notes.","Korrigeringsårsak er påkrevd på norske kreditnotaer."

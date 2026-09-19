@@ -28,6 +28,9 @@
         <p v-if="doc.returnAgainst">
           {{ t`Credit Note For` }}: {{ doc.returnAgainst }}
         </p>
+        <p v-if="doc.returnAgainst && doc.correctionReason">
+          {{ t`Correction Reason` }}: {{ doc.correctionReason }}
+        </p>
       </div>
     </section>
 

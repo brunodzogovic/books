@@ -423,7 +423,34 @@ test('Norwegian sales credit note reverses revenue and output VAT', async (t) =>
   );
 
   await creditNote.sync();
+
+  let missingCorrectionReasonBlocked = false;
+  try {
+    await creditNote.submit();
+  } catch (error) {
+    missingCorrectionReasonBlocked = true;
+    t.match(
+      (error as Error).message,
+      /Correction reason is required/,
+      'sales credit note without correction reason is rejected'
+    );
+  }
+  t.equal(
+    missingCorrectionReasonBlocked,
+    true,
+    'sales credit note requires correction reason'
+  );
+
+  const correctionReason = 'Original invoice contained the wrong quantity';
+  await creditNote.set('correctionReason', correctionReason);
+  await creditNote.sync();
   await creditNote.submit();
+
+  t.equal(
+    creditNote.get('correctionReason'),
+    correctionReason,
+    'sales credit note stores correction reason'
+  );
 
   const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
     fields: ['account', 'debit', 'credit'],
@@ -478,8 +505,16 @@ test('Norwegian purchase credit note reverses expense and input VAT', async (t) 
     'purchase credit note reverses NOK 2,500 input VAT'
   );
 
+  const correctionReason = 'Supplier corrected the invoiced amount';
+  await creditNote.set('correctionReason', correctionReason);
   await creditNote.sync();
   await creditNote.submit();
+
+  t.equal(
+    creditNote.get('correctionReason'),
+    correctionReason,
+    'purchase credit note stores correction reason'
+  );
 
   const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
     fields: ['account', 'debit', 'credit'],

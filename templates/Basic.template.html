@@ -55,6 +55,9 @@
       <p v-if="doc.returnAgainst" class="text-sm text-gray-600">
         {{ t`Credit Note For` }}: {{ doc.returnAgainst }}
       </p>
+      <p v-if="doc.returnAgainst && doc.correctionReason" class="text-sm text-gray-600">
+        {{ t`Correction Reason` }}: {{ doc.correctionReason }}
+      </p>
     </section>
 
     <!-- Party Details -->
