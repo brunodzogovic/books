@@ -71,7 +71,7 @@
           </p>
           <p v-if="doc.links.party.gstin">GSTIN: {{ doc.links.party.gstin }}</p>
           <p v-if="doc.links.party.organizationNumber">
-            Org.nr. {{ doc.links.party.organizationNumber }}
+            Org.nr. {{ doc.links.party.organizationNumber }}<span v-if="doc.links.party.vatRegistered"> MVA</span>
           </p>
         </div>
       </section>

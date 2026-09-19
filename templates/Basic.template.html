@@ -76,7 +76,7 @@
         v-if="doc.links.party.organizationNumber"
         class="mt-1 text-xs text-gray-600 text-right"
       >
-        Org.nr. {{ doc.links.party.organizationNumber }}
+        Org.nr. {{ doc.links.party.organizationNumber }}<span v-if="doc.links.party.vatRegistered"> MVA</span>
       </p>
     </section>
   </section>
