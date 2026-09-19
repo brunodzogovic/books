@@ -13,8 +13,16 @@ const TAX_TEMPLATES: TaxTemplate[] = [
   { name: 'Inngående MVA 25 %', account: 'Inngående MVA, 25 % - 27100', rate: 25 },
   { name: 'Inngående MVA 15 %', account: 'Inngående MVA, 15 % - 27110', rate: 15 },
   { name: 'Inngående MVA 12 %', account: 'Inngående MVA, 12 % - 27120', rate: 12 },
-  { name: 'MVA 0 % (fritatt)' },
-  { name: 'Unntatt MVA' },
+  {
+    name: 'MVA 0 % (fritatt)',
+    account: 'Oppgjørskonto MVA - 27400',
+    rate: 0,
+  },
+  {
+    name: 'Unntatt MVA',
+    account: 'Oppgjørskonto MVA - 27400',
+    rate: 0,
+  },
 ];
 
 export async function createNorwegianRecords(fyo: Fyo) {
