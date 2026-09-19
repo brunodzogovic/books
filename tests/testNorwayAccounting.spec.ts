@@ -4,6 +4,8 @@ import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoi
 import { Payment } from 'models/baseModels/Payment/Payment';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
 import { getNorwegianInvoiceCurrencyDisclosure } from 'regional/noInvoice';
+import { ProfitAndLoss } from 'reports/ProfitAndLoss/ProfitAndLoss';
+import { BalanceSheet } from 'reports/BalanceSheet/BalanceSheet';
 import { ModelNameEnum } from 'models/types';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -913,6 +915,75 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
     );
   }
   t.equal(reversalBlocked, true, 'locked-period invoice cannot be cancelled');
+});
+
+test('Norwegian financial statements reconcile current-year activity', async (t) => {
+  const year = new Date().getFullYear();
+
+  const profitAndLoss = new ProfitAndLoss(fyo);
+  profitAndLoss.basedOn = 'Until Date';
+  profitAndLoss.toDate = `${year}-12-31`;
+  profitAndLoss.count = 12;
+  profitAndLoss.periodicity = 'Monthly';
+  profitAndLoss.consolidateColumns = true;
+  await profitAndLoss.initialize();
+
+  const getTotal = (rows: typeof profitAndLoss.reportData, label: string) => {
+    const row = rows.find(({ cells }) => cells[0]?.rawValue === label);
+    return row?.cells[1]?.rawValue as number | undefined;
+  };
+
+  const totalIncome = getTotal(
+    profitAndLoss.reportData,
+    'Total Income (Credit)'
+  );
+  const totalExpense =
+    getTotal(profitAndLoss.reportData, 'Total Expense (Debit)') ?? 0;
+
+  t.equal(
+    totalIncome,
+    42150,
+    'profit and loss reports NOK 42,150 current-year income'
+  );
+  t.equal(
+    totalExpense,
+    0,
+    'fully reversed purchase activity leaves no current-year expense'
+  );
+
+  const totalProfit =
+    getTotal(profitAndLoss.reportData, 'Total Profit') ??
+    (totalIncome ?? 0) - totalExpense;
+
+  t.equal(totalProfit, 42150, 'current-year profit is NOK 42,150');
+
+  const balanceSheet = new BalanceSheet(fyo);
+  balanceSheet.basedOn = 'Until Date';
+  balanceSheet.toDate = `${year}-12-31`;
+  balanceSheet.count = 12;
+  balanceSheet.periodicity = 'Monthly';
+  balanceSheet.consolidateColumns = true;
+  await balanceSheet.initialize();
+
+  const totalAssets =
+    getTotal(balanceSheet.reportData, 'Total Asset (Debit)') ?? 0;
+  const totalLiabilities =
+    getTotal(balanceSheet.reportData, 'Total Liability (Credit)') ?? 0;
+  const totalEquity =
+    getTotal(balanceSheet.reportData, 'Total Equity (Credit)') ?? 0;
+
+  t.equal(totalAssets, 32887.5, 'balance sheet assets are NOK 32,887.50');
+  t.equal(
+    totalLiabilities,
+    -9262.5,
+    'balance sheet liabilities reflect net payable and VAT position'
+  );
+
+  t.equal(
+    totalAssets,
+    totalLiabilities + totalEquity + totalProfit,
+    'assets reconcile to liabilities, equity, and current-year profit'
+  );
 });
 
 test('Norwegian cancelled postings remain immutable and auditable', async (t) => {
