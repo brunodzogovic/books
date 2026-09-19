@@ -44,6 +44,7 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
     name: customerName,
     role: 'Customer',
     email: 'kunde@example.invalid',
+    organizationNumber: '987654324',
   });
   await customer.runFormulas();
   await customer.sync();
@@ -52,6 +53,11 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
     customer.defaultAccount,
     receivableAccount,
     'customer defaults to Norwegian receivables account'
+  );
+  t.equal(
+    customer.get('organizationNumber'),
+    '987654324',
+    'customer keeps Norwegian organization number'
   );
 
   const service = fyo.doc.getNewDoc(ModelNameEnum.Item, {

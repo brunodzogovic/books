@@ -19,6 +19,15 @@
         <p class="text-sm text-gray-800" v-if="print.gstin">
           GSTIN: {{ print.gstin }}
         </p>
+        <p class="text-sm text-gray-800" v-if="print.organizationNumberDisplay">
+          {{ print.organizationNumberDisplay }}
+        </p>
+        <p class="text-sm text-gray-800" v-if="print.businessRegister">
+          {{ print.businessRegister }}
+        </p>
+        <p class="text-sm text-gray-800" v-if="print.companyAddressDisplay">
+          {{ print.companyAddressDisplay }}
+        </p>
       </div>
     </section>
 
@@ -49,6 +58,9 @@
             {{ doc.links.party.links.address.addressDisplay }}
           </p>
           <p v-if="doc.links.party.gstin">GSTIN: {{ doc.links.party.gstin }}</p>
+          <p v-if="doc.links.party.organizationNumber">
+            Org.nr. {{ doc.links.party.organizationNumber }}
+          </p>
         </div>
       </section>
     </div>

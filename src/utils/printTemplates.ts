@@ -41,7 +41,16 @@ const printSettingsFields = [
   'displaytermsandconditions',
   'termsAndConditions',
 ];
-const accountingSettingsFields = ['gstin', 'taxId'];
+const accountingSettingsFields = [
+  'gstin',
+  'taxId',
+  'organizationNumber',
+  'organizationForm',
+  'vatRegistered',
+  'companyAddress',
+  'postalCode',
+  'city',
+];
 
 export async function getPrintTemplatePropValues(
   doc: Doc
@@ -112,6 +121,36 @@ export async function getPrintTemplatePropValues(
     ...printValues,
     ...accountingValues,
   };
+
+  const organizationNumber = accountingSettings.get(
+    'organizationNumber'
+  ) as string | undefined;
+  if (organizationNumber) {
+    const vatRegistered = Boolean(accountingSettings.get('vatRegistered'));
+    const organizationForm = accountingSettings.get('organizationForm') as
+      | string
+      | undefined;
+    const companyAddress = accountingSettings.get('companyAddress') as
+      | string
+      | undefined;
+    const postalCode = accountingSettings.get('postalCode') as
+      | string
+      | undefined;
+    const city = accountingSettings.get('city') as string | undefined;
+
+    (values.print as PrintTemplateData).organizationNumberDisplay =
+      `Org.nr. ${organizationNumber}${vatRegistered ? ' MVA' : ''}`;
+    (values.print as PrintTemplateData).businessRegister =
+      ['AS', 'ASA', 'NUF'].includes(organizationForm ?? '')
+        ? 'Foretaksregisteret'
+        : '';
+    (values.print as PrintTemplateData).companyAddressDisplay = [
+      companyAddress,
+      [postalCode, city].filter(Boolean).join(' '),
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
   const discountSchema = ['Invoice', 'Quote'];
   if (discountSchema.some((value) => doc.schemaName?.endsWith(value))) {
     (values.doc as PrintTemplateData).totalDiscount =

@@ -44,6 +44,12 @@ test('setup Norwegian company', async (t) => {
   t.equal(fyo.singles.AccountingSettings?.organizationNumber, '123456785');
   t.equal(fyo.singles.AccountingSettings?.organizationForm, 'AS');
   t.equal(fyo.singles.AccountingSettings?.vatRegistered, true);
+  t.ok(
+    fyo.schemaMap.Party?.fields.some(
+      ({ fieldname }) => fieldname === 'organizationNumber'
+    ),
+    'Norwegian party schema has organization number'
+  );
 
   t.ok(await fyo.db.exists('Account', 'Kundefordringer - 15000'));
   t.ok(await fyo.db.exists('Account', 'Leverandørgjeld - 24000'));

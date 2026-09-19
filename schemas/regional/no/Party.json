@@ -1,0 +1,22 @@
+{
+  "name": "Party",
+  "fields": [
+    {
+      "fieldname": "organizationNumber",
+      "label": "Organization Number",
+      "fieldtype": "Data",
+      "section": "Billing",
+      "description": "Norwegian organization number for the customer or supplier."
+    }
+  ],
+  "quickEditFields": [
+    "email",
+    "phone",
+    "address",
+    "defaultAccount",
+    "currency",
+    "role",
+    "organizationNumber",
+    "taxId"
+  ]
+}

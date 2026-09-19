@@ -50,6 +50,12 @@
       >
         GSTIN: {{ doc.links.party.gstin }}
       </p>
+      <p
+        v-if="doc.links.party.organizationNumber"
+        class="mt-2 text-black leading-relaxed text-lg"
+      >
+        Org.nr. {{ doc.links.party.organizationNumber }}
+      </p>
     </section>
 
     <!-- Company Details -->
@@ -80,6 +86,24 @@
         class="mt-2 ml-8 text-black leading-relaxed text-lg"
       >
         GSTIN: {{ print.gstin }}
+      </p>
+      <p
+        v-if="print.organizationNumberDisplay"
+        class="mt-2 ml-8 text-black leading-relaxed text-lg"
+      >
+        {{ print.organizationNumberDisplay }}
+      </p>
+      <p
+        v-if="print.businessRegister"
+        class="mt-2 ml-8 text-black leading-relaxed text-lg"
+      >
+        {{ print.businessRegister }}
+      </p>
+      <p
+        v-if="print.companyAddressDisplay"
+        class="mt-2 ml-8 text-black leading-relaxed text-lg"
+      >
+        {{ print.companyAddressDisplay }}
       </p>
     </section>
   </section>
