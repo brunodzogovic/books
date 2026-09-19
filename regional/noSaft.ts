@@ -356,10 +356,6 @@ function buildPartyXml(
   kind: 'Customer' | 'Supplier'
 ): string[] {
   const id = getSaftPartyId(party);
-  const accountId = party.defaultAccount
-    ? getSaftAccountId(party.defaultAccount)
-    : undefined;
-
   const lines = [`      <${kind}>`];
 
   if (party.organizationNumber) {
@@ -375,15 +371,6 @@ function buildPartyXml(
     `        <${kind}ID>${escapeXml(id)}</${kind}ID>`
   );
 
-  if (accountId) {
-    lines.push(
-      '        <BalanceAccount>',
-      `          <AccountID>${escapeXml(accountId)}</AccountID>`,
-      '          <OpeningDebitBalance>0.00</OpeningDebitBalance>',
-      '          <ClosingDebitBalance>0.00</ClosingDebitBalance>',
-      '        </BalanceAccount>'
-    );
-  }
 
   lines.push(`      </${kind}>`);
   return lines;
