@@ -3,7 +3,7 @@ import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
-import { getPrintTemplatePropValues } from 'src/utils/printTemplates';
+import { getNorwegianInvoiceCurrencyDisclosure } from 'regional/noInvoice';
 import { ModelNameEnum } from 'models/types';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -683,26 +683,26 @@ test('Norwegian foreign-currency invoice states VAT in NOK', async (t) => {
   t.equal(invoice.grandTotal?.float, 125, 'foreign-currency gross total is EUR 125');
   t.equal(invoice.baseGrandTotal?.float, 1437.5, 'base grand total is NOK 1,437.50');
 
-  const printValues = await getPrintTemplatePropValues(invoice);
+  const disclosure = await getNorwegianInvoiceCurrencyDisclosure(invoice);
   t.equal(
-    printValues.doc.companyCurrency,
+    disclosure.companyCurrency,
     'NOK',
-    'print data identifies NOK as company currency'
+    'currency disclosure identifies NOK as company currency'
   );
   t.equal(
-    printValues.doc.showTaxInCompanyCurrency,
+    disclosure.showTaxInCompanyCurrency,
     true,
-    'print data requires VAT disclosure in company currency'
+    'currency disclosure requires VAT in company currency'
   );
-  t.match(
-    String(printValues.doc.taxTotalCompanyCurrency),
-    /287[,.]50/,
-    'print data exposes NOK 287.50 VAT'
+  t.equal(
+    disclosure.taxTotalCompanyCurrency.float,
+    287.5,
+    'currency disclosure exposes NOK 287.50 VAT'
   );
-  t.match(
-    String(printValues.doc.netTotalCompanyCurrency),
-    /1.?150[,.]00/,
-    'print data exposes NOK 1,150.00 taxable basis'
+  t.equal(
+    disclosure.netTotalCompanyCurrency.float,
+    1150,
+    'currency disclosure exposes NOK 1,150.00 taxable basis'
   );
 
   await invoice.sync();

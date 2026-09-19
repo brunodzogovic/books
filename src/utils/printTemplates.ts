@@ -15,6 +15,7 @@ import {
 import { Money } from 'pesa';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
+import { getNorwegianInvoiceCurrencyDisclosure } from 'regional/noInvoice';
 
 export type PrintTemplateHint = {
   [key: string]: string | PrintTemplateHint | PrintTemplateHint[];
@@ -162,23 +163,22 @@ export async function getPrintTemplatePropValues(
     ((doc.grandTotal as Money) ?? (doc.amount as Money)).float
   );
 
-  if (doc instanceof Invoice) {
-    const exchangeRate = doc.exchangeRate ?? 1;
-    const companyCurrency = doc.companyCurrency;
-    const taxTotalCompanyCurrency = (await doc.getTotalTax()).mul(exchangeRate);
-    const netTotalCompanyCurrency = (doc.netTotal ?? doc.fyo.pesa(0)).mul(
-      exchangeRate
-    );
+  if (
+    doc instanceof Invoice &&
+    doc.fyo.singles.SystemSettings?.countryCode === 'no'
+  ) {
+    const disclosure = await getNorwegianInvoiceCurrencyDisclosure(doc);
 
-    (values.doc as PrintTemplateData).companyCurrency = companyCurrency;
+    (values.doc as PrintTemplateData).companyCurrency =
+      disclosure.companyCurrency;
     (values.doc as PrintTemplateData).showTaxInCompanyCurrency =
-      doc.isMultiCurrency && !taxTotalCompanyCurrency.isZero();
+      disclosure.showTaxInCompanyCurrency;
     (values.doc as PrintTemplateData).taxTotalCompanyCurrency = doc.fyo.format(
-      taxTotalCompanyCurrency,
+      disclosure.taxTotalCompanyCurrency,
       ModelNameEnum.Currency
     );
     (values.doc as PrintTemplateData).netTotalCompanyCurrency = doc.fyo.format(
-      netTotalCompanyCurrency,
+      disclosure.netTotalCompanyCurrency,
       ModelNameEnum.Currency
     );
   }
