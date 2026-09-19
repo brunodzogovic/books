@@ -284,8 +284,14 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
   await creditNote.sync();
   await creditNote.submit();
 
+  const customerAfterCredit = await fyo.doc.getDoc(
+    ModelNameEnum.Party,
+    customerName
+  );
+  await customerAfterCredit.load();
+
   t.equal(
-    creditNote.outstandingAmount?.float,
+    customerAfterCredit.outstandingAmount?.float,
     0,
     'unpaid invoice and full credit note net customer outstanding to zero'
   );
