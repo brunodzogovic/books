@@ -1038,7 +1038,7 @@ test('Norwegian SAF-T carries pre-period postings into in-period reversals', asy
         credit: 0,
       },
       {
-        account: 'Midlertidig åpningskonto - 19990',
+        account: 'Midlertidig åpningsbalanse - 19990',
         debit: 0,
         credit: 750,
       },
@@ -1090,7 +1090,7 @@ test('Norwegian SAF-T carries pre-period postings into in-period reversals', asy
 
   t.ok(
     result.xml.includes(
-      '<AccountID>19990</AccountID>\n        <AccountDescription>Midlertidig åpningskonto</AccountDescription>\n        <GroupingCategory>balanseverdiForOmloepsmiddel</GroupingCategory>\n        <GroupingCode>1570</GroupingCode>\n        <AccountType>GL</AccountType>\n        <OpeningCreditBalance>750.00</OpeningCreditBalance>\n        <ClosingDebitBalance>0.00</ClosingDebitBalance>'
+      '<AccountID>19990</AccountID>\n        <AccountDescription>Midlertidig åpningsbalanse</AccountDescription>\n        <GroupingCategory>balanseverdiForOmloepsmiddel</GroupingCategory>\n        <GroupingCode>1570</GroupingCode>\n        <AccountType>GL</AccountType>\n        <OpeningCreditBalance>750.00</OpeningCreditBalance>\n        <ClosingDebitBalance>0.00</ClosingDebitBalance>'
     ),
     'cross-period export carries original credit into opening balance and reversal into closing balance'
   );
