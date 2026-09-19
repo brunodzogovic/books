@@ -347,6 +347,11 @@ test('Norwegian reduced VAT rates calculate and post correctly', async (t) => {
     const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
       account: receivableAccount,
       party: customerName,
+      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10),
+      deliveryDate: new Date().toISOString(),
+      deliveryPlace: 'Oslo',
       items: [
         {
           item: vatCase.itemName,
