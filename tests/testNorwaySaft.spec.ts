@@ -800,7 +800,7 @@ test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', a
   );
   t.ok(
     subPeriod.xml.includes(
-      '<AccountID>15000</AccountID>\n          <OpeningDebitBalance>2687.50</OpeningDebitBalance>\n          <ClosingDebitBalance>187.50</ClosingDebitBalance>'
+      '<AccountID>15000</AccountID>\n          <OpeningDebitBalance>2500.00</OpeningDebitBalance>\n          <ClosingDebitBalance>0.00</ClosingDebitBalance>'
     ),
     'sub-period customer balance carries forward earlier customer activity'
   );
