@@ -26,6 +26,14 @@ const TAX_TEMPLATES: TaxTemplate[] = [
 ];
 
 export async function createNorwegianRecords(fyo: Fyo) {
+  const writeOffAccount = 'Tap på fordringer - 78300';
+  if (await fyo.db.exists('Account', writeOffAccount)) {
+    await fyo.singles.AccountingSettings?.setAndSync(
+      'writeOffAccount',
+      writeOffAccount
+    );
+  }
+
   for (const template of TAX_TEMPLATES) {
     if (await fyo.db.exists('Tax', template.name)) {
       continue;

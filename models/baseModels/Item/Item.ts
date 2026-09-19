@@ -43,7 +43,20 @@ export class Item extends Doc {
         }
 
         const accountExists = await this.fyo.db.exists('Account', accountName);
-        return accountExists ? accountName : '';
+        if (accountExists) {
+          return accountName;
+        }
+
+        const accounts = await this.fyo.db.getAllRaw('Account', {
+          fields: ['name'],
+          filters: {
+            isGroup: false,
+            rootType: AccountRootTypeEnum.Income,
+            accountType: AccountTypeEnum['Income Account'],
+          },
+        });
+
+        return (accounts[0]?.name as string | undefined) ?? '';
       },
       dependsOn: ['itemType'],
     },

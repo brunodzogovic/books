@@ -129,12 +129,26 @@ export class Party extends Doc {
         }
 
         let accountName = 'Debtors';
+        let accountType = 'Receivable';
         if (role === 'Supplier') {
           accountName = 'Creditors';
+          accountType = 'Payable';
         }
 
         const accountExists = await this.fyo.db.exists('Account', accountName);
-        return accountExists ? accountName : '';
+        if (accountExists) {
+          return accountName;
+        }
+
+        const accounts = await this.fyo.db.getAllRaw('Account', {
+          fields: ['name'],
+          filters: {
+            isGroup: false,
+            accountType,
+          },
+        });
+
+        return (accounts[0]?.name as string | undefined) ?? '';
       },
       dependsOn: ['role'],
     },
