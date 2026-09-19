@@ -7,6 +7,7 @@ import { ModelNameEnum } from 'models/types';
 import { Report } from 'reports/Report';
 import { ColumnField, ReportData, ReportRow } from 'reports/types';
 import { Field } from 'schemas/types';
+import { buildNorwegianSaftFinancial140 } from 'regional/noSaft';
 
 export type NorwegianVatSummaryRow = {
   taxCode: string;
@@ -183,6 +184,52 @@ export class NorwegianVAT extends Report {
   }
 
   getActions(): Action[] {
-    return [];
+    if (this.fyo.singles.SystemSettings?.countryCode !== 'no') {
+      return [];
+    }
+
+    return [
+      {
+        group: t`Export`,
+        label: t`SAF-T Financial 1.40 XML`,
+        type: 'primary',
+        action: async () => {
+          if (!this.fromDate || !this.toDate) {
+            throw new ValidationError(
+              t`From Date and To Date are required for SAF-T export.`
+            );
+          }
+
+          const result = await buildNorwegianSaftFinancial140(this.fyo, {
+            fromDate: this.fromDate,
+            toDate: this.toDate,
+          });
+
+          const { getSavePath, showExportInFolder } = await import(
+            'src/utils/ui'
+          );
+          const organizationNumber = String(
+            this.fyo.singles.AccountingSettings?.organizationNumber ?? 'company'
+          )
+            .trim()
+            .replace(/\s+/g, '');
+
+          const fileName = [
+            'SAF-T_Financial_1.40',
+            organizationNumber || 'company',
+            this.fromDate,
+            this.toDate,
+          ].join('_');
+
+          const { canceled, filePath } = await getSavePath(fileName, 'xml');
+          if (canceled || !filePath) {
+            return;
+          }
+
+          await ipc.saveData(result.xml, filePath);
+          showExportInFolder(t`SAF-T Export Successful`, filePath);
+        },
+      },
+    ];
   }
 }

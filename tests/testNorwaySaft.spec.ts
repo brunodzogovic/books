@@ -20,6 +20,7 @@ import {
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
 import norwayCoa from 'fixtures/verified/no.json';
+import { NorwegianVAT } from 'reports/NorwegianVAT/NorwegianVAT';
 
 const fyo = getTestFyo();
 const dbPath = getTestDbPath();
@@ -1117,6 +1118,21 @@ test('Norwegian SAF-T carries pre-period postings into in-period reversals', asy
       ? 'cross-period reversal SAF-T export remains XSD-valid'
       : `cross-period reversal SAF-T XSD validation failed: ${xsdValidation.output}`
   );
+});
+
+test('Norwegian VAT report exposes SAF-T 1.40 XML export action', async (t) => {
+  const report = new NorwegianVAT(fyo);
+  const year = new Date().getFullYear();
+  report.fromDate = `${year}-01-01`;
+  report.toDate = `${year}-12-31`;
+
+  const action = report
+    .getActions()
+    .find((candidate) => candidate.label === 'SAF-T Financial 1.40 XML');
+
+  t.ok(action, 'Norwegian VAT report exposes SAF-T 1.40 XML export');
+  t.equal(action?.group, 'Export', 'SAF-T export is grouped with report exports');
+  t.equal(action?.type, 'primary', 'SAF-T export is a primary report action');
 });
 
 test.onFinish(async () => {
