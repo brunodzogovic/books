@@ -1,5 +1,9 @@
+import DatabaseCore from 'backend/database/core';
 import { assertDoesNotThrow } from 'backend/database/tests/helpers';
+import { getDefaultMetaFieldValueMap } from 'backend/helpers';
 import { DateTime } from 'luxon';
+import { cloneDeep } from 'lodash';
+import { getSchemas } from 'schemas';
 import setupInstance from 'src/setup/setupInstance';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -69,6 +73,44 @@ test('setup Norwegian company', async (t) => {
       `${name} maps to SAF-T standard VAT code ${standardTaxCode}`
     );
   }
+});
+
+test('Norwegian VAT metadata migrates an existing populated Tax table', async (t) => {
+  const db = new DatabaseCore();
+  await db.connect();
+
+  const oldSchemaMap = cloneDeep(getSchemas('no', []));
+  oldSchemaMap.Tax!.fields = oldSchemaMap.Tax!.fields.filter(
+    ({ fieldname }) =>
+      fieldname !== 'taxCode' && fieldname !== 'standardTaxCode'
+  );
+
+  db.setSchemaMap(oldSchemaMap);
+  await db.migrate();
+
+  await db.insert('Tax', {
+    name: 'Legacy Norwegian Tax',
+    ...getDefaultMetaFieldValueMap(),
+  });
+
+  db.setSchemaMap(getSchemas('no', []));
+  await assertDoesNotThrow(
+    async () => await db.migrate(),
+    'adding Norwegian VAT metadata to an existing Tax table failed'
+  );
+
+  const rows = await db.knex!('Tax')
+    .where({ name: 'Legacy Norwegian Tax' })
+    .select('taxCode', 'standardTaxCode');
+
+  t.equal(rows[0]?.taxCode, '', 'legacy Tax row receives empty taxCode default');
+  t.equal(
+    rows[0]?.standardTaxCode,
+    '',
+    'legacy Tax row receives empty SAF-T tax code default'
+  );
+
+  await db.close();
 });
 
 test.onFinish(async () => {
