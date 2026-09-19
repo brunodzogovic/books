@@ -33,8 +33,12 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
     fyo
   );
 
+  const customerName = 'Norsk Testkunde AS';
+  const receivableAccount = 'Kundefordringer - 15000';
+  const serviceName = 'Konsulenttjeneste';
+
   const customer = fyo.doc.getNewDoc(ModelNameEnum.Party, {
-    name: 'Norsk Testkunde AS',
+    name: customerName,
     role: 'Customer',
     email: 'kunde@example.invalid',
   });
@@ -43,12 +47,12 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
 
   t.equal(
     customer.defaultAccount,
-    'Kundefordringer - 15000',
+    receivableAccount,
     'customer defaults to Norwegian receivables account'
   );
 
   const service = fyo.doc.getNewDoc(ModelNameEnum.Item, {
-    name: 'Konsulenttjeneste',
+    name: serviceName,
     itemType: 'Service',
     for: 'Sales',
     unit: 'Unit',
@@ -60,11 +64,11 @@ test('Norwegian sales invoice posts 25 percent MVA correctly', async (t) => {
   await service.sync();
 
   const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
-    account: customer.defaultAccount,
-    party: customer.name,
+    account: receivableAccount,
+    party: customerName,
     items: [
       {
-        item: service.name,
+        item: serviceName,
         quantity: 1,
         rate: 10000,
         tax: 'Utgående MVA 25 %',
