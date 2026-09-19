@@ -560,8 +560,8 @@ test('Norwegian credit-note refunds settle through bank', async (t) => {
 
   t.equal(
     salesCredit.outstandingAmount?.float,
-    -12500,
-    'paid sales invoice credit note creates NOK 12,500 refund liability'
+    12500,
+    'paid sales invoice credit note exposes NOK 12,500 refund amount'
   );
 
   const customerRefund = salesCredit.getPayment() as Payment;
@@ -636,8 +636,8 @@ test('Norwegian credit-note refunds settle through bank', async (t) => {
 
   t.equal(
     purchaseCredit.outstandingAmount?.float,
-    -12500,
-    'paid purchase invoice credit note creates NOK 12,500 supplier receivable'
+    12500,
+    'paid purchase invoice credit note exposes NOK 12,500 supplier refund amount'
   );
 
   const supplierRefund = purchaseCredit.getPayment() as Payment;
@@ -1127,11 +1127,11 @@ test('Norwegian financial statements reconcile current-year activity', async (t)
   const totalEquity =
     getTotal(balanceSheet.reportData, 'Total Equity (Credit)') ?? 0;
 
-  t.equal(totalAssets, 32887.5, 'balance sheet assets are NOK 32,887.50');
+  t.equal(totalAssets, 45387.5, 'balance sheet assets are NOK 45,387.50');
   t.equal(
     totalLiabilities,
-    -9262.5,
-    'balance sheet liabilities reflect net payable and VAT position'
+    3237.5,
+    'balance sheet liabilities reflect post-refund VAT position'
   );
 
   t.equal(
