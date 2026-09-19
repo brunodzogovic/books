@@ -48,6 +48,27 @@ test('setup Norwegian company', async (t) => {
   t.ok(await fyo.db.exists('Tax', 'Utgående MVA 25 %'));
   t.ok(await fyo.db.exists('Tax', 'Inngående MVA 25 %'));
   t.ok(await fyo.db.exists('Tax', 'MVA 0 % (fritatt)'));
+
+  const taxMappings = [
+    ['Utgående MVA 25 %', 'NO-OUT-25', '3'],
+    ['Utgående MVA 15 %', 'NO-OUT-15', '31'],
+    ['Utgående MVA 12 %', 'NO-OUT-12', '33'],
+    ['Inngående MVA 25 %', 'NO-IN-25', '1'],
+    ['Inngående MVA 15 %', 'NO-IN-15', '11'],
+    ['Inngående MVA 12 %', 'NO-IN-12', '13'],
+    ['MVA 0 % (fritatt)', 'NO-ZERO-DOM', '5'],
+    ['Unntatt MVA', 'NO-OUTSIDE', '6'],
+  ];
+
+  for (const [name, taxCode, standardTaxCode] of taxMappings) {
+    const tax = await fyo.doc.getDoc('Tax', name);
+    t.equal(tax?.get('taxCode'), taxCode, `${name} has stable Norwegian tax code`);
+    t.equal(
+      tax?.get('standardTaxCode'),
+      standardTaxCode,
+      `${name} maps to SAF-T standard VAT code ${standardTaxCode}`
+    );
+  }
 });
 
 test.onFinish(async () => {

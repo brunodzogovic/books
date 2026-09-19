@@ -1,0 +1,54 @@
+{
+  "name": "Tax",
+  "fields": [
+    {
+      "fieldname": "taxCode",
+      "label": "Tax Code",
+      "fieldtype": "Data",
+      "required": true,
+      "section": "Norway",
+      "description": "Stable internal VAT code exported as the system-specific TaxCode in Norwegian SAF-T."
+    },
+    {
+      "fieldname": "standardTaxCode",
+      "label": "SAF-T Standard VAT Code",
+      "fieldtype": "Select",
+      "required": true,
+      "section": "Norway",
+      "description": "Mapping to the Norwegian Tax Administration standard VAT code list.",
+      "options": [
+        { "value": "0", "label": "0 - No VAT treatment (purchases)" },
+        { "value": "1", "label": "1 - Input VAT deductible, regular rate" },
+        { "value": "11", "label": "11 - Input VAT deductible, middle rate" },
+        { "value": "12", "label": "12 - Input VAT deductible, raw fish rate" },
+        { "value": "13", "label": "13 - Input VAT deductible, low rate" },
+        { "value": "14", "label": "14 - Import input VAT deductible, regular rate" },
+        { "value": "15", "label": "15 - Import input VAT deductible, middle rate" },
+        { "value": "20", "label": "20 - Import cost, no VAT treatment" },
+        { "value": "21", "label": "21 - Import basis, regular rate" },
+        { "value": "22", "label": "22 - Import basis, middle rate" },
+        { "value": "3", "label": "3 - Output VAT, regular rate" },
+        { "value": "31", "label": "31 - Output VAT, middle rate" },
+        { "value": "32", "label": "32 - Output VAT, raw fish rate" },
+        { "value": "33", "label": "33 - Output VAT, low rate" },
+        { "value": "5", "label": "5 - Domestic zero-rated turnover" },
+        { "value": "51", "label": "51 - Domestic reverse-charge turnover" },
+        { "value": "52", "label": "52 - Export of goods and services" },
+        { "value": "6", "label": "6 - Turnover outside the scope of VAT" },
+        { "value": "7", "label": "7 - No VAT treatment (income)" },
+        { "value": "81", "label": "81 - Import basis with VAT deduction, regular rate" },
+        { "value": "82", "label": "82 - Import basis without VAT deduction, regular rate" },
+        { "value": "83", "label": "83 - Import basis with VAT deduction, middle rate" },
+        { "value": "84", "label": "84 - Import basis without VAT deduction, middle rate" },
+        { "value": "85", "label": "85 - Import basis, zero rate" },
+        { "value": "86", "label": "86 - Services purchased abroad with VAT deduction, regular rate" },
+        { "value": "87", "label": "87 - Services purchased abroad without VAT deduction, regular rate" },
+        { "value": "88", "label": "88 - Services purchased abroad with VAT deduction, low rate" },
+        { "value": "89", "label": "89 - Services purchased abroad without VAT deduction, low rate" },
+        { "value": "91", "label": "91 - Emissions allowances/gold purchase with VAT deduction" },
+        { "value": "92", "label": "92 - Emissions allowances/gold purchase without VAT deduction" }
+      ]
+    }
+  ],
+  "quickEditFields": ["taxCode", "standardTaxCode", "details"]
+}
