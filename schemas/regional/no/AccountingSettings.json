@@ -76,6 +76,13 @@
       "label": "City",
       "fieldtype": "Data",
       "section": "Norway"
+    },
+    {
+      "fieldname": "accountingLockDate",
+      "label": "Lock Accounting Through",
+      "fieldtype": "Date",
+      "section": "Norway",
+      "description": "Prevents posting, reversal, or cancellation of accounting transactions on or before this date."
     }
   ],
   "quickEditFields": [
@@ -89,6 +96,7 @@
     "companyAddress",
     "postalCode",
     "city",
+    "accountingLockDate",
     "fiscalYearStart",
     "fiscalYearEnd"
   ]

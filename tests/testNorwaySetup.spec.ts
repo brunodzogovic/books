@@ -68,6 +68,12 @@ test('setup Norwegian company', async (t) => {
     ),
     'Norwegian sales invoice schema has delivery place'
   );
+  t.ok(
+    fyo.schemaMap.AccountingSettings?.fields.some(
+      ({ fieldname }) => fieldname === 'accountingLockDate'
+    ),
+    'Norwegian accounting settings has period lock date'
+  );
 
   t.ok(await fyo.db.exists('Account', 'Kundefordringer - 15000'));
   t.ok(await fyo.db.exists('Account', 'Leverandørgjeld - 24000'));

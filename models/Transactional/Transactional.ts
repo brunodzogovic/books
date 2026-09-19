@@ -1,5 +1,6 @@
 import { Doc } from 'fyo/model/doc';
 import { ModelNameEnum } from 'models/types';
+import { validateNorwegianAccountingPeriod } from 'regional/noPeriodLock';
 import { LedgerPosting } from './LedgerPosting';
 
 /**
@@ -32,6 +33,10 @@ export abstract class Transactional extends Doc {
     await super.validate();
     if (!this.isTransactional) {
       return;
+    }
+
+    if (this.submitted || this.cancelled) {
+      validateNorwegianAccountingPeriod(this);
     }
 
     const posting = await this.getPosting();

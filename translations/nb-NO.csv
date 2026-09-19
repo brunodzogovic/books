@@ -65,3 +65,6 @@
 
 "VAT in Company Currency","MVA i selskapsvaluta"
 "Taxable Basis in Company Currency","Avgiftsgrunnlag i selskapsvaluta"
+
+"Lock Accounting Through","Lås regnskap til og med"
+"Accounting is locked through ${lockDate}. Transactions dated ${postingDate} cannot be posted or reversed in that period.","Regnskapet er låst til og med ${lockDate}. Transaksjoner datert ${postingDate} kan ikke bokføres eller reverseres i denne perioden."

@@ -799,6 +799,87 @@ test('Norwegian sales invoice blocks missing compliance fields', async (t) => {
   t.equal(threw, true, 'non-compliant Norwegian sales invoice is blocked');
 });
 
+test('Norwegian accounting period lock blocks old postings and reversals', async (t) => {
+  const year = new Date().getFullYear();
+  await fyo.singles.AccountingSettings?.setAndSync(
+    'accountingLockDate',
+    new Date(`${year}-01-31T00:00:00.000Z`)
+  );
+
+  const lockedInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Norsk Testkunde AS',
+    date: new Date(`${year}-01-15T12:00:00.000Z`),
+    dueDate: new Date(`${year}-02-15T00:00:00.000Z`),
+    deliveryDate: new Date(`${year}-01-15T12:00:00.000Z`),
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: 'Konsulenttjeneste',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await lockedInvoice.runFormulas();
+  await lockedInvoice.sync();
+
+  let oldPostingBlocked = false;
+  try {
+    await lockedInvoice.submit();
+  } catch (error) {
+    oldPostingBlocked = true;
+    t.match(
+      (error as Error).message,
+      /locked through/,
+      'posting inside locked period is rejected'
+    );
+  }
+  t.equal(oldPostingBlocked, true, 'locked-period invoice cannot be submitted');
+
+  const openInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Norsk Testkunde AS',
+    date: new Date(`${year}-02-01T12:00:00.000Z`),
+    dueDate: new Date(`${year}-02-15T00:00:00.000Z`),
+    deliveryDate: new Date(`${year}-02-01T12:00:00.000Z`),
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: 'Konsulenttjeneste',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await openInvoice.runFormulas();
+  await openInvoice.sync();
+  await openInvoice.submit();
+  t.equal(openInvoice.isSubmitted, true, 'posting after lock date is allowed');
+
+  await fyo.singles.AccountingSettings?.setAndSync(
+    'accountingLockDate',
+    new Date(`${year}-02-28T00:00:00.000Z`)
+  );
+
+  let reversalBlocked = false;
+  try {
+    await openInvoice.cancel();
+  } catch (error) {
+    reversalBlocked = true;
+    t.match(
+      (error as Error).message,
+      /locked through/,
+      'reversal inside locked period is rejected'
+    );
+  }
+  t.equal(reversalBlocked, true, 'locked-period invoice cannot be cancelled');
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });

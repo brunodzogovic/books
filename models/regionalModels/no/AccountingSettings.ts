@@ -10,6 +10,7 @@ export class AccountingSettings extends BaseAccountingSettings {
   companyAddress?: string;
   postalCode?: string;
   city?: string;
+  accountingLockDate?: Date;
 
   validations: ValidationMap = {
     email: validateEmail,
