@@ -122,6 +122,50 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   await purchaseInvoice.sync();
   await purchaseInvoice.submit();
 
+  const euroCustomer = fyo.doc.getNewDoc(ModelNameEnum.Party, {
+    name: 'SAF-T Euro Testkunde AS',
+    role: 'Customer',
+    email: 'euro-saft@example.invalid',
+    organizationNumber: '765432103',
+    currency: 'EUR',
+  });
+  await euroCustomer.runFormulas();
+  await euroCustomer.sync();
+
+  const euroItem = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: 'SAF-T EUR konsulenttjeneste',
+    itemType: 'Service',
+    for: 'Sales',
+    unit: 'Unit',
+    rate: 100,
+    tax: 'Utgående MVA 25 %',
+    incomeAccount: 'Salgsinntekt, avgiftspliktig, 25 % - 30000',
+    expenseAccount: 'Varekostnad - 40000',
+  });
+  await euroItem.sync();
+
+  const euroInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'SAF-T Euro Testkunde AS',
+    exchangeRate: 11.5,
+    dueDate: `${year}-10-04`,
+    deliveryDate: `${year}-09-21T12:00:00.000Z`,
+    deliveryPlace: 'Oslo',
+    date: new Date(`${year}-09-21T12:00:00.000Z`),
+    items: [
+      {
+        item: 'SAF-T EUR konsulenttjeneste',
+        quantity: 1,
+        rate: 100,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await euroInvoice.runFormulas();
+  await euroInvoice.sync();
+  await euroInvoice.submit();
+
   const result = await buildNorwegianSaftFinancial140(fyo, {
     fromDate: `${year}-01-01`,
     toDate: `${year}-12-31`,
@@ -134,9 +178,9 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     '1.40',
     'export targets SAF-T Financial 1.40'
   );
-  t.equal(result.numberOfEntries, 2, 'two posted invoices become two transactions');
-  t.equal(result.totalDebit, 2500, 'SAF-T total debit is NOK 2,500');
-  t.equal(result.totalCredit, 2500, 'SAF-T total credit is NOK 2,500');
+  t.equal(result.numberOfEntries, 3, 'three posted invoices become three transactions');
+  t.equal(result.totalDebit, 3937.5, 'SAF-T total debit is NOK 3,937.50');
+  t.equal(result.totalCredit, 3937.5, 'SAF-T total credit is NOK 3,937.50');
 
   t.ok(
     result.xml.includes(
@@ -179,12 +223,12 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     'writes accounting tax basis'
   );
   t.ok(
-    result.xml.includes('<NumberOfEntries>2</NumberOfEntries>'),
+    result.xml.includes('<NumberOfEntries>3</NumberOfEntries>'),
     'writes transaction count'
   );
   t.ok(
-    result.xml.includes('<TotalDebit>2500.00</TotalDebit>') &&
-      result.xml.includes('<TotalCredit>2500.00</TotalCredit>'),
+    result.xml.includes('<TotalDebit>3937.50</TotalDebit>') &&
+      result.xml.includes('<TotalCredit>3937.50</TotalCredit>'),
     'writes balanced general-ledger totals'
   );
   t.ok(
@@ -306,8 +350,40 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
 
   t.equal(
     (result.xml.match(/<TaxInformation>/g) ?? []).length,
-    2,
+    3,
     'emits VAT information only on taxable base lines'
+  );
+
+  const euroTransactionStart = result.xml.indexOf(
+    `<TransactionID>${euroInvoice.name}</TransactionID>`
+  );
+  const euroTransactionEnd = result.xml.indexOf(
+    '</Transaction>',
+    euroTransactionStart
+  );
+  const euroTransactionXml = result.xml.slice(
+    euroTransactionStart,
+    euroTransactionEnd
+  );
+
+  t.ok(
+    euroTransactionXml.includes('<Amount>1150.00</Amount>') &&
+      euroTransactionXml.includes('<CurrencyCode>EUR</CurrencyCode>') &&
+      euroTransactionXml.includes('<CurrencyAmount>100</CurrencyAmount>') &&
+      euroTransactionXml.includes('<ExchangeRate>11.5</ExchangeRate>'),
+    'exports foreign-currency ledger amount structure'
+  );
+  t.ok(
+    euroTransactionXml.includes('<CreditTaxAmount>') &&
+      euroTransactionXml.includes('<Amount>287.50</Amount>') &&
+      euroTransactionXml.includes('<CurrencyAmount>25</CurrencyAmount>'),
+    'exports foreign-currency VAT amount structure'
+  );
+  t.ok(
+    euroTransactionXml.includes('<CreditNOKTaxAmount>') &&
+      euroTransactionXml.includes('<NOKAmount>287.50</NOKAmount>') &&
+      euroTransactionXml.includes('<NOKTaxBase>1150.00</NOKTaxBase>'),
+    'locks foreign-currency VAT amount and tax base in NOK for SAF-T 1.40'
   );
 
   t.equal(

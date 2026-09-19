@@ -61,6 +61,15 @@ type SaftLineTaxInformation = {
   rate: number;
   taxBase: number;
   taxAmount: number;
+  currency?: string;
+  foreignTaxBase?: number;
+  foreignTaxAmount?: number;
+  exchangeRate?: number;
+};
+
+type SaftForeignAmount = {
+  currency: string;
+  exchangeRate: number;
 };
 
 export type NorwegianSaftExportResult = {
@@ -551,6 +560,7 @@ async function buildTransactionXml(
     fyo,
     group
   );
+  const foreignAmount = await getTransactionForeignAmount(fyo, group);
 
   const lines = [
     '      <Transaction>',
@@ -578,7 +588,8 @@ async function buildTransactionXml(
         row,
         group,
         parties,
-        taxInformationByAccount[row.account] ?? []
+        taxInformationByAccount[row.account] ?? [],
+        foreignAmount
       )
     );
   }
@@ -591,7 +602,8 @@ function buildLineXml(
   row: RawLedgerRow,
   group: TransactionGroup,
   parties: SaftParty[],
-  taxInformation: SaftLineTaxInformation[]
+  taxInformation: SaftLineTaxInformation[],
+  foreignAmount: SaftForeignAmount | null
 ): string[] {
   const debit = toAmount(row.debit);
   const credit = toAmount(row.credit);
@@ -602,18 +614,11 @@ function buildLineXml(
     );
   }
 
-  const amountXml =
-    debit > 0
-      ? [
-          '          <DebitAmount>',
-          `            <Amount>${formatMoney(debit)}</Amount>`,
-          '          </DebitAmount>',
-        ]
-      : [
-          '          <CreditAmount>',
-          `            <Amount>${formatMoney(credit)}</Amount>`,
-          '          </CreditAmount>',
-        ];
+  const amountXml = buildAmountStructureXml(
+    debit > 0 ? 'DebitAmount' : 'CreditAmount',
+    debit > 0 ? debit : credit,
+    foreignAmount
+  );
 
   const partyXml = getLinePartyXml(row, group, parties);
   const taxInformationXml = buildTaxInformationXml(
@@ -638,6 +643,41 @@ function buildLineXml(
     )}</ReferenceNumber>`,
     '        </Line>',
   ];
+}
+
+async function getTransactionForeignAmount(
+  fyo: Fyo,
+  group: TransactionGroup
+): Promise<SaftForeignAmount | null> {
+  if (
+    group.referenceType !== 'SalesInvoice' &&
+    group.referenceType !== 'PurchaseInvoice'
+  ) {
+    return null;
+  }
+
+  const invoice = (await fyo.doc.getDoc(
+    group.referenceType,
+    group.referenceName
+  )) as Invoice;
+
+  const currency = String(invoice.currency ?? '').trim();
+  const companyCurrency = String(
+    fyo.singles.SystemSettings?.currency ?? 'NOK'
+  ).trim();
+  const exchangeRate = invoice.exchangeRate ?? 1;
+
+  if (
+    !currency ||
+    currency === companyCurrency ||
+    !Number.isFinite(exchangeRate) ||
+    exchangeRate <= 0 ||
+    exchangeRate === 1
+  ) {
+    return null;
+  }
+
+  return { currency, exchangeRate };
 }
 
 async function getTransactionTaxInformation(
@@ -675,11 +715,21 @@ async function getTransactionTaxInformation(
     const key = `${taxCode}:${taxItem.details.rate}`;
 
     byAccount[account] ??= {};
+    const invoiceCurrency = String(invoice.currency ?? '').trim();
+    const companyCurrency = String(
+      fyo.singles.SystemSettings?.currency ?? 'NOK'
+    ).trim();
+    const isForeign = invoiceCurrency && invoiceCurrency !== companyCurrency;
+
     byAccount[account][key] ??= {
       taxCode,
       rate: taxItem.details.rate,
       taxBase: 0,
       taxAmount: 0,
+      currency: isForeign ? invoiceCurrency : undefined,
+      foreignTaxBase: isForeign ? 0 : undefined,
+      foreignTaxAmount: isForeign ? 0 : undefined,
+      exchangeRate: isForeign ? exchangeRate : undefined,
     };
 
     byAccount[account][key].taxBase = roundMoney(
@@ -688,6 +738,17 @@ async function getTransactionTaxInformation(
     byAccount[account][key].taxAmount = roundMoney(
       byAccount[account][key].taxAmount + taxAmount
     );
+
+    if (isForeign) {
+      byAccount[account][key].foreignTaxBase = roundLongMoney(
+        (byAccount[account][key].foreignTaxBase ?? 0) +
+          Math.abs(taxItem.fullAmount.float)
+      );
+      byAccount[account][key].foreignTaxAmount = roundLongMoney(
+        (byAccount[account][key].foreignTaxAmount ?? 0) +
+          Math.abs(taxItem.taxAmount.float)
+      );
+    }
   }
 
   return Object.fromEntries(
@@ -712,6 +773,8 @@ function buildTaxInformationXml(
   for (const tax of taxInformation) {
     const amountTag = isDebit ? 'DebitTaxAmount' : 'CreditTaxAmount';
 
+    const amountLines = buildTaxAmountStructureXml(amountTag, tax);
+
     lines.push(
       '          <TaxInformation>',
       '            <TaxType>MVA</TaxType>',
@@ -720,13 +783,83 @@ function buildTaxInformationXml(
       '            <Country>NO</Country>',
       `            <TaxBase>${formatMoney(tax.taxBase)}</TaxBase>`,
       '            <TaxBaseDescription>Amount</TaxBaseDescription>',
-      `            <${amountTag}>`,
-      `              <Amount>${formatMoney(tax.taxAmount)}</Amount>`,
-      `            </${amountTag}>`,
-      '          </TaxInformation>'
+      ...amountLines
+    );
+
+    if (
+      tax.currency &&
+      tax.exchangeRate &&
+      tax.foreignTaxAmount !== undefined
+    ) {
+      const nokTag = isDebit ? 'DebitNOKTaxAmount' : 'CreditNOKTaxAmount';
+      lines.push(
+        `            <${nokTag}>`,
+        `              <NOKAmount>${formatMoney(tax.taxAmount)}</NOKAmount>`,
+        `              <NOKTaxBase>${formatMoney(tax.taxBase)}</NOKTaxBase>`,
+        `            </${nokTag}>`
+      );
+    }
+
+    lines.push('          </TaxInformation>');
+  }
+
+  return lines;
+}
+
+function buildAmountStructureXml(
+  tag: 'DebitAmount' | 'CreditAmount',
+  amount: number,
+  foreignAmount: SaftForeignAmount | null
+): string[] {
+  const lines = [
+    `          <${tag}>`,
+    `            <Amount>${formatMoney(amount)}</Amount>`,
+  ];
+
+  if (foreignAmount) {
+    lines.push(
+      `            <CurrencyCode>${escapeXml(
+        foreignAmount.currency
+      )}</CurrencyCode>`,
+      `            <CurrencyAmount>${formatLongMoney(
+        amount / foreignAmount.exchangeRate
+      )}</CurrencyAmount>`,
+      `            <ExchangeRate>${formatLongMoney(
+        foreignAmount.exchangeRate
+      )}</ExchangeRate>`
     );
   }
 
+  lines.push(`          </${tag}>`);
+  return lines;
+}
+
+function buildTaxAmountStructureXml(
+  tag: 'DebitTaxAmount' | 'CreditTaxAmount',
+  tax: SaftLineTaxInformation
+): string[] {
+  const lines = [
+    `            <${tag}>`,
+    `              <Amount>${formatMoney(tax.taxAmount)}</Amount>`,
+  ];
+
+  if (
+    tax.currency &&
+    tax.exchangeRate &&
+    tax.foreignTaxAmount !== undefined
+  ) {
+    lines.push(
+      `              <CurrencyCode>${escapeXml(tax.currency)}</CurrencyCode>`,
+      `              <CurrencyAmount>${formatLongMoney(
+        tax.foreignTaxAmount
+      )}</CurrencyAmount>`,
+      `              <ExchangeRate>${formatLongMoney(
+        tax.exchangeRate
+      )}</ExchangeRate>`
+    );
+  }
+
+  lines.push(`            </${tag}>`);
   return lines;
 }
 
@@ -893,12 +1026,20 @@ function roundMoney(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
+function roundLongMoney(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100000000) / 100000000;
+}
+
 function moneyEquals(a: number, b: number): boolean {
   return Math.abs(a - b) < 0.005;
 }
 
 function formatMoney(value: number): string {
   return roundMoney(value).toFixed(2);
+}
+
+function formatLongMoney(value: number): string {
+  return roundLongMoney(value).toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
 }
 
 function escapeXml(value: string): string {
