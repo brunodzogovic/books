@@ -1,5 +1,6 @@
 import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
+import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { ModelNameEnum } from 'models/types';
 import {
   buildNorwegianSaftFinancial140,
@@ -82,6 +83,45 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   await invoice.sync();
   await invoice.submit();
 
+  const supplier = fyo.doc.getNewDoc(ModelNameEnum.Party, {
+    name: 'SAF-T Testleverandør AS',
+    role: 'Supplier',
+    email: 'leverandor@example.invalid',
+    organizationNumber: '876543214',
+  });
+  await supplier.runFormulas();
+  await supplier.sync();
+
+  const purchaseItem = fyo.doc.getNewDoc(ModelNameEnum.Item, {
+    name: 'SAF-T innkjøpt tjeneste',
+    itemType: 'Service',
+    for: 'Purchases',
+    unit: 'Unit',
+    rate: 1000,
+    tax: 'Inngående MVA 25 %',
+    incomeAccount: 'Salgsinntekt, avgiftspliktig, 25 % - 30000',
+    expenseAccount: 'Fremmede tjenester - 67000',
+  });
+  await purchaseItem.sync();
+
+  const purchaseInvoice = fyo.doc.getNewDoc(ModelNameEnum.PurchaseInvoice, {
+    account: 'Leverandørgjeld - 24000',
+    party: 'SAF-T Testleverandør AS',
+    date: new Date(`${year}-09-20T12:00:00.000Z`),
+    items: [
+      {
+        item: 'SAF-T innkjøpt tjeneste',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Inngående MVA 25 %',
+      },
+    ],
+  }) as PurchaseInvoice;
+
+  await purchaseInvoice.runFormulas();
+  await purchaseInvoice.sync();
+  await purchaseInvoice.submit();
+
   const result = await buildNorwegianSaftFinancial140(fyo, {
     fromDate: `${year}-01-01`,
     toDate: `${year}-12-31`,
@@ -94,9 +134,9 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     '1.40',
     'export targets SAF-T Financial 1.40'
   );
-  t.equal(result.numberOfEntries, 1, 'one posted invoice becomes one transaction');
-  t.equal(result.totalDebit, 1250, 'SAF-T total debit is NOK 1,250');
-  t.equal(result.totalCredit, 1250, 'SAF-T total credit is NOK 1,250');
+  t.equal(result.numberOfEntries, 2, 'two posted invoices become two transactions');
+  t.equal(result.totalDebit, 2500, 'SAF-T total debit is NOK 2,500');
+  t.equal(result.totalCredit, 2500, 'SAF-T total credit is NOK 2,500');
 
   t.ok(
     result.xml.includes(
@@ -139,12 +179,12 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     'writes accounting tax basis'
   );
   t.ok(
-    result.xml.includes('<NumberOfEntries>1</NumberOfEntries>'),
+    result.xml.includes('<NumberOfEntries>2</NumberOfEntries>'),
     'writes transaction count'
   );
   t.ok(
-    result.xml.includes('<TotalDebit>1250.00</TotalDebit>') &&
-      result.xml.includes('<TotalCredit>1250.00</TotalCredit>'),
+    result.xml.includes('<TotalDebit>2500.00</TotalDebit>') &&
+      result.xml.includes('<TotalCredit>2500.00</TotalCredit>'),
     'writes balanced general-ledger totals'
   );
   t.ok(
@@ -177,6 +217,33 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
       result.xml.includes('<Name>SAF-T Testkunde AS</Name>'),
     'exports customer master data'
   );
+  t.ok(
+    result.xml.includes('<Suppliers>') &&
+      result.xml.includes('<SupplierID>876543214</SupplierID>') &&
+      result.xml.includes('<Name>SAF-T Testleverandør AS</Name>'),
+    'exports supplier master data'
+  );
+  t.ok(
+    result.xml.includes(
+      '<AccountID>15000</AccountID>\n          <OpeningDebitBalance>0.00</OpeningDebitBalance>\n          <ClosingDebitBalance>1250.00</ClosingDebitBalance>'
+    ),
+    'exports real customer opening and closing balances'
+  );
+  t.ok(
+    result.xml.includes(
+      '<AccountID>24000</AccountID>\n          <OpeningDebitBalance>0.00</OpeningDebitBalance>\n          <ClosingCreditBalance>1250.00</ClosingCreditBalance>'
+    ),
+    'exports real supplier opening and closing balances'
+  );
+  t.ok(
+    result.xml.includes('<CustomerID>987654325</CustomerID>'),
+    'tags receivable ledger line with customer ID'
+  );
+  t.ok(
+    result.xml.includes('<SupplierID>876543214</SupplierID>'),
+    'tags payable ledger line with supplier ID'
+  );
+
   t.ok(
     result.xml.includes('<TaxTable>') &&
       result.xml.includes('<TaxType>MVA</TaxType>'),

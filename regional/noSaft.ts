@@ -49,6 +49,12 @@ type SaftTax = {
   rate: number;
 };
 
+type SaftPartyBalance = {
+  accountId: string;
+  opening: number;
+  closing: number;
+};
+
 export type NorwegianSaftExportResult = {
   xml: string;
   numberOfEntries: number;
@@ -160,12 +166,20 @@ export async function buildNorwegianSaftFinancial140(
     toDate,
   });
 
-  const masterFiles = await buildMasterFilesXml(fyo);
+  const parties = await loadSaftParties(fyo);
+  const masterFiles = await buildMasterFilesXml(
+    fyo,
+    parties,
+    rawRows,
+    fromDate,
+    toDate
+  );
 
   const generalLedgerEntries = buildGeneralLedgerEntriesXml(
     groups,
     totalDebit,
-    totalCredit
+    totalCredit,
+    parties
   );
 
   const xml = [
@@ -245,18 +259,21 @@ function buildHeaderXml(values: {
   ].join('\n');
 }
 
-async function buildMasterFilesXml(fyo: Fyo): Promise<string> {
-  const parties = (await fyo.db.getAllRaw('Party', {
-    fields: [
-      'name',
-      'role',
-      'organizationNumber',
-      'defaultAccount',
-    ],
+async function loadSaftParties(fyo: Fyo): Promise<SaftParty[]> {
+  return (await fyo.db.getAllRaw('Party', {
+    fields: ['name', 'role', 'organizationNumber', 'defaultAccount'],
     orderBy: 'name',
     order: 'asc',
   })) as unknown as SaftParty[];
+}
 
+async function buildMasterFilesXml(
+  fyo: Fyo,
+  parties: SaftParty[],
+  rawRows: RawLedgerRow[],
+  fromDate: string,
+  toDate: string
+): Promise<string> {
   const customers = parties.filter(
     ({ role }) => role === 'Customer' || role === 'Both'
   );
@@ -308,7 +325,13 @@ async function buildMasterFilesXml(fyo: Fyo): Promise<string> {
   if (customers.length) {
     lines.push('    <Customers>');
     for (const party of customers) {
-      lines.push(...buildPartyXml(party, 'Customer'));
+      lines.push(
+        ...buildPartyXml(
+          party,
+          'Customer',
+          getPartyBalance(party, rawRows, fromDate, toDate)
+        )
+      );
     }
     lines.push('    </Customers>');
   }
@@ -316,7 +339,13 @@ async function buildMasterFilesXml(fyo: Fyo): Promise<string> {
   if (suppliers.length) {
     lines.push('    <Suppliers>');
     for (const party of suppliers) {
-      lines.push(...buildPartyXml(party, 'Supplier'));
+      lines.push(
+        ...buildPartyXml(
+          party,
+          'Supplier',
+          getPartyBalance(party, rawRows, fromDate, toDate)
+        )
+      );
     }
     lines.push('    </Suppliers>');
   }
@@ -353,7 +382,8 @@ async function buildMasterFilesXml(fyo: Fyo): Promise<string> {
 
 function buildPartyXml(
   party: SaftParty,
-  kind: 'Customer' | 'Supplier'
+  kind: 'Customer' | 'Supplier',
+  balance: SaftPartyBalance | null
 ): string[] {
   const id = getSaftPartyId(party);
   const lines = [`      <${kind}>`];
@@ -371,9 +401,77 @@ function buildPartyXml(
     `        <${kind}ID>${escapeXml(id)}</${kind}ID>`
   );
 
+  if (balance) {
+    lines.push(
+      '        <BalanceAccount>',
+      `          <AccountID>${escapeXml(balance.accountId)}</AccountID>`,
+      ...buildBalanceChoiceXml('Opening', balance.opening, '          '),
+      ...buildBalanceChoiceXml('Closing', balance.closing, '          '),
+      '        </BalanceAccount>'
+    );
+  }
 
   lines.push(`      </${kind}>`);
   return lines;
+}
+
+function getPartyBalance(
+  party: SaftParty,
+  rows: RawLedgerRow[],
+  fromDate: string,
+  toDate: string
+): SaftPartyBalance | null {
+  if (!party.defaultAccount) {
+    return null;
+  }
+
+  const partyRows = rows.filter(
+    (row) =>
+      row.party === party.name &&
+      row.account === party.defaultAccount
+  );
+
+  const opening = roundMoney(
+    partyRows
+      .filter((row) => normalizeDate(row.date) < fromDate)
+      .reduce((sum, row) => sum + getSignedLedgerAmount(row), 0)
+  );
+
+  const closing = roundMoney(
+    partyRows
+      .filter((row) => normalizeDate(row.date) <= toDate)
+      .reduce((sum, row) => sum + getSignedLedgerAmount(row), 0)
+  );
+
+  return {
+    accountId: getSaftAccountId(party.defaultAccount),
+    opening,
+    closing,
+  };
+}
+
+function buildBalanceChoiceXml(
+  prefix: 'Opening' | 'Closing',
+  balance: number,
+  indent: string
+): string[] {
+  if (balance < 0) {
+    return [
+      `${indent}<${prefix}CreditBalance>${formatMoney(
+        Math.abs(balance)
+      )}</${prefix}CreditBalance>`,
+    ];
+  }
+
+  return [
+    `${indent}<${prefix}DebitBalance>${formatMoney(
+      balance
+    )}</${prefix}DebitBalance>`,
+  ];
+}
+
+function getSignedLedgerAmount(row: RawLedgerRow): number {
+  return toAmount(row.debit) - toAmount(row.credit);
 }
 
 export function getSaftPartyId(party: SaftParty): string {
@@ -401,7 +499,8 @@ function formatRate(value: number): string {
 function buildGeneralLedgerEntriesXml(
   groups: TransactionGroup[],
   totalDebit: number,
-  totalCredit: number
+  totalCredit: number,
+  parties: SaftParty[]
 ): string {
   const lines = [
     '  <GeneralLedgerEntries>',
@@ -419,7 +518,7 @@ function buildGeneralLedgerEntriesXml(
     );
 
     for (const group of groups) {
-      lines.push(...buildTransactionXml(group));
+      lines.push(...buildTransactionXml(group, parties));
     }
 
     lines.push('    </Journal>');
@@ -429,7 +528,10 @@ function buildGeneralLedgerEntriesXml(
   return lines.join('\n');
 }
 
-function buildTransactionXml(group: TransactionGroup): string[] {
+function buildTransactionXml(
+  group: TransactionGroup,
+  parties: SaftParty[]
+): string[] {
   const date = group.date;
   const period = Number(date.slice(5, 7));
   const year = Number(date.slice(0, 4));
@@ -456,7 +558,7 @@ function buildTransactionXml(group: TransactionGroup): string[] {
   ];
 
   for (const row of group.rows) {
-    lines.push(...buildLineXml(row, group));
+    lines.push(...buildLineXml(row, group, parties));
   }
 
   lines.push('      </Transaction>');
@@ -465,7 +567,8 @@ function buildTransactionXml(group: TransactionGroup): string[] {
 
 function buildLineXml(
   row: RawLedgerRow,
-  group: TransactionGroup
+  group: TransactionGroup,
+  parties: SaftParty[]
 ): string[] {
   const debit = toAmount(row.debit);
   const credit = toAmount(row.credit);
@@ -489,12 +592,15 @@ function buildLineXml(
           '          </CreditAmount>',
         ];
 
+  const partyXml = getLinePartyXml(row, group, parties);
+
   return [
     '        <Line>',
     `          <RecordID>${escapeXml(String(row.name))}</RecordID>`,
     `          <AccountID>${escapeXml(
       getSaftAccountId(row.account)
     )}</AccountID>`,
+    ...partyXml,
     `          <Description>${escapeXml(
       `${group.referenceType} ${group.referenceName}`
     )}</Description>`,
@@ -504,6 +610,42 @@ function buildLineXml(
     )}</ReferenceNumber>`,
     '        </Line>',
   ];
+}
+
+function getLinePartyXml(
+  row: RawLedgerRow,
+  group: TransactionGroup,
+  parties: SaftParty[]
+): string[] {
+  if (!row.party) {
+    return [];
+  }
+
+  const party = parties.find(({ name }) => name === row.party);
+  if (!party?.defaultAccount || party.defaultAccount !== row.account) {
+    return [];
+  }
+
+  const id = escapeXml(getSaftPartyId(party));
+
+  if (party.role === 'Customer') {
+    return [`          <CustomerID>${id}</CustomerID>`];
+  }
+
+  if (party.role === 'Supplier') {
+    return [`          <SupplierID>${id}</SupplierID>`];
+  }
+
+  if (party.role === 'Both') {
+    if (group.referenceType === 'SalesInvoice') {
+      return [`          <CustomerID>${id}</CustomerID>`];
+    }
+    if (group.referenceType === 'PurchaseInvoice') {
+      return [`          <SupplierID>${id}</SupplierID>`];
+    }
+  }
+
+  return [];
 }
 
 function groupTransactions(rows: RawLedgerRow[]): TransactionGroup[] {
