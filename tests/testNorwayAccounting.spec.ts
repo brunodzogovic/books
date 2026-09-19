@@ -1,5 +1,7 @@
 import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
+import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
+import { Payment } from 'models/baseModels/Payment/Payment';
 import { ModelNameEnum } from 'models/types';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -160,7 +162,7 @@ test('Norwegian purchase invoice posts 25 percent input MVA correctly', async (t
         tax: 'Inngående MVA 25 %',
       },
     ],
-  }) as import('models/baseModels/PurchaseInvoice/PurchaseInvoice').PurchaseInvoice;
+  }) as PurchaseInvoice;
 
   await invoice.runFormulas();
 
@@ -199,6 +201,92 @@ test('Norwegian purchase invoice posts 25 percent input MVA correctly', async (t
     fyo.pesa(byAccount[payableAccount]?.credit as string).float,
     12500,
     'payables credited NOK 12,500'
+  );
+});
+
+test('Norwegian customer payment settles receivable through bank', async (t) => {
+  const invoice = (await fyo.doc.getDoc(
+    ModelNameEnum.SalesInvoice,
+    'SINV-1001'
+  )) as SalesInvoice;
+
+  const payment = invoice.getPayment() as Payment;
+  await payment.set({
+    paymentMethod: 'Bank',
+    paymentAccount: 'Test Bank',
+    referenceId: 'BANK-SALE-001',
+    clearanceDate: new Date(),
+  });
+  await payment.runFormulas();
+  await payment.sync();
+  await payment.submit();
+
+  const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+    fields: ['account', 'debit', 'credit'],
+    filters: { referenceName: payment.name! },
+  });
+
+  const byAccount = Object.fromEntries(
+    entries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(byAccount['Test Bank']?.debit as string).float,
+    12500,
+    'bank debited NOK 12,500 on customer receipt'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Kundefordringer - 15000']?.credit as string).float,
+    12500,
+    'receivables credited NOK 12,500 on customer receipt'
+  );
+
+  await invoice.load();
+  t.equal(invoice.outstandingAmount?.float, 0, 'sales invoice is fully settled');
+});
+
+test('Norwegian supplier payment settles payable through bank', async (t) => {
+  const invoice = (await fyo.doc.getDoc(
+    ModelNameEnum.PurchaseInvoice,
+    'PINV-1001'
+  )) as PurchaseInvoice;
+
+  const payment = invoice.getPayment() as Payment;
+  await payment.set({
+    paymentMethod: 'Bank',
+    account: 'Test Bank',
+    referenceId: 'BANK-PURCHASE-001',
+    clearanceDate: new Date(),
+  });
+  await payment.runFormulas();
+  await payment.sync();
+  await payment.submit();
+
+  const entries = await fyo.db.getAllRaw(ModelNameEnum.AccountingLedgerEntry, {
+    fields: ['account', 'debit', 'credit'],
+    filters: { referenceName: payment.name! },
+  });
+
+  const byAccount = Object.fromEntries(
+    entries.map((entry) => [entry.account as string, entry])
+  );
+
+  t.equal(
+    fyo.pesa(byAccount['Leverandørgjeld - 24000']?.debit as string).float,
+    12500,
+    'payables debited NOK 12,500 on supplier payment'
+  );
+  t.equal(
+    fyo.pesa(byAccount['Test Bank']?.credit as string).float,
+    12500,
+    'bank credited NOK 12,500 on supplier payment'
+  );
+
+  await invoice.load();
+  t.equal(
+    invoice.outstandingAmount?.float,
+    0,
+    'purchase invoice is fully settled'
   );
 });
 
