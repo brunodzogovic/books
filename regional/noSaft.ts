@@ -72,6 +72,18 @@ type SaftForeignAmount = {
   exchangeRate: number;
 };
 
+type SaftAccount = {
+  name: string;
+  accountType?: string;
+  rootType?: string;
+  isGroup?: boolean | number;
+};
+
+type SaftGrouping = {
+  category: string;
+  code: string;
+};
+
 export type NorwegianSaftExportResult = {
   xml: string;
   numberOfEntries: number;
@@ -277,6 +289,154 @@ function buildHeaderXml(values: {
   ].join('\n');
 }
 
+async function buildGeneralLedgerAccountsXml(
+  fyo: Fyo,
+  rawRows: RawLedgerRow[],
+  fromDate: string,
+  toDate: string
+): Promise<string[]> {
+  const accountRows = (await fyo.db.getAllRaw('Account', {
+    fields: ['name', 'accountType', 'rootType', 'isGroup'],
+    orderBy: 'name',
+    order: 'asc',
+  })) as unknown as SaftAccount[];
+
+  const accountMap = new Map(accountRows.map((account) => [account.name, account]));
+  const usedAccountNames = [
+    ...new Set(
+      rawRows
+        .filter((row) => normalizeDate(row.date) <= toDate)
+        .map((row) => row.account)
+    ),
+  ].sort();
+
+  const lines: string[] = [];
+
+  for (const accountName of usedAccountNames) {
+    const account = accountMap.get(accountName);
+    if (!account) {
+      throw new ValidationError(
+        t`SAF-T account ${accountName} does not exist in the chart of accounts.`
+      );
+    }
+
+    const grouping = getNorwegianSaftGrouping(account);
+    const accountRowsForBalance = rawRows.filter(
+      (row) => row.account === accountName
+    );
+    const opening = roundMoney(
+      accountRowsForBalance
+        .filter((row) => normalizeDate(row.date) < fromDate)
+        .reduce((sum, row) => sum + getSignedLedgerAmount(row), 0)
+    );
+    const closing = roundMoney(
+      accountRowsForBalance
+        .filter((row) => normalizeDate(row.date) <= toDate)
+        .reduce((sum, row) => sum + getSignedLedgerAmount(row), 0)
+    );
+
+    lines.push(
+      '      <Account>',
+      `        <AccountID>${escapeXml(getSaftAccountId(accountName))}</AccountID>`,
+      `        <AccountDescription>${escapeXml(
+        getSaftAccountDescription(accountName)
+      )}</AccountDescription>`,
+      `        <GroupingCategory>${escapeXml(
+        grouping.category
+      )}</GroupingCategory>`,
+      `        <GroupingCode>${escapeXml(grouping.code)}</GroupingCode>`,
+      '        <AccountType>GL</AccountType>',
+      ...buildBalanceChoiceXml('Opening', opening, '        '),
+      ...buildBalanceChoiceXml('Closing', closing, '        '),
+      '      </Account>'
+    );
+  }
+
+  return lines;
+}
+
+export function getNorwegianSaftGrouping(account: SaftAccount): SaftGrouping {
+  const accountId = getSaftAccountId(account.name);
+
+  const accountTypeMap: Record<string, SaftGrouping> = {
+    Receivable: {
+      category: 'balanseverdiForOmloepsmiddel',
+      code: '1500',
+    },
+    Payable: {
+      category: 'kortsiktigGjeld',
+      code: '2400',
+    },
+    Bank: {
+      category: 'balanseverdiForOmloepsmiddel',
+      code: '1920',
+    },
+    Cash: {
+      category: 'balanseverdiForOmloepsmiddel',
+      code: '1900',
+    },
+    Tax: {
+      category: 'kortsiktigGjeld',
+      code: '2740',
+    },
+  };
+
+  if (account.accountType && accountTypeMap[account.accountType]) {
+    return accountTypeMap[account.accountType];
+  }
+
+  const prefix = /^\d{5,}$/.test(accountId) ? accountId.slice(0, 4) : '';
+
+  const directMap: Record<string, SaftGrouping> = {
+    '1280': { category: 'balanseverdiForAnleggsmiddel', code: '1280' },
+    '1290': { category: 'balanseverdiForAnleggsmiddel', code: '1290' },
+    '1400': { category: 'balanseverdiForOmloepsmiddel', code: '1400' },
+    '1500': { category: 'balanseverdiForOmloepsmiddel', code: '1500' },
+    '1570': { category: 'balanseverdiForOmloepsmiddel', code: '1570' },
+    '1900': { category: 'balanseverdiForOmloepsmiddel', code: '1900' },
+    '1920': { category: 'balanseverdiForOmloepsmiddel', code: '1920' },
+    '2000': { category: 'egenkapital', code: '2000' },
+    '2020': { category: 'egenkapital', code: '2020' },
+    '2050': { category: 'egenkapital', code: '2050' },
+    '2080': { category: 'egenkapital', code: '2080' },
+    '2400': { category: 'kortsiktigGjeld', code: '2400' },
+    '2500': { category: 'kortsiktigGjeld', code: '2500' },
+    '2600': { category: 'kortsiktigGjeld', code: '2600' },
+    '2740': { category: 'kortsiktigGjeld', code: '2740' },
+    '2770': { category: 'kortsiktigGjeld', code: '2770' },
+    '2990': { category: 'kortsiktigGjeld', code: '2990' },
+    '3000': { category: 'salgsinntekt', code: '3000' },
+    '3100': { category: 'salgsinntekt', code: '3100' },
+    '3200': { category: 'salgsinntekt', code: '3200' },
+    '3900': { category: 'annenDriftsinntekt', code: '3900' },
+    '5000': { category: 'loennskostnad', code: '5000' },
+    '5400': { category: 'loennskostnad', code: '5400' },
+    '5900': { category: 'loennskostnad', code: '5900' },
+    '6000': { category: 'annenDriftskostnad', code: '6000' },
+    '6300': { category: 'annenDriftskostnad', code: '6300' },
+    '6500': { category: 'annenDriftskostnad', code: '6500' },
+    '6700': { category: 'annenDriftskostnad', code: '6700' },
+    '7500': { category: 'annenDriftskostnad', code: '7500' },
+    '7830': { category: 'annenDriftskostnad', code: '7830' },
+    '8050': { category: 'finansinntekt', code: '8050' },
+    '8150': { category: 'finanskostnad', code: '8150' },
+    '8300': { category: 'skattekostnad', code: '8300' },
+  };
+
+  const grouping = directMap[prefix];
+  if (grouping) {
+    return grouping;
+  }
+
+  throw new ValidationError(
+    t`SAF-T grouping mapping is missing for account ${account.name}.`
+  );
+}
+
+function getSaftAccountDescription(accountName: string): string {
+  return accountName.replace(/ - \d{4,}$/, '').trim() || accountName;
+}
+
 async function loadSaftParties(fyo: Fyo): Promise<SaftParty[]> {
   return (await fyo.db.getAllRaw('Party', {
     fields: ['name', 'role', 'organizationNumber', 'defaultAccount'],
@@ -339,6 +499,16 @@ async function buildMasterFilesXml(
   }
 
   const lines = ['  <MasterFiles>'];
+
+  const generalLedgerAccounts = await buildGeneralLedgerAccountsXml(
+    fyo,
+    rawRows,
+    fromDate,
+    toDate
+  );
+  if (generalLedgerAccounts.length) {
+    lines.push('    <GeneralLedgerAccounts>', ...generalLedgerAccounts, '    </GeneralLedgerAccounts>');
+  }
 
   if (customers.length) {
     lines.push('    <Customers>');

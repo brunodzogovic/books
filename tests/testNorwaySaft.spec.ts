@@ -6,6 +6,7 @@ import {
   buildNorwegianSaftFinancial140,
   getSaftAccountId,
   getSaftPartyId,
+  getNorwegianSaftGrouping,
   NORWEGIAN_SAF_T_VERSION,
 } from 'regional/noSaft';
 import test from 'tape';
@@ -252,6 +253,37 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   );
 
   t.ok(
+    result.xml.includes('<GeneralLedgerAccounts>') &&
+      result.xml.includes('<AccountID>15000</AccountID>') &&
+      result.xml.includes('<AccountType>GL</AccountType>'),
+    'exports SAF-T general-ledger account master data'
+  );
+  t.ok(
+    result.xml.includes(
+      '<AccountID>15000</AccountID>\n        <AccountDescription>Kundefordringer</AccountDescription>\n        <GroupingCategory>balanseverdiForOmloepsmiddel</GroupingCategory>\n        <GroupingCode>1500</GroupingCode>'
+    ),
+    'maps receivables to the Norwegian grouping codelist'
+  );
+  t.ok(
+    result.xml.includes(
+      '<AccountID>30000</AccountID>\n        <AccountDescription>Salgsinntekt, avgiftspliktig, 25 %</AccountDescription>\n        <GroupingCategory>salgsinntekt</GroupingCategory>\n        <GroupingCode>3000</GroupingCode>'
+    ),
+    'maps taxable sales revenue to the Norwegian grouping codelist'
+  );
+  t.ok(
+    result.xml.includes(
+      '<AccountID>27000</AccountID>\n        <AccountDescription>Utgående MVA, 25 %</AccountDescription>\n        <GroupingCategory>kortsiktigGjeld</GroupingCategory>\n        <GroupingCode>2740</GroupingCode>'
+    ),
+    'maps VAT control accounts to the Norwegian VAT grouping code'
+  );
+  t.ok(
+    result.xml.includes(
+      '<AccountID>15000</AccountID>\n        <AccountDescription>Kundefordringer</AccountDescription>\n        <GroupingCategory>balanseverdiForOmloepsmiddel</GroupingCategory>\n        <GroupingCode>1500</GroupingCode>\n        <AccountType>GL</AccountType>\n        <OpeningDebitBalance>0.00</OpeningDebitBalance>\n        <ClosingDebitBalance>2687.50</ClosingDebitBalance>'
+    ),
+    'exports real GL opening and closing balances'
+  );
+
+  t.ok(
     result.xml.includes('<MasterFiles>') &&
       result.xml.includes('<Customers>'),
     'exports SAF-T master files and customers'
@@ -405,6 +437,19 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     }),
     '987654325',
     'uses organization number as stable SAF-T party ID'
+  );
+
+  t.deepEqual(
+    getNorwegianSaftGrouping({
+      name: 'Test Bank',
+      accountType: 'Bank',
+      rootType: 'Asset',
+    }),
+    {
+      category: 'balanseverdiForOmloepsmiddel',
+      code: '1920',
+    },
+    'derives bank grouping from account type'
   );
 });
 
