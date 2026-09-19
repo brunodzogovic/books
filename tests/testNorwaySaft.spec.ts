@@ -4,6 +4,7 @@ import { ModelNameEnum } from 'models/types';
 import {
   buildNorwegianSaftFinancial140,
   getSaftAccountId,
+  getSaftPartyId,
   NORWEGIAN_SAF_T_VERSION,
 } from 'regional/noSaft';
 import test from 'tape';
@@ -166,6 +167,28 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     'exports debit and credit amount structures'
   );
 
+  t.ok(
+    result.xml.includes('<MasterFiles>') &&
+      result.xml.includes('<Customers>'),
+    'exports SAF-T master files and customers'
+  );
+  t.ok(
+    result.xml.includes('<CustomerID>987654325</CustomerID>') &&
+      result.xml.includes('<Name>SAF-T Testkunde AS</Name>'),
+    'exports customer master data'
+  );
+  t.ok(
+    result.xml.includes('<TaxTable>') &&
+      result.xml.includes('<TaxType>MVA</TaxType>'),
+    'exports Norwegian VAT tax table'
+  );
+  t.ok(
+    result.xml.includes('<TaxCode>NO-OUT-25</TaxCode>') &&
+      result.xml.includes('<StandardTaxCode>3</StandardTaxCode>') &&
+      result.xml.includes('<TaxPercentage>25</TaxPercentage>'),
+    'exports Norwegian VAT code mapping'
+  );
+
   t.equal(
     getSaftAccountId('Salgsinntekt, avgiftspliktig, 25 % - 30000'),
     '30000',
@@ -175,6 +198,16 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     getSaftAccountId('Test Bank'),
     'Test Bank',
     'preserves system account ID when no numeric suffix exists'
+  );
+
+  t.equal(
+    getSaftPartyId({
+      name: 'SAF-T Testkunde AS',
+      role: 'Customer',
+      organizationNumber: '987654325',
+    }),
+    '987654325',
+    'uses organization number as stable SAF-T party ID'
   );
 });
 

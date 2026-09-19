@@ -35,6 +35,20 @@ type TransactionGroup = {
   rows: RawLedgerRow[];
 };
 
+type SaftParty = {
+  name: string;
+  role: string;
+  organizationNumber?: string;
+  defaultAccount?: string;
+};
+
+type SaftTax = {
+  name: string;
+  taxCode: string;
+  standardTaxCode: string;
+  rate: number;
+};
+
 export type NorwegianSaftExportResult = {
   xml: string;
   numberOfEntries: number;
@@ -146,6 +160,8 @@ export async function buildNorwegianSaftFinancial140(
     toDate,
   });
 
+  const masterFiles = await buildMasterFilesXml(fyo);
+
   const generalLedgerEntries = buildGeneralLedgerEntriesXml(
     groups,
     totalDebit,
@@ -156,6 +172,7 @@ export async function buildNorwegianSaftFinancial140(
     '<?xml version="1.0" encoding="UTF-8"?>',
     `<AuditFile xmlns="${SAF_T_NAMESPACE}">`,
     header,
+    masterFiles,
     generalLedgerEntries,
     '</AuditFile>',
     '',
@@ -226,6 +243,172 @@ function buildHeaderXml(values: {
     '    <TaxAccountingBasis>A</TaxAccountingBasis>',
     '  </Header>',
   ].join('\n');
+}
+
+async function buildMasterFilesXml(fyo: Fyo): Promise<string> {
+  const parties = (await fyo.db.getAllRaw('Party', {
+    fields: [
+      'name',
+      'role',
+      'organizationNumber',
+      'defaultAccount',
+    ],
+    orderBy: 'name',
+    order: 'asc',
+  })) as unknown as SaftParty[];
+
+  const customers = parties.filter(
+    ({ role }) => role === 'Customer' || role === 'Both'
+  );
+  const suppliers = parties.filter(
+    ({ role }) => role === 'Supplier' || role === 'Both'
+  );
+
+  const taxes: SaftTax[] = [];
+  const taxRows = (await fyo.db.getAllRaw('Tax', {
+    fields: ['name', 'taxCode', 'standardTaxCode'],
+    orderBy: 'name',
+    order: 'asc',
+  })) as unknown as {
+    name: string;
+    taxCode?: string;
+    standardTaxCode?: string;
+  }[];
+
+  for (const row of taxRows) {
+    const taxCode = String(row.taxCode ?? '').trim();
+    const standardTaxCode = String(row.standardTaxCode ?? '').trim();
+
+    if (!taxCode || !standardTaxCode) {
+      continue;
+    }
+
+    const tax = await fyo.doc.getDoc('Tax', row.name);
+    const details =
+      (tax.get('details') as { get(fieldname: string): unknown }[] | undefined) ??
+      [];
+    const firstDetail = details.find(
+      (detail) => typeof detail.get('rate') === 'number'
+    );
+
+    if (!firstDetail) {
+      continue;
+    }
+
+    taxes.push({
+      name: row.name,
+      taxCode,
+      standardTaxCode,
+      rate: Number(firstDetail.get('rate')),
+    });
+  }
+
+  const lines = ['  <MasterFiles>'];
+
+  if (customers.length) {
+    lines.push('    <Customers>');
+    for (const party of customers) {
+      lines.push(...buildPartyXml(party, 'Customer'));
+    }
+    lines.push('    </Customers>');
+  }
+
+  if (suppliers.length) {
+    lines.push('    <Suppliers>');
+    for (const party of suppliers) {
+      lines.push(...buildPartyXml(party, 'Supplier'));
+    }
+    lines.push('    </Suppliers>');
+  }
+
+  if (taxes.length) {
+    lines.push(
+      '    <TaxTable>',
+      '      <TaxTableEntry>',
+      '        <TaxType>MVA</TaxType>',
+      '        <Description>Merverdiavgift</Description>'
+    );
+
+    for (const tax of taxes) {
+      lines.push(
+        '        <TaxCodeDetails>',
+        `          <TaxCode>${escapeXml(tax.taxCode)}</TaxCode>`,
+        `          <Description>${escapeXml(tax.name)}</Description>`,
+        `          <TaxPercentage>${formatRate(tax.rate)}</TaxPercentage>`,
+        '          <Country>NO</Country>',
+        `          <StandardTaxCode>${escapeXml(
+          tax.standardTaxCode
+        )}</StandardTaxCode>`,
+        '          <BaseRate>100</BaseRate>',
+        '        </TaxCodeDetails>'
+      );
+    }
+
+    lines.push('      </TaxTableEntry>', '    </TaxTable>');
+  }
+
+  lines.push('  </MasterFiles>');
+  return lines.join('\n');
+}
+
+function buildPartyXml(
+  party: SaftParty,
+  kind: 'Customer' | 'Supplier'
+): string[] {
+  const id = getSaftPartyId(party);
+  const accountId = party.defaultAccount
+    ? getSaftAccountId(party.defaultAccount)
+    : undefined;
+
+  const lines = [`      <${kind}>`];
+
+  if (party.organizationNumber) {
+    lines.push(
+      `        <RegistrationNumber>${escapeXml(
+        party.organizationNumber
+      )}</RegistrationNumber>`
+    );
+  }
+
+  lines.push(
+    `        <Name>${escapeXml(party.name)}</Name>`,
+    `        <${kind}ID>${escapeXml(id)}</${kind}ID>`
+  );
+
+  if (accountId) {
+    lines.push(
+      '        <BalanceAccount>',
+      `          <AccountID>${escapeXml(accountId)}</AccountID>`,
+      '          <OpeningDebitBalance>0.00</OpeningDebitBalance>',
+      '          <ClosingDebitBalance>0.00</ClosingDebitBalance>',
+      '        </BalanceAccount>'
+    );
+  }
+
+  lines.push(`      </${kind}>`);
+  return lines;
+}
+
+export function getSaftPartyId(party: SaftParty): string {
+  const organizationNumber = String(party.organizationNumber ?? '').trim();
+  if (organizationNumber) {
+    return organizationNumber.slice(0, 35);
+  }
+
+  const normalized = party.name.trim();
+  if (!normalized) {
+    throw new ValidationError(t`SAF-T party is missing a name.`);
+  }
+
+  return normalized.slice(0, 35);
+}
+
+function formatRate(value: number): string {
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+
+  return String(value);
 }
 
 function buildGeneralLedgerEntriesXml(
