@@ -880,6 +880,96 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
   t.equal(reversalBlocked, true, 'locked-period invoice cannot be cancelled');
 });
 
+test('Norwegian cancelled postings remain immutable and auditable', async (t) => {
+  await fyo.singles.AccountingSettings?.setAndSync(
+    'accountingLockDate',
+    new Date('2026-02-28T00:00:00.000Z')
+  );
+
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Norsk Testkunde AS',
+    date: new Date('2026-09-19T12:00:00.000Z'),
+    dueDate: new Date('2026-10-03T00:00:00.000Z'),
+    deliveryDate: new Date('2026-09-19T12:00:00.000Z'),
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: 'Konsulenttjeneste',
+        quantity: 1,
+        rate: 2000,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await invoice.runFormulas();
+  await invoice.sync();
+  await invoice.submit();
+
+  t.equal(invoice.canEdit, false, 'submitted Norwegian posting cannot be edited');
+
+  const originalEntries = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['name', 'account', 'debit', 'credit', 'reverted', 'reverts'],
+      filters: { referenceName: invoice.name! },
+    }
+  );
+
+  t.equal(originalEntries.length, 3, 'submitted invoice creates three ledger entries');
+
+  await invoice.cancel();
+
+  t.equal(invoice.isCancelled, true, 'invoice is marked cancelled');
+  t.equal(
+    invoice.canDelete,
+    false,
+    'cancelled Norwegian posting cannot be deleted'
+  );
+
+  const reversedEntries = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['name', 'account', 'debit', 'credit', 'reverted', 'reverts'],
+      filters: { referenceName: invoice.name! },
+    }
+  );
+
+  t.equal(
+    reversedEntries.length,
+    6,
+    'cancellation preserves originals and adds three reversing entries'
+  );
+  t.equal(
+    reversedEntries.filter((entry) => Boolean(entry.reverts)).length,
+    3,
+    'three reversal entries link back to the original ledger entries'
+  );
+
+  await invoice.delete();
+
+  t.equal(
+    await fyo.db.exists(ModelNameEnum.SalesInvoice, invoice.name!),
+    true,
+    'cancelled Norwegian invoice remains stored after delete attempt'
+  );
+
+  const entriesAfterDeleteAttempt = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['name'],
+      filters: { referenceName: invoice.name! },
+    }
+  );
+
+  t.equal(
+    entriesAfterDeleteAttempt.length,
+    6,
+    'audit-trail ledger entries remain stored after delete attempt'
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });

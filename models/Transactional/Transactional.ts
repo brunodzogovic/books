@@ -27,6 +27,22 @@ export abstract class Transactional extends Doc {
     return true;
   }
 
+  override get canDelete() {
+    /*
+     * Norwegian accounting records remain part of the audit trail after
+     * posting. A cancelled transaction is reversed in the ledger, not erased
+     * together with its original and reversal entries.
+     */
+    if (
+      this.fyo.singles.SystemSettings?.countryCode === 'no' &&
+      (this.submitted || this.cancelled)
+    ) {
+      return false;
+    }
+
+    return super.canDelete;
+  }
+
   abstract getPosting(): Promise<LedgerPosting | null>;
 
   async validate() {
