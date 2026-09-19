@@ -872,7 +872,7 @@ test('Norwegian VAT reporting preserves submitted classification', async (t) => 
     ({ standardTaxCode }) => standardTaxCode === '31'
   );
   const rewrittenClassification = rows.find(
-    ({ standardTaxCode }) =>
+    ({ standardTaxCode, taxCode }) =>
       standardTaxCode === '32' &&
       taxCode === 'NO-CHANGED-AFTER-POSTING'
   );
