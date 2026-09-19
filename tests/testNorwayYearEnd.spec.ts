@@ -159,7 +159,7 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
     name: hostingItemName,
     itemType: 'Service',
     for: 'Purchases',
-    unit: 'Month',
+    unit: 'Unit',
     rate: 2000,
     tax: 'Inngående MVA 25 %',
     incomeAccount: 'Salgsinntekt, avgiftspliktig, 25 % - 30000',
