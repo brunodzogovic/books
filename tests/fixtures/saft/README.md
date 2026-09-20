@@ -14,6 +14,13 @@ The shared validator in `tests/saftTestHelpers.ts` uses this local copy with
 the schema. When deliberately updating it, record the new upstream revision
 and checksum here and run both the SAF-T and year-end suites.
 
+`naeringsspesifikasjon.xml` is also an unmodified official fixture from the
+same commit. It supplies the 2025–2026 grouping category/code pairs checked
+against the Norwegian starter chart:
+
+- Source: https://raw.githubusercontent.com/Skatteetaten/saf-t/05179521e435d82feb0b2d6c89a92a32a4f2d02f/Grouping%20Category%20Code%202025-2026/XML/naeringsspesifikasjon.xml
+- SHA-256: `6a17bc5700e2e3ea793f4ee84c597075d382c73b272f04d6e6264b6786829acc`
+
 ## Local Norwegian regression checks
 
 Install `xmllint` (the `libxml2-utils` package on Debian/Ubuntu/Linux Mint),

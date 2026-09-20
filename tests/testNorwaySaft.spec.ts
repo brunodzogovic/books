@@ -1,5 +1,6 @@
 import setupInstance from 'src/setup/setupInstance';
-import fetch from 'node-fetch';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { validateAgainstOfficialSaft140Xsd } from './saftTestHelpers';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
@@ -22,18 +23,11 @@ import { NorwegianVAT } from 'reports/NorwegianVAT/NorwegianVAT';
 const fyo = getTestFyo();
 const dbPath = getTestDbPath();
 
-const SAFT_GROUPING_2025_2026_URL =
-  'https://raw.githubusercontent.com/Skatteetaten/saf-t/05179521e435d82feb0b2d6c89a92a32a4f2d02f/Grouping%20Category%20Code%202025-2026/XML/naeringsspesifikasjon.xml';
-
 async function getOfficialGroupingPairs(): Promise<Set<string>> {
-  const response = await fetch(SAFT_GROUPING_2025_2026_URL);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch official SAF-T grouping codelist: HTTP ${response.status}`
-    );
-  }
-
-  const xml = await response.text();
+  const xml = await fs.readFile(
+    path.join(__dirname, 'fixtures', 'saft', 'naeringsspesifikasjon.xml'),
+    'utf8'
+  );
   const pairs = new Set<string>();
 
   for (const match of xml.matchAll(
@@ -532,8 +526,9 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
 
   const invalidStarterMappings = Object.entries(
     NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT
-  ).filter(([, grouping]) =>
-    !officialGroupingPairs.has(`${grouping.category}|${grouping.code}`)
+  ).filter(
+    ([, grouping]) =>
+      !officialGroupingPairs.has(`${grouping.category}|${grouping.code}`)
   );
 
   t.equal(
