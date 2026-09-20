@@ -12,7 +12,7 @@ process.env['VITE_PORT'] = 6969;
 
 /**
  * This script does several things:
- * 1. Runs the vite server in dev mode `yarn vite` (unless --no-renderer is passed)
+ * 1. Runs the Vite server in dev mode
  * 2. Runs a file watcher for the main processes
  * 3. Builds the main process on file changes
  * 4. Runs electron which loads renderer using vite server url
@@ -23,7 +23,7 @@ process.env['VITE_PORT'] = 6969;
  */
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(dirname, '..', '..');
-const $ = $({ stdio: 'inherit' });
+const $$ = $({ stdio: 'inherit' });
 const viteRunner = $({
   stdin: 'ignore',
   stdout: 'inherit',
