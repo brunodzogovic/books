@@ -25,7 +25,7 @@ export function getReportMatrix(report: Report): SpreadsheetValue[][] {
 
   for (const row of report.reportData) {
     if (row.isEmpty) {
-      matrix.push(Array(report.columns.length).fill(''));
+      matrix.push(Array<string>(report.columns.length).fill(''));
       continue;
     }
 
