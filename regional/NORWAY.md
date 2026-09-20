@@ -75,6 +75,11 @@ localization and cannot be directly cancelled. Corrections are made with a new
 credit note linked to the original document. This keeps the original document
 unchanged and dates the correction as its own sales document.
 
+The Norwegian UI hides the generic **Cancel** action for sales invoices and
+renames the normal **Return** workflow to **Credit Note**. That action remains
+available for a submitted original invoice even when generic invoice returns
+are disabled, so the compliant correction path is directly reachable.
+
 This is intentionally stricter than generic Frappe Books cancellation. It is
 grounded in bokføringsloven § 10, which says issued documentation must not be
 changed after issuance, and bokføringsforskriften § 5-2-7, which requires a

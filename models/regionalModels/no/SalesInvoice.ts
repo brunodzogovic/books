@@ -1,4 +1,5 @@
-import { t } from 'fyo';
+import { Fyo, t } from 'fyo';
+import { Action } from 'fyo/model/types';
 import { ValidationError } from 'fyo/utils/errors';
 import { SalesInvoice as BaseSalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { ModelNameEnum } from 'models/types';
@@ -7,6 +8,24 @@ export class SalesInvoice extends BaseSalesInvoice {
   dueDate?: string | Date;
   deliveryDate?: string | Date;
   deliveryPlace?: string;
+
+  override get canCancel(): boolean {
+    return false;
+  }
+
+  static override getActions(fyo: Fyo): Action[] {
+    return super.getActions(fyo).map((action) => {
+      if (action.label !== fyo.t`Return`) {
+        return action;
+      }
+
+      return {
+        ...action,
+        label: fyo.t`Credit Note`,
+        condition: (doc) => doc.isSubmitted && !(doc as BaseSalesInvoice).isReturn,
+      };
+    });
+  }
 
   override async cancel(reason?: string): Promise<void> {
     if (this.isSubmitted) {

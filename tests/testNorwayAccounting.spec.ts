@@ -1529,6 +1529,26 @@ test('Norwegian issued sales invoices require credit-note correction', async (t)
   );
   t.equal(invoice.isSubmitted, true, 'original invoice remains submitted');
   t.equal(invoice.isCancelled, false, 'original invoice is not marked cancelled');
+  t.equal(
+    invoice.canCancel,
+    false,
+    'submitted invoice hides the generic cancel action'
+  );
+
+  const salesInvoiceModel = fyo.models[
+    ModelNameEnum.SalesInvoice
+  ] as typeof SalesInvoice;
+  const creditNoteAction = salesInvoiceModel
+    .getActions(fyo)
+    .find(({ label }) => label === fyo.t`Credit Note`);
+
+  t.ok(creditNoteAction, 'Norwegian sales invoice exposes a Credit Note action');
+  t.equal(
+    creditNoteAction?.condition?.(invoice),
+    true,
+    'Credit Note action is available on a submitted original invoice'
+  );
+
 
   const entriesAfterAttempt = await fyo.db.getAllRaw(
     ModelNameEnum.AccountingLedgerEntry,
