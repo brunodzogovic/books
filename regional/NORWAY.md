@@ -32,6 +32,8 @@ of the interface language: both English and Bokmål are supported.
   preserves Norwegian text and numeric values for office-suite interchange.
 - Saved Norwegian company databases reopen with regional schemas, NOK settings,
   custom SAF-T account mappings and posted ledger data intact.
+- Closed database-file backup copies restore as independent company files with
+  Norwegian identity, custom SAF-T mappings, ledger data and SAF-T export intact.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.

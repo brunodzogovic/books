@@ -189,6 +189,61 @@ test('Norwegian company data survives close and reopen', async (t) => {
     } finally {
       await reopened.close();
     }
+
+    const restorePath = path.join(tempDir, 'cirrenix-restored.books.db');
+    await fs.copyFile(dbPath, restorePath);
+
+    const restored = getTestFyo();
+    try {
+      await initializeInstance(restorePath, false, '', restored);
+
+      t.equal(
+        restored.singles.AccountingSettings?.companyName,
+        'CirreniX Reopen Test AS',
+        'restored database copy preserves Norwegian company identity'
+      );
+      t.equal(
+        restored.singles.AccountingSettings?.get('organizationNumber'),
+        '123456785',
+        'restored database copy preserves organization number'
+      );
+
+      const restoredAccount = await restored.db.get(
+        ModelNameEnum.Account,
+        'Cloud platform services - 67998'
+      );
+      t.equal(
+        restoredAccount.saftGrouping,
+        'annenDriftskostnad|6700',
+        'restored database copy preserves custom SAF-T mapping'
+      );
+
+      const restoredRows = await restored.db.getAllRaw(
+        ModelNameEnum.AccountingLedgerEntry,
+        {
+          fields: ['name'],
+          filters: { referenceName: entry.name! },
+        }
+      );
+      t.equal(
+        restoredRows.length,
+        2,
+        'restored database copy preserves posted ledger entries'
+      );
+
+      const restoredSaft = await buildNorwegianSaftFinancial140(restored, {
+        fromDate: `${year}-01-01`,
+        toDate: `${year}-12-31`,
+        createdDate: `${year}-12-31`,
+        softwareVersion: '0.37.0-test',
+      });
+      t.ok(
+        restoredSaft.xml.includes('<AccountID>67998</AccountID>'),
+        'restored database remains SAF-T exportable'
+      );
+    } finally {
+      await restored.close();
+    }
   } finally {
     await first.close().catch(() => undefined);
     await fs.rm(tempDir, { recursive: true, force: true });
