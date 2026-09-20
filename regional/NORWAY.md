@@ -142,7 +142,7 @@ yarn test tests/testNorwaySaft.spec.ts
 yarn test tests/testNorwayYearEnd.spec.ts
 yarn test tests/testNorwayPersistence.spec.ts
 yarn build --nopackage
-yarn build --nosign --linux AppImage --x64
+yarn build --nosign --linux AppImage --x64 --publish never
 yarn lint
 ```
 
