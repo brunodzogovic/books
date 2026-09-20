@@ -175,12 +175,12 @@ jobs:
 
           if command -v xvfb-run >/dev/null 2>&1; then
             HOME="$RUNNER_TEMP/norway-app-home" \
-              timeout 20s xvfb-run -a squashfs-root/AppRun --no-sandbox \
+              timeout --kill-after=5s 20s xvfb-run -a squashfs-root/AppRun --no-sandbox \
               >"$RUNNER_TEMP/norway-app-smoke.log" 2>&1
           else
             APPDIR="$PWD/squashfs-root" \
               HOME="$RUNNER_TEMP/norway-app-home" \
-              timeout 20s squashfs-root/AppRun \
+              timeout --kill-after=5s 20s squashfs-root/AppRun \
               --no-sandbox \
               --disable-gpu \
               --ozone-platform=headless \
