@@ -152,6 +152,53 @@ test('Norwegian sales documents keep a machine-controlled number sequence', asyn
   );
 });
 
+
+test('Norwegian negative standard invoices are blocked in favor of credit notes', async (t) => {
+  const year = new Date().getFullYear();
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Nummerert Kunde AS',
+    dueDate: `${year}-10-15`,
+    deliveryDate: `${year}-09-20T12:00:00.000Z`,
+    deliveryPlace: 'Oslo',
+    date: new Date(`${year}-09-20T12:00:00.000Z`),
+    items: [
+      {
+        item: 'Nummerert konsulenttjeneste',
+        quantity: -1,
+        rate: 1000,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await invoice.runFormulas();
+  await invoice.sync();
+
+  let blocked = false;
+  try {
+    await invoice.submit();
+  } catch (error) {
+    blocked = true;
+    t.match(
+      (error as Error).message,
+      /credit-note workflow/i,
+      'negative standard invoice directs the user to the credit-note workflow'
+    );
+  }
+
+  t.equal(
+    blocked,
+    true,
+    'negative standard sales invoice cannot bypass the correction workflow'
+  );
+  t.equal(
+    invoice.isSubmitted,
+    false,
+    'blocked negative document remains unsubmitted'
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });

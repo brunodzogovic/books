@@ -40,6 +40,20 @@ export class SalesInvoice extends BaseSalesInvoice {
   async beforeSubmit() {
     await super.beforeSubmit();
 
+    if (!this.isReturn) {
+      const hasNegativeLine = (this.items ?? []).some((item) => {
+        const quantity = Number(item.quantity ?? 0);
+        const rate = item.rate?.float ?? Number(item.rate ?? 0);
+        return quantity < 0 || rate < 0;
+      });
+
+      if (hasNegativeLine || (this.grandTotal?.float ?? 0) < 0) {
+        throw new ValidationError(
+          t`Negative Norwegian sales invoices must be issued through the credit-note workflow.`
+        );
+      }
+    }
+
     const accountingSettings = this.fyo.singles.AccountingSettings;
     const sellerOrganizationNumber = accountingSettings?.get(
       'organizationNumber'

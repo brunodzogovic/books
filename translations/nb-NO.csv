@@ -617,3 +617,5 @@
 "SAF-T Grouping","SAF-T-gruppering",""
 "Select an official reporting group for this account. Leave blank to use the starter-chart or account-type mapping.","Velg en offisiell rapporteringsgruppe for kontoen. La feltet stå tomt for å bruke standardkoblingen fra kontoplanen eller kontotypen.",""
 "Search by code or description","Søk etter kode eller beskrivelse",""
+
+"Negative Norwegian sales invoices must be issued through the credit-note workflow.","Negative norske salgsfakturaer må utstedes via kreditnotaflyten.",""

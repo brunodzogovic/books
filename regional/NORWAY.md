@@ -38,6 +38,8 @@ of the interface language: both English and Bokmål are supported.
 - Linux AppImage packaging is exercised on the self-hosted Linux Mint runner
   after the source build. CI also extracts the AppImage to verify its runtime
   structure and uploads the package as a 14-day workflow artifact for testing.
+- Negative ordinary sales invoices are blocked so reductions and reversals use
+  the linked credit-note workflow and retain correction traceability.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
@@ -79,6 +81,10 @@ The Norwegian UI hides the generic **Cancel** action for sales invoices and
 renames the normal **Return** workflow to **Credit Note**. That action remains
 available for a submitted original invoice even when generic invoice returns
 are disabled, so the compliant correction path is directly reachable.
+
+Negative line quantities or rates on an ordinary Norwegian sales invoice are
+also rejected. Reductions and reversals must use the linked credit-note
+workflow, preventing a negative invoice from bypassing the correction trail.
 
 This is intentionally stricter than generic Frappe Books cancellation. It is
 grounded in bokføringsloven § 10, which says issued documentation must not be
