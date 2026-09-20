@@ -5,6 +5,7 @@ import { DateTime } from 'luxon';
 import { Invoice } from 'models/baseModels/Invoice/Invoice';
 import { ModelNameEnum } from 'models/types';
 import { Report } from 'reports/Report';
+import getCommonExportActions from 'reports/commonExporter';
 import { ColumnField, ReportData, ReportRow } from 'reports/types';
 import { Field } from 'schemas/types';
 import { buildNorwegianSaftFinancial140 } from 'regional/noSaft';
@@ -189,6 +190,7 @@ export class NorwegianVAT extends Report {
     }
 
     return [
+      ...getCommonExportActions(this),
       {
         group: t`Export`,
         label: t`SAF-T Financial 1.40 XML`,

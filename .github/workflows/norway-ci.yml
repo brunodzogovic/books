@@ -58,6 +58,9 @@ jobs:
       - name: Norway document compliance regression
         run: yarn test tests/testNorwayDocuments.spec.ts
 
+      - name: Norway office export regression
+        run: yarn test tests/testNorwayExports.spec.ts
+
       - name: Norway SAF-T regression
         run: yarn test tests/testNorwaySaft.spec.ts
 
