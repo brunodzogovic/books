@@ -38,6 +38,21 @@ test('Norwegian company data survives close and reopen', async (t) => {
       first
     );
 
+    t.equal(
+      first.getField(ModelNameEnum.Account, 'saftGrouping')?.fieldtype,
+      'AutoComplete',
+      'on-disk setup includes Norwegian account schema'
+    );
+    t.ok(
+      first.getField(ModelNameEnum.AccountingSettings, 'organizationNumber'),
+      'on-disk setup includes Norwegian accounting settings schema'
+    );
+    t.equal(
+      first.singles.AccountingSettings?.get('organizationNumber'),
+      '123456785',
+      'setup document holds Norwegian organization number before close'
+    );
+
     const customAccount = first.doc.getNewDoc(ModelNameEnum.Account, {
       name: 'Cloud platform services - 67998',
       parentAccount: 'Andre driftskostnader',
@@ -47,6 +62,11 @@ test('Norwegian company data survives close and reopen', async (t) => {
     await customAccount.setAndSync(
       'saftGrouping',
       'annenDriftskostnad|6700'
+    );
+    t.equal(
+      customAccount.get('saftGrouping'),
+      'annenDriftskostnad|6700',
+      'account document holds custom SAF-T grouping before close'
     );
 
     const storedBeforeClose = await first.db.get(
