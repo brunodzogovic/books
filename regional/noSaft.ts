@@ -326,6 +326,7 @@ async function buildGeneralLedgerAccountsXml(
   ].sort();
 
   const lines: string[] = [];
+  const accountNamesById = new Map<string, string>();
 
   for (const accountName of usedAccountNames) {
     const account = accountMap.get(accountName);
@@ -334,6 +335,15 @@ async function buildGeneralLedgerAccountsXml(
         t`SAF-T account ${accountName} does not exist in the chart of accounts.`
       );
     }
+
+    const accountId = getSaftAccountId(accountName);
+    const existingAccountName = accountNamesById.get(accountId);
+    if (existingAccountName) {
+      throw new ValidationError(
+        t`Accounts ${existingAccountName} and ${accountName} share SAF-T AccountID ${accountId}. Use unique account numbers before exporting.`
+      );
+    }
+    accountNamesById.set(accountId, accountName);
 
     const grouping = getNorwegianSaftGrouping(account);
     const accountRowsForBalance = rawRows.filter(

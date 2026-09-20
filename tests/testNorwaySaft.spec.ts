@@ -1205,6 +1205,56 @@ test('Norwegian custom accounts require a valid explicit SAF-T grouping', async 
   }
 });
 
+test('Norwegian SAF-T rejects ambiguous account identifiers', async (t) => {
+  const year = new Date().getFullYear();
+  const duplicate = fyo.doc.getNewDoc(ModelNameEnum.Account, {
+    name: 'Other services - 67999',
+    parentAccount: 'Andre driftskostnader',
+    rootType: 'Expense',
+    saftGrouping: 'annenDriftskostnad|6700',
+  });
+  await duplicate.sync();
+  const options = { fromDate: `${year}-01-01`, toDate: `${year}-12-31` };
+  const before = await buildNorwegianSaftFinancial140(fyo, options);
+  t.notOk(
+    before.xml.includes(
+      '<AccountDescription>Other services</AccountDescription>'
+    ),
+    'an unused duplicate account is not included in the export'
+  );
+
+  const entry = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
+    entryType: 'Journal Entry',
+    date: new Date(`${year}-07-15T12:00:00.000Z`),
+    referenceNumber: 'DUPLICATE-ACCOUNT-001',
+    userRemark: 'Separate account with a conflicting number',
+    accounts: [
+      { account: duplicate.name, debit: 50, credit: 0 },
+      { account: 'Test Bank', debit: 0, credit: 50 },
+    ],
+  }) as JournalEntry;
+  await entry.runFormulas();
+  await entry.sync();
+  await entry.submit();
+  await rejects(
+    () => buildNorwegianSaftFinancial140(fyo, options),
+    /Accounts Custom cloud services - 67999 and Other services - 67999 share SAF-T AccountID 67999/
+  );
+  t.pass('two used accounts cannot silently export under the same identifier');
+
+  await rejects(
+    () =>
+      buildNorwegianSaftFinancial140(fyo, {
+        ...options,
+        fromDate: `${year}-08-01`,
+      }),
+    /share SAF-T AccountID 67999/
+  );
+  t.pass(
+    'identifier validation includes accounts carried only in opening balances'
+  );
+});
+
 test.onFinish(async () => {
   await fyo.close();
 });

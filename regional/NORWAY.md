@@ -17,6 +17,8 @@ of the interface language: both English and Bokmål are supported.
   grouping validation against Skatteetaten's pinned 2025–2026 codelist.
 - Explicit custom-account grouping, validation and migration of existing
   account data. The account selector is available in English and Bokmål.
+- Export rejection when two used accounts share a numeric SAF-T AccountID,
+  including accounts present only through opening balances.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
@@ -46,6 +48,33 @@ in `tests/fixtures/saft/naeringsspesifikasjon.xml`: each option stores
 in English. Bokmål translations use the same source's `NOB` descriptions.
 The regression compares the complete set of choices with the official XML.
 Provenance and checksums are in `tests/fixtures/saft/README.md`.
+
+## Open accounting-policy checkpoint: invoice cancellation and VAT periods
+
+Observed on 20 September 2026 in an isolated test database:
+
+1. Post a sales invoice dated 19 March 2026: NOK 2,000 net plus NOK 500 VAT.
+2. The March–April VAT summary includes NOK 2,000 basis and NOK 500 VAT.
+3. Cancel the invoice on 20 September with a documented reason.
+4. Ledger entries preserve the March original and add September reversals.
+5. The March–April VAT summary now omits the original invoice entirely.
+
+`getNorwegianVatSummary` excludes every cancelled invoice, while
+`AccountingLedgerEntry.revert` dates reversals at cancellation time. The
+existing regression suite proves that cancellation retains the audit trail;
+it does not resolve how these cancellations should affect VAT periods.
+
+The app has no issued/sent distinction or structured correction type that
+separates an internal posting error from a correction to issued documentation.
+[Skatteetaten's discussion of correction timing](https://www.skatteetaten.no/rettskilder/type/vedtak/skatteklagenemnda/periodisering-av-merverdiavgift-ved-korrigering-av-avgiftsoppgjor/)
+distinguishes adjustments such as price reductions from errors in original
+VAT reporting. Do not infer one universal VAT-period treatment from the free
+text cancellation reason.
+
+An accounting/product decision is pending: require credit notes for Norwegian
+posted sales invoices, or retain cancellation with an explicit original-period
+correction workflow. Until that decision, cancellation/VAT-period behavior is
+unchanged. This remains a blocker for treating VAT reporting as dogfood-ready.
 
 ## Remaining roadmap checkpoints
 
