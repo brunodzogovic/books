@@ -1,7 +1,7 @@
 import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { ModelNameEnum } from 'models/types';
-import { getCsvData } from 'reports/commonExporter';
+import { getCsvData, getCsvFileData } from 'reports/commonExporter';
 import { NorwegianVAT } from 'reports/NorwegianVAT/NorwegianVAT';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -91,6 +91,16 @@ test('Norwegian VAT report exposes office-friendly exports', async (t) => {
   );
 
   const csv = getCsvData(report);
+  const csvFile = getCsvFileData(report);
+  t.equal(
+    csvFile.charCodeAt(0),
+    0xfeff,
+    'saved CSV starts with a UTF-8 BOM for office-suite encoding detection'
+  );
+  t.ok(
+    csvFile.includes('Utgående MVA 25 %'),
+    'office-file CSV keeps Norwegian text after the BOM'
+  );
   t.ok(
     csv.includes('Utgående MVA 25 %'),
     'CSV preserves Norwegian non-ASCII VAT template text'

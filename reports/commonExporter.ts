@@ -43,7 +43,7 @@ async function exportReport(extention: ExportExtention, report: Report) {
   let data = '';
 
   if (extention === 'csv') {
-    data = getCsvData(report);
+    data = getCsvFileData(report);
   } else if (extention === 'json') {
     data = getJsonData(report);
   }
@@ -131,6 +131,10 @@ function getJsonData(report: Report): string {
 export function getCsvData(report: Report): string {
   const csvMatrix = convertReportToCSVMatrix(report);
   return generateCSV(csvMatrix);
+}
+
+export function getCsvFileData(report: Report): string {
+  return '\uFEFF' + getCsvData(report);
 }
 
 function convertReportToCSVMatrix(report: Report): unknown[][] {

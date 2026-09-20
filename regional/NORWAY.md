@@ -31,6 +31,8 @@ of the interface language: both English and Bokmål are supported.
   them to corrected documents, and preserves reversed VAT semantics.
 - Norwegian VAT reports expose CSV and JSON alongside SAF-T XML; CSV regression
   preserves Norwegian text and numeric values for office-suite interchange.
+  Saved CSV files include a UTF-8 BOM so desktop office suites can reliably
+  detect Norwegian characters without changing the in-memory CSV semantics.
 - Saved Norwegian company databases reopen with regional schemas, NOK settings,
   custom SAF-T account mappings and posted ledger data intact.
 - Closed database-file backup copies restore as independent company files with
