@@ -28,6 +28,10 @@ of the interface language: both English and Bokmål are supported.
   while preserving original ledger entries and linked reversal entries.
 - SAF-T distinguishes both sales and purchase credit notes (SCN/PCN), links
   them to corrected documents, and preserves reversed VAT semantics.
+- Norwegian VAT reports expose CSV and JSON alongside SAF-T XML; CSV regression
+  preserves Norwegian text and numeric values for office-suite interchange.
+- Saved Norwegian company databases reopen with regional schemas, NOK settings,
+  custom SAF-T account mappings and posted ledger data intact.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
@@ -133,6 +137,7 @@ yarn test tests/testNorwayAccounting.spec.ts
 yarn test tests/testNorwayDocuments.spec.ts
 yarn test tests/testNorwaySaft.spec.ts
 yarn test tests/testNorwayYearEnd.spec.ts
+yarn test tests/testNorwayPersistence.spec.ts
 yarn build --nopackage
 yarn lint
 ```
