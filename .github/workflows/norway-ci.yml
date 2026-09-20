@@ -73,5 +73,12 @@ jobs:
       - name: Build application
         run: yarn build --nopackage
 
+      - name: Package Linux AppImage
+        shell: bash
+        run: |
+          : > log_creds.txt
+          yarn build --nosign --linux AppImage --x64
+          test -n "$(find dist_electron/bundled -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+
       - name: Lint
         run: yarn lint

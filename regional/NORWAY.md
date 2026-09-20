@@ -35,6 +35,8 @@ of the interface language: both English and Bokmål are supported.
   custom SAF-T account mappings and posted ledger data intact.
 - Closed database-file backup copies restore as independent company files with
   Norwegian identity, custom SAF-T mappings, ledger data and SAF-T export intact.
+- Linux AppImage packaging is exercised on the self-hosted Linux Mint runner
+  after the source build, so packaging failures are caught before dogfooding.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
@@ -116,8 +118,8 @@ Continue with acceptance evidence rather than assuming a feature is complete:
    review any legacy directly-cancelled sales documents before filing.
 4. Office interoperability: CSV, ODS and XLSX workflows for OnlyOffice and
    EuroOffice, preserving numbers and non-ASCII text.
-5. Packaging and dogfooding: Linux build, saved-company reopen, backup/restore,
-   and a reviewed CirreniX reference dataset.
+5. Packaging and dogfooding: install/run the produced Linux AppImage, exercise
+   real UI export/save flows, and build a reviewed CirreniX reference dataset.
 6. Later integrations: bank imports/reconciliation, EHF/Peppol, KID,
    Brønnøysund lookups and tax-authority APIs. Keep these optional adapters.
 
@@ -140,6 +142,7 @@ yarn test tests/testNorwaySaft.spec.ts
 yarn test tests/testNorwayYearEnd.spec.ts
 yarn test tests/testNorwayPersistence.spec.ts
 yarn build --nopackage
+yarn build --nosign --linux AppImage --x64
 yarn lint
 ```
 
