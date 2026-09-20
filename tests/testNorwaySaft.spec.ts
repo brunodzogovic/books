@@ -207,6 +207,18 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     softwareVersion: '0.37.0-test',
   });
 
+  await rejects(
+    () =>
+      buildNorwegianSaftFinancial140(fyo, {
+        fromDate: `${year}-01-01`,
+        toDate: `${year}-12-31`,
+        createdDate: `${year}-09-19`,
+        softwareVersion: 'V'.repeat(19),
+      }),
+    /SoftwareVersion exceeds the maximum length of 18 characters/
+  );
+  t.pass('SAF-T header text limits fail with field-specific diagnostics');
+
   t.equal(
     NORWEGIAN_SAF_T_VERSION,
     '1.40',
@@ -475,6 +487,31 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     }),
     '987654325',
     'uses organization number as stable SAF-T party ID'
+  );
+
+  t.throws(
+    () => getSaftAccountId('A'.repeat(71)),
+    /AccountID exceeds the maximum length of 70 characters/,
+    'overlong SAF-T account identifiers fail with a clear diagnostic'
+  );
+  t.throws(
+    () =>
+      getSaftPartyId({
+        name: 'P'.repeat(36),
+        role: 'Customer',
+      }),
+    /Customer\/Supplier ID exceeds the maximum length of 35 characters/,
+    'party identifiers are not silently truncated to the SAF-T limit'
+  );
+  t.throws(
+    () =>
+      getSaftPartyId({
+        name: 'Customer With Invalid Organization Number',
+        role: 'Customer',
+        organizationNumber: '9'.repeat(36),
+      }),
+    /Customer\/Supplier ID exceeds the maximum length of 35 characters/,
+    'overlong organization numbers fail before XML generation'
   );
 
   t.deepEqual(

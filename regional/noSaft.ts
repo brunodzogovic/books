@@ -12,6 +12,20 @@ const validSaftGroupings = new Set(
 const SAF_T_NAMESPACE = 'urn:StandardAuditFile-Taxation-Financial:NO';
 export const NORWEGIAN_SAF_T_VERSION = '1.40';
 
+function validateSaftText(
+  value: string,
+  field: string,
+  maxLength: number
+): string {
+  if ([...value].length > maxLength) {
+    throw new ValidationError(
+      t`SAF-T ${field} exceeds the maximum length of ${maxLength} characters.`
+    );
+  }
+
+  return value;
+}
+
 export type NorwegianSaftExportOptions = {
   fromDate: string;
   toDate: string;
@@ -195,6 +209,21 @@ export async function buildNorwegianSaftFinancial140(
     options.softwareId?.trim() || 'Frappe Books Norwegian Localization';
   const softwareVersion =
     options.softwareVersion?.trim() || String(fyo.store.appVersion ?? '0.37.0');
+
+  validateSaftText(softwareCompanyName, 'SoftwareCompanyName', 70);
+  validateSaftText(softwareId, 'SoftwareID', 256);
+  validateSaftText(softwareVersion, 'SoftwareVersion', 18);
+  validateSaftText(companyName, 'Company Name', 256);
+  validateSaftText(organizationNumber, 'RegistrationNumber', 35);
+  validateSaftText(contactName || companyName, 'Contact LastName', 70);
+  if (email) {
+    validateSaftText(email, 'Email', 70);
+  }
+  if ([...currency].length !== 3) {
+    throw new ValidationError(
+      t`SAF-T DefaultCurrencyCode must contain exactly 3 characters.`
+    );
+  }
 
   const header = buildHeaderXml({
     createdDate,
@@ -517,7 +546,8 @@ export function getNorwegianSaftGrouping(account: SaftAccount): SaftGrouping {
 }
 
 function getSaftAccountDescription(accountName: string): string {
-  return accountName.replace(/ - \d{4,}$/, '').trim() || accountName;
+  const description = accountName.replace(/ - \d{4,}$/, '').trim() || accountName;
+  return validateSaftText(description, 'AccountDescription', 256);
 }
 
 async function loadSaftParties(fyo: Fyo): Promise<SaftParty[]> {
@@ -832,7 +862,7 @@ function getSignedLedgerAmount(row: RawLedgerRow): number {
 export function getSaftPartyId(party: SaftParty): string {
   const organizationNumber = String(party.organizationNumber ?? '').trim();
   if (organizationNumber) {
-    return organizationNumber.slice(0, 35);
+    return validateSaftText(organizationNumber, 'Customer/Supplier ID', 35);
   }
 
   const normalized = party.name.trim();
@@ -840,7 +870,7 @@ export function getSaftPartyId(party: SaftParty): string {
     throw new ValidationError(t`SAF-T party is missing a name.`);
   }
 
-  return normalized.slice(0, 35);
+  return validateSaftText(normalized, 'Customer/Supplier ID', 35);
 }
 
 function formatRate(value: number): string {
@@ -900,6 +930,11 @@ async function buildTransactionXml(
   );
   const foreignAmount = await getTransactionForeignAmount(fyo, group);
 
+  validateSaftText(group.id, 'TransactionID', 70);
+  validateSaftText(voucher.type, 'VoucherType', 70);
+  validateSaftText(voucher.description, 'VoucherDescription', 70);
+  validateSaftText(context.description, 'Transaction Description', 256);
+
   const lines = [
     '      <Transaction>',
     `        <TransactionID>${escapeXml(group.id)}</TransactionID>`,
@@ -945,6 +980,12 @@ function buildLineXml(
 ): string[] {
   const debit = toAmount(row.debit);
   const credit = toAmount(row.credit);
+  const recordId = String(row.name);
+  const lineDescription = `${group.referenceType} ${group.referenceName}`;
+
+  validateSaftText(recordId, 'RecordID', 18);
+  validateSaftText(lineDescription, 'Line Description', 256);
+  validateSaftText(context.referenceNumber, 'ReferenceNumber', 35);
 
   if (debit <= 0 && credit <= 0) {
     throw new ValidationError(
@@ -967,15 +1008,13 @@ function buildLineXml(
 
   return [
     '        <Line>',
-    `          <RecordID>${escapeXml(String(row.name))}</RecordID>`,
+    `          <RecordID>${escapeXml(recordId)}</RecordID>`,
     `          <AccountID>${escapeXml(
       getSaftAccountId(row.account)
     )}</AccountID>`,
     ...sourceDocumentXml,
     ...partyXml,
-    `          <Description>${escapeXml(
-      `${group.referenceType} ${group.referenceName}`
-    )}</Description>`,
+    `          <Description>${escapeXml(lineDescription)}</Description>`,
     ...amountXml,
     ...taxInformationXml,
     `          <ReferenceNumber>${escapeXml(
@@ -1081,6 +1120,8 @@ function getLineSourceDocumentXml(
   if (!context.sourceDocumentId) {
     return [];
   }
+
+  validateSaftText(context.sourceDocumentId, 'SourceDocumentID', 35);
 
   if (context.sourceDocumentOnSubledgerOnly && !isSubledgerLine) {
     return [];
@@ -1404,7 +1445,7 @@ function validateBalancedTransactions(groups: TransactionGroup[]) {
 
 export function getSaftAccountId(accountName: string): string {
   const match = accountName.match(/ - (\d{4,})$/);
-  return match?.[1] ?? accountName;
+  return validateSaftText(match?.[1] ?? accountName, 'AccountID', 70);
 }
 
 function getVoucherMetadata(
