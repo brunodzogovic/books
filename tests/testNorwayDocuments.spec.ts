@@ -85,11 +85,26 @@ test('Norwegian sales documents keep a machine-controlled number sequence', asyn
   t.equal(first.name, 'SINV-1001', 'first sales document receives SINV-1001');
   t.equal(second.name, 'SINV-1002', 'next sales document receives SINV-1002');
 
-  await second.cancel('Duplicate invoice created during numbering test');
+  let cancellationBlocked = false;
+  try {
+    await second.cancel('Duplicate invoice created during numbering test');
+  } catch (error) {
+    cancellationBlocked = true;
+    t.match(
+      (error as Error).message,
+      /credit note/i,
+      'submitted sales document directs correction through a credit note'
+    );
+  }
+  t.equal(
+    cancellationBlocked,
+    true,
+    'submitted Norwegian sales document cannot be directly cancelled'
+  );
   t.equal(
     second.name,
     'SINV-1002',
-    'cancelling a posted invoice preserves its assigned document number'
+    'blocked cancellation preserves its assigned document number'
   );
 
   const creditNote = (await first.getReturnDoc()) as SalesInvoice;

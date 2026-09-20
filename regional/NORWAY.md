@@ -22,8 +22,9 @@ of the interface language: both English and Bokmål are supported.
 - Distinct starter-chart revenue accounts and SAF-T groupings for zero-rated
   and outside-scope sales.
 - Return invoices print with a distinct Credit Note / Kreditnota label.
-- Sales invoices, cancellations and credit notes retain a monotonic machine
-  number sequence, with submitted document numbers protected from renaming.
+- Sales invoices and credit notes retain a monotonic machine number sequence,
+  with submitted document numbers protected from renaming and direct sales-
+  invoice cancellation blocked in favor of credit-note correction.
 - Cancelling a posted payment restores invoice and party outstanding balances
   while preserving original ledger entries and linked reversal entries.
 - SAF-T distinguishes both sales and purchase credit notes (SCN/PCN), links
@@ -64,32 +65,29 @@ in English. Bokmål translations use the same source's `NOB` descriptions.
 The regression compares the complete set of choices with the official XML.
 Provenance and checksums are in `tests/fixtures/saft/README.md`.
 
-## Open accounting-policy checkpoint: invoice cancellation and VAT periods
+## Sales-document correction policy
 
-Observed on 20 September 2026 in an isolated test database:
+A submitted Norwegian sales invoice is treated as issued documentation in this
+localization and cannot be directly cancelled. Corrections are made with a new
+credit note linked to the original document. This keeps the original document
+unchanged and dates the correction as its own sales document.
 
-1. Post a sales invoice dated 19 March 2026: NOK 2,000 net plus NOK 500 VAT.
-2. The March–April VAT summary includes NOK 2,000 basis and NOK 500 VAT.
-3. Cancel the invoice on 20 September with a documented reason.
-4. Ledger entries preserve the March original and add September reversals.
-5. The March–April VAT summary now omits the original invoice entirely.
+This is intentionally stricter than generic Frappe Books cancellation. It is
+grounded in bokføringsloven § 10, which says issued documentation must not be
+changed after issuance, and bokføringsforskriften § 5-2-7, which requires a
+credit note when a new sales document replaces one already sent. Skatteetaten
+also describes credit notes as being reported in the period in which the
+correction document is issued for ordinary price reductions and similar
+corrections.
 
-`getNorwegianVatSummary` excludes every cancelled invoice, while
-`AccountingLedgerEntry.revert` dates reversals at cancellation time. The
-existing regression suite proves that cancellation retains the audit trail;
-it does not resolve how these cancellations should affect VAT periods.
+The VAT summary now fails with a clear diagnostic if an older database contains
+a directly-cancelled sales invoice relevant to the selected period. Such legacy
+records need review rather than silently disappearing from VAT reporting.
 
-The app has no issued/sent distinction or structured correction type that
-separates an internal posting error from a correction to issued documentation.
-[Skatteetaten's discussion of correction timing](https://www.skatteetaten.no/rettskilder/type/vedtak/skatteklagenemnda/periodisering-av-merverdiavgift-ved-korrigering-av-avgiftsoppgjor/)
-distinguishes adjustments such as price reductions from errors in original
-VAT reporting. Do not infer one universal VAT-period treatment from the free
-text cancellation reason.
-
-An accounting/product decision is pending: require credit notes for Norwegian
-posted sales invoices, or retain cancellation with an explicit original-period
-correction workflow. Until that decision, cancellation/VAT-period behavior is
-unchanged. This remains a blocker for treating VAT reporting as dogfood-ready.
+Authoritative references:
+- https://lovdata.no/lov/2004-11-19-73/§10
+- https://lovdata.no/forskrift/2004-12-01-1558/§5-2-7
+- https://www.skatteetaten.no/rettskilder/type/vedtak/skatteklagenemnda/fastsettelse-av-utgaende-merverdiavgift-og-ileggelse-av-tilleggsskatt-ved-manglende-bokforing-og-innberetning-av-faktura/
 
 ## Sales-document numbering checkpoint
 
@@ -114,7 +112,8 @@ Continue with acceptance evidence rather than assuming a feature is complete:
    retention and period-control requirements to authoritative sources and
    tests; document any unresolved accounting interpretation.
 3. VAT/reporting and invoice documents: verify the UI and printed output in
-   English and Bokmål, and distinguish a VAT summary from a filed VAT return.
+   English and Bokmål, distinguish a VAT summary from a filed VAT return, and
+   review any legacy directly-cancelled sales documents before filing.
 4. Office interoperability: CSV, ODS and XLSX workflows for OnlyOffice and
    EuroOffice, preserving numbers and non-ASCII text.
 5. Packaging and dogfooding: Linux build, saved-company reopen, backup/restore,

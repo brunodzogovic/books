@@ -18,11 +18,80 @@ export type NorwegianVatSummaryRow = {
   vatAmount: number;
 };
 
+function isDateWithinSelection(
+  value: unknown,
+  fromDate?: string,
+  toDate?: string
+): boolean {
+  const isoDate =
+    value instanceof Date
+      ? value.toISOString().slice(0, 10)
+      : String(value ?? '').slice(0, 10);
+
+  if (!isoDate) {
+    return false;
+  }
+
+  if (fromDate && isoDate < fromDate) {
+    return false;
+  }
+
+  if (toDate && isoDate > toDate) {
+    return false;
+  }
+
+  return true;
+}
+
+async function assertNoDirectlyCancelledSalesInvoices(
+  fyo: Fyo,
+  fromDate?: string,
+  toDate?: string
+): Promise<void> {
+  const cancelled = (await fyo.db.getAllRaw(ModelNameEnum.SalesInvoice, {
+    fields: ['name', 'date'],
+    filters: {
+      submitted: true,
+      cancelled: true,
+    },
+  })) as { name: string; date: unknown }[];
+
+  for (const invoice of cancelled) {
+    let relevant = isDateWithinSelection(invoice.date, fromDate, toDate);
+
+    if (!relevant) {
+      const ledgerRows = await fyo.db.getAllRaw(
+        ModelNameEnum.AccountingLedgerEntry,
+        {
+          fields: ['date', 'reverts'],
+          filters: {
+            referenceType: ModelNameEnum.SalesInvoice,
+            referenceName: invoice.name,
+          },
+        }
+      );
+
+      relevant = ledgerRows.some(
+        ({ date, reverts }) =>
+          Boolean(reverts) &&
+          isDateWithinSelection(date, fromDate, toDate)
+      );
+    }
+
+    if (relevant) {
+      throw new ValidationError(
+        t`Norwegian VAT summary cannot automatically classify directly cancelled sales invoice ${invoice.name}. Review the correction and use a credit note workflow.`
+      );
+    }
+  }
+}
+
 export async function getNorwegianVatSummary(
   fyo: Fyo,
   fromDate?: string,
   toDate?: string
 ): Promise<NorwegianVatSummaryRow[]> {
+  await assertNoDirectlyCancelledSalesInvoices(fyo, fromDate, toDate);
   const summary = new Map<string, NorwegianVatSummaryRow>();
 
   for (const schemaName of [

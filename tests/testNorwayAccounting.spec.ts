@@ -2,6 +2,7 @@ import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
+import { JournalEntry } from 'models/baseModels/JournalEntry/JournalEntry';
 import { Party } from 'models/baseModels/Party/Party';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
 import { getPrintEntryLabel } from 'src/utils/printLabels';
@@ -1218,27 +1219,29 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
   }
   t.equal(oldPostingBlocked, true, 'locked-period invoice cannot be submitted');
 
-  const openInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
-    account: 'Kundefordringer - 15000',
-    party: 'Norsk Testkunde AS',
+  const openJournal = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
+    entryType: 'Journal Entry',
     date: new Date(`${year}-02-01T12:00:00.000Z`),
-    dueDate: new Date(`${year}-02-15T00:00:00.000Z`),
-    deliveryDate: new Date(`${year}-02-01T12:00:00.000Z`),
-    deliveryPlace: 'Oslo',
-    items: [
+    referenceNumber: 'LOCK-REV-001',
+    userRemark: 'Period lock reversal test',
+    accounts: [
       {
-        item: 'Konsulenttjeneste',
-        quantity: 1,
-        rate: 1000,
-        tax: 'Utgående MVA 25 %',
+        account: 'Kontanter - 19000',
+        debit: 100,
+        credit: 0,
+      },
+      {
+        account: 'Test Bank',
+        debit: 0,
+        credit: 100,
       },
     ],
-  }) as SalesInvoice;
+  }) as JournalEntry;
 
-  await openInvoice.runFormulas();
-  await openInvoice.sync();
-  await openInvoice.submit();
-  t.equal(openInvoice.isSubmitted, true, 'posting after lock date is allowed');
+  await openJournal.runFormulas();
+  await openJournal.sync();
+  await openJournal.submit();
+  t.equal(openJournal.isSubmitted, true, 'posting after lock date is allowed');
 
   await fyo.singles.AccountingSettings?.setAndSync(
     'accountingLockDate',
@@ -1247,7 +1250,7 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
 
   let reversalBlocked = false;
   try {
-    await openInvoice.cancel('Period close correction test');
+    await openJournal.cancel('Period close correction test');
   } catch (error) {
     reversalBlocked = true;
     t.match(
@@ -1256,7 +1259,11 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
       'reversal inside locked period is rejected'
     );
   }
-  t.equal(reversalBlocked, true, 'locked-period invoice cannot be cancelled');
+  t.equal(
+    reversalBlocked,
+    true,
+    'locked-period journal entry cannot be cancelled'
+  );
 });
 
 test('Norwegian financial statements reconcile current-year activity', async (t) => {
@@ -1439,7 +1446,7 @@ test('Norwegian cancelled payments restore outstanding balances and preserve aud
   );
 });
 
-test('Norwegian cancelled postings remain immutable and auditable', async (t) => {
+test('Norwegian issued sales invoices require credit-note correction', async (t) => {
   const year = new Date().getFullYear();
 
   await fyo.singles.AccountingSettings?.setAndSync(
@@ -1468,89 +1475,107 @@ test('Norwegian cancelled postings remain immutable and auditable', async (t) =>
   await invoice.sync();
   await invoice.submit();
 
-  t.equal(invoice.canEdit, false, 'submitted Norwegian posting cannot be edited');
-
   const originalEntries = await fyo.db.getAllRaw(
     ModelNameEnum.AccountingLedgerEntry,
     {
-      fields: ['name', 'account', 'debit', 'credit', 'reverted', 'reverts'],
+      fields: ['name', 'reverts'],
       filters: { referenceName: invoice.name! },
     }
   );
-
   t.equal(originalEntries.length, 3, 'submitted invoice creates three ledger entries');
 
-  let missingReasonBlocked = false;
+  let cancellationBlocked = false;
   try {
-    await invoice.cancel();
+    await invoice.cancel('Customer order was entered twice');
   } catch (error) {
-    missingReasonBlocked = true;
+    cancellationBlocked = true;
     t.match(
       (error as Error).message,
-      /Cancellation reason is required/,
-      'cancellation without a reason is rejected'
+      /credit note/i,
+      'direct cancellation tells the user to issue a credit note'
+    );
+  }
+
+  t.equal(
+    cancellationBlocked,
+    true,
+    'submitted Norwegian sales invoice cannot be directly cancelled'
+  );
+  t.equal(invoice.isSubmitted, true, 'original invoice remains submitted');
+  t.equal(invoice.isCancelled, false, 'original invoice is not marked cancelled');
+
+  const entriesAfterAttempt = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['name', 'reverts'],
+      filters: { referenceName: invoice.name! },
+    }
+  );
+  t.equal(
+    entriesAfterAttempt.length,
+    3,
+    'blocked cancellation does not create reversal ledger entries'
+  );
+
+  const creditNote = (await invoice.getReturnDoc()) as SalesInvoice;
+  await creditNote.set({
+    correctionReason: 'Customer order was entered twice',
+    date: new Date(`${year}-09-20T12:00:00.000Z`),
+  });
+  await creditNote.runFormulas();
+  await creditNote.sync();
+  await creditNote.submit();
+
+  t.equal(creditNote.isSubmitted, true, 'credit note is submitted as a new sales document');
+  t.equal(
+    creditNote.returnAgainst,
+    invoice.name,
+    'credit note keeps a traceable reference to the original invoice'
+  );
+
+  await fyo.db.update(ModelNameEnum.SalesInvoice, {
+    name: invoice.name!,
+    cancelled: true,
+  });
+  fyo.doc.removeFromCache(ModelNameEnum.SalesInvoice, invoice.name!);
+
+  let legacyCancellationBlocked = false;
+  try {
+    await getNorwegianVatSummary(
+      fyo,
+      `${year}-01-01`,
+      `${year}-12-31`
+    );
+  } catch (error) {
+    legacyCancellationBlocked = true;
+    t.match(
+      (error as Error).message,
+      /directly cancelled sales invoice/i,
+      'VAT report rejects legacy directly-cancelled sales documents'
     );
   }
   t.equal(
-    missingReasonBlocked,
+    legacyCancellationBlocked,
     true,
-    'Norwegian cancellation requires an audit reason'
+    'legacy cancellation cannot silently disappear from VAT reporting'
   );
 
-  const cancellationReason = 'Customer order was entered twice';
-  await invoice.cancel(cancellationReason);
+  await fyo.db.update(ModelNameEnum.SalesInvoice, {
+    name: invoice.name!,
+    cancelled: false,
+  });
+  fyo.doc.removeFromCache(ModelNameEnum.SalesInvoice, invoice.name!);
 
-  t.equal(invoice.isCancelled, true, 'invoice is marked cancelled');
-  t.equal(
-    invoice.get('cancellationReason'),
-    cancellationReason,
-    'cancellation reason is stored on the cancelled document'
-  );
-  t.equal(
-    invoice.canDelete,
-    false,
-    'cancelled Norwegian posting cannot be deleted'
-  );
-
-  const reversedEntries = await fyo.db.getAllRaw(
-    ModelNameEnum.AccountingLedgerEntry,
-    {
-      fields: ['name', 'account', 'debit', 'credit', 'reverted', 'reverts'],
-      filters: { referenceName: invoice.name! },
-    }
-  );
-
-  t.equal(
-    reversedEntries.length,
-    6,
-    'cancellation preserves originals and adds three reversing entries'
-  );
-  t.equal(
-    reversedEntries.filter((entry) => Boolean(entry.reverts)).length,
-    3,
-    'three reversal entries link back to the original ledger entries'
-  );
-
-  await invoice.delete();
+  const restoredInvoice = (await fyo.doc.getDoc(
+    ModelNameEnum.SalesInvoice,
+    invoice.name!
+  )) as SalesInvoice;
+  await restoredInvoice.delete();
 
   t.equal(
     await fyo.db.exists(ModelNameEnum.SalesInvoice, invoice.name!),
     true,
-    'cancelled Norwegian invoice remains stored after delete attempt'
-  );
-
-  const entriesAfterDeleteAttempt = await fyo.db.getAllRaw(
-    ModelNameEnum.AccountingLedgerEntry,
-    {
-      fields: ['name'],
-      filters: { referenceName: invoice.name! },
-    }
-  );
-
-  t.equal(
-    entriesAfterDeleteAttempt.length,
-    6,
-    'audit-trail ledger entries remain stored after delete attempt'
+    'issued Norwegian invoice remains stored after delete attempt'
   );
 });
 

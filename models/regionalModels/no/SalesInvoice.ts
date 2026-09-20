@@ -8,6 +8,16 @@ export class SalesInvoice extends BaseSalesInvoice {
   deliveryDate?: string | Date;
   deliveryPlace?: string;
 
+  override async cancel(reason?: string): Promise<void> {
+    if (this.isSubmitted) {
+      throw new ValidationError(
+        t`Submitted Norwegian sales invoices cannot be cancelled. Issue a credit note instead.`
+      );
+    }
+
+    await super.cancel(reason);
+  }
+
   async beforeSubmit() {
     await super.beforeSubmit();
 
