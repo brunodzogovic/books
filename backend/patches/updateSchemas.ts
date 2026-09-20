@@ -45,9 +45,10 @@ async function execute(dm: DatabaseManager) {
    * settings, which can discard regional columns. Only run this legacy patch
    * without a version when the old schema shape is actually present.
    */
+  const hasMeaningfulVersion = !!version && version !== '0.0.0';
   if (
-    (version && Version.gt(version, '0.4.3-beta.0')) ||
-    (!version && (await hasUpdatedSchema(sourceKnex)))
+    (hasMeaningfulVersion && Version.gt(version, '0.4.3-beta.0')) ||
+    (!hasMeaningfulVersion && (await hasUpdatedSchema(sourceKnex)))
   ) {
     return;
   }
