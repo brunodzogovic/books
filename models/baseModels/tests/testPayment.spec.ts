@@ -96,4 +96,25 @@ test('payment against multiple invoices should validate total = sum of all outst
   );
 });
 
+test('outgoing bank payment uses payment method configured account', async (t) => {
+  fyo.doc.getNewDoc(ModelNameEnum.PaymentMethod, {
+    name: 'Dedicated Bank Method',
+    type: 'Bank',
+    account: 'Dedicated Bank Account',
+  });
+
+  const paymentDoc = fyo.doc.getNewDoc(ModelNameEnum.Payment, {
+    paymentType: 'Pay',
+    paymentMethod: 'Dedicated Bank Method',
+  }) as Payment;
+  const account = await paymentDoc.formulas.account.formula();
+
+  t.equal(
+    account,
+    'Dedicated Bank Account',
+    'outgoing payment honors the account configured on its payment method'
+  );
+  t.end();
+});
+
 closeTestFyo(fyo, __filename);

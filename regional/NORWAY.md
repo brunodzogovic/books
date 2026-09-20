@@ -159,7 +159,8 @@ review. The review grid can be exported through the normal CSV/XLSX/ODS/JSON
 report exporters. A reviewed, sufficiently unambiguous match can now open an
 **unsaved Payment draft** using the bank booking date, positive allocated amount,
 party, matched invoice and bank reference. The user must explicitly select a
-Bank-type Payment Method that has a bank GL account configured. The draft is
+Bank-type Payment Method whose configured GL account is itself a Bank account.
+The draft is
 never saved or submitted automatically, so the normal Payment validation and
 human review remain in the posting path. Amount-only ambiguous matches stay
 review-only until the user resolves them.

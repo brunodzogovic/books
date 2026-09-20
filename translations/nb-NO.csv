@@ -670,3 +670,4 @@
 "Select a bank payment method before creating a draft payment.","Velg en bankbetalingsmåte før du oppretter et betalingsutkast.",""
 "Selected bank payment method must be a Bank payment method.","Valgt betalingsmåte må være av typen Bank.",""
 "Selected bank payment method must have a bank account configured.","Valgt bankbetalingsmåte må ha en bankkonto konfigurert.",""
+"Selected bank payment method account must be a Bank account.","Kontoen for valgt bankbetalingsmåte må være en bankkonto.",""

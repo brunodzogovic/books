@@ -416,9 +416,20 @@ export class NorwegianBankReconciliation extends Report {
           t`Selected bank payment method must be a Bank payment method.`
         );
       }
-      if (!paymentMethod.get('account')) {
+      const bankAccount = paymentMethod.get('account');
+      if (typeof bankAccount !== 'string' || !bankAccount) {
         throw new ValidationError(
           t`Selected bank payment method must have a bank account configured.`
+        );
+      }
+
+      const bankAccountDoc = await this.fyo.doc.getDoc(
+        ModelNameEnum.Account,
+        bankAccount
+      );
+      if (bankAccountDoc.get('accountType') !== 'Bank') {
+        throw new ValidationError(
+          t`Selected bank payment method account must be a Bank account.`
         );
       }
 
