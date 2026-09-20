@@ -7,6 +7,7 @@ import { ModelNameEnum } from 'models/types';
 import { getCsvData, getCsvFileData } from 'reports/commonExporter';
 import { getSpreadsheetData } from 'reports/spreadsheetExporter';
 import { NorwegianVAT } from 'reports/NorwegianVAT/NorwegianVAT';
+import { GeneralLedger } from 'reports/GeneralLedger/GeneralLedger';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
 
@@ -142,11 +143,41 @@ test('Norwegian VAT report exposes office-friendly exports', async (t) => {
     'ODS stores Norwegian text and report values as spreadsheet cells'
   );
 
+  const generalLedger = new GeneralLedger(fyo);
+  generalLedger.fromDate = `${year}-01-01`;
+  generalLedger.toDate = `${year}-12-31`;
+  generalLedger.ascending = true;
+  await generalLedger.initialize();
+
+  const generalLedgerXlsx = getSpreadsheetData(generalLedger, 'xlsx');
+  const generalLedgerOds = getSpreadsheetData(generalLedger, 'ods');
+  const generalLedgerXlsxText = new TextDecoder().decode(generalLedgerXlsx);
+  const generalLedgerOdsText = new TextDecoder().decode(generalLedgerOds);
+
+  t.ok(
+    generalLedgerXlsxText.includes('t="d"') &&
+      generalLedgerXlsxText.includes(`${year}-05-15T12:00:00.000Z`),
+    'XLSX spreadsheet exports preserve real date cell types'
+  );
+  t.ok(
+    generalLedgerOdsText.includes('office:value-type="date"') &&
+      generalLedgerOdsText.includes(`office:date-value="${year}-05-15"`),
+    'ODS spreadsheet exports preserve real date cell types'
+  );
+
   const artifactDir = process.env.NORWAY_EXPORT_ARTIFACT_DIR;
   if (artifactDir) {
     await fs.mkdir(artifactDir, { recursive: true });
     await fs.writeFile(path.join(artifactDir, 'norwegian-vat.xlsx'), xlsx);
     await fs.writeFile(path.join(artifactDir, 'norwegian-vat.ods'), ods);
+    await fs.writeFile(
+      path.join(artifactDir, 'norwegian-general-ledger.xlsx'),
+      generalLedgerXlsx
+    );
+    await fs.writeFile(
+      path.join(artifactDir, 'norwegian-general-ledger.ods'),
+      generalLedgerOds
+    );
     t.ok(true, 'office export fixtures written for external compatibility checks');
   }
 });

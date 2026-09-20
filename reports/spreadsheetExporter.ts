@@ -1,7 +1,7 @@
 import { Report } from './Report';
 
 export type SpreadsheetExtension = 'xlsx' | 'ods';
-type SpreadsheetValue = string | number;
+type SpreadsheetValue = string | number | Date;
 
 type ZipEntry = {
   name: string;
@@ -38,7 +38,7 @@ export function getReportMatrix(report: Report): SpreadsheetValue[][] {
 
         const rawValue = cell.rawValue;
         if (rawValue instanceof Date) {
-          return rawValue.toISOString();
+          return rawValue;
         }
 
         if (typeof rawValue === 'number') {
@@ -131,6 +131,10 @@ function getXlsxCell(
     return `<c r="${ref}" t="n"><v>${String(value)}</v></c>`;
   }
 
+  if (value instanceof Date) {
+    return `<c r="${ref}" t="d"><v>${value.toISOString()}</v></c>`;
+  }
+
   return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(
     String(value)
   )}</t></is></c>`;
@@ -191,6 +195,11 @@ function getOdsCell(value: SpreadsheetValue): string {
         value
       )}"><text:p>${String(value)}</text:p></table:table-cell>`
     );
+  }
+
+  if (value instanceof Date) {
+    const isoDate = value.toISOString().slice(0, 10);
+    return `<table:table-cell office:value-type="date" office:date-value="${isoDate}"><text:p>${isoDate}</text:p></table:table-cell>`;
   }
 
   return (
