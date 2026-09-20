@@ -3,6 +3,7 @@ import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
+import { getPrintTemplatePropValues } from 'src/utils/printTemplates';
 import { getNorwegianInvoiceCurrencyDisclosure } from 'regional/noInvoice';
 import { ProfitAndLoss } from 'reports/ProfitAndLoss/ProfitAndLoss';
 import { BalanceSheet } from 'reports/BalanceSheet/BalanceSheet';
@@ -644,6 +645,13 @@ test('Norwegian credit-note refunds settle through bank', async (t) => {
     salesCredit.outstandingAmount?.float,
     0,
     'sales credit note is fully refunded'
+  );
+
+  const salesCreditPrintValues = await getPrintTemplatePropValues(salesCredit);
+  t.equal(
+    salesCreditPrintValues.doc.entryLabel,
+    'Credit Note',
+    'printed return document is labelled as a credit note'
   );
 
   const purchaseCreditRows = await fyo.db.getAll(

@@ -486,7 +486,8 @@ async function getPrintTemplateDocValues(doc: Doc, fieldnames?: string[]) {
 
   values.submitted = doc.submitted;
   values.entryType = doc.schema.name;
-  values.entryLabel = doc.schema.label;
+  values.entryLabel =
+    doc instanceof Invoice && doc.isReturn ? doc.fyo.t`Credit Note` : doc.schema.label;
 
   // Set Formatted Doc Link Data
   await doc.loadLinks();
