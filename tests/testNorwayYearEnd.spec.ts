@@ -11,6 +11,7 @@ import { buildNorwegianSaftFinancial140 } from 'regional/noSaft';
 import setupInstance from 'src/setup/setupInstance';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
+import { validateAgainstOfficialSaft140Xsd } from './saftTestHelpers';
 
 const fyo = getTestFyo();
 const dbPath = getTestDbPath();
@@ -342,16 +343,9 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
     return (row?.cells[1]?.rawValue as number | undefined) ?? 0;
   };
 
-  const income = getTotal(
-    profitAndLoss.reportData,
-    'Total Income (Credit)'
-  );
-  const expense = getTotal(
-    profitAndLoss.reportData,
-    'Total Expense (Debit)'
-  );
-  const profit =
-    getTotal(profitAndLoss.reportData, 'Total Profit') || income - expense;
+  const income = getTotal(profitAndLoss.reportData, 'Total Income (Credit)');
+  const expense = getTotal(profitAndLoss.reportData, 'Total Expense (Debit)');
+  const profit = getTotal(profitAndLoss.reportData, 'Total Profit');
 
   t.equal(income, 50000, 'full-year P&L reports NOK 50,000 income');
   t.equal(expense, 5000, 'full-year P&L reports NOK 5,000 operating expenses');
@@ -393,7 +387,11 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
     10,
     'realistic year exports ten accounting transactions'
   );
-  t.equal(saft.totalDebit, 208000, 'realistic year SAF-T debit total is NOK 208,000');
+  t.equal(
+    saft.totalDebit,
+    208000,
+    'realistic year SAF-T debit total is NOK 208,000'
+  );
   t.equal(
     saft.totalCredit,
     208000,
@@ -408,6 +406,15 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
     saft.xml.includes('<VoucherType>SCN</VoucherType>') &&
       saft.xml.includes('Duplicate project invoice'),
     'SAF-T preserves the year credit-note correction trail'
+  );
+
+  const xsdValidation = await validateAgainstOfficialSaft140Xsd(saft.xml);
+  t.equal(
+    xsdValidation.valid,
+    true,
+    xsdValidation.valid
+      ? 'full-year SAF-T export validates against the official 1.40 schema'
+      : `full-year SAF-T XSD validation failed: ${xsdValidation.output}`
   );
 
   await fyo.singles.AccountingSettings?.setAndSync(

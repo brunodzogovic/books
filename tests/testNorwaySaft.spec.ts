@@ -1,9 +1,6 @@
 import setupInstance from 'src/setup/setupInstance';
-import { spawnSync } from 'child_process';
-import { promises as fs } from 'fs';
-import os from 'os';
-import path from 'path';
 import fetch from 'node-fetch';
+import { validateAgainstOfficialSaft140Xsd } from './saftTestHelpers';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
@@ -24,9 +21,6 @@ import { NorwegianVAT } from 'reports/NorwegianVAT/NorwegianVAT';
 
 const fyo = getTestFyo();
 const dbPath = getTestDbPath();
-
-const SAFT_140_XSD_URL =
-  'https://raw.githubusercontent.com/Skatteetaten/saf-t/05179521e435d82feb0b2d6c89a92a32a4f2d02f/SAF-T_Financial_1.4/Norwegian_SAF-T_Financial_Schema_v_1.40.xsd';
 
 const SAFT_GROUPING_2025_2026_URL =
   'https://raw.githubusercontent.com/Skatteetaten/saf-t/05179521e435d82feb0b2d6c89a92a32a4f2d02f/Grouping%20Category%20Code%202025-2026/XML/naeringsspesifikasjon.xml';
@@ -49,55 +43,6 @@ async function getOfficialGroupingPairs(): Promise<Set<string>> {
   }
 
   return pairs;
-}
-
-async function validateAgainstOfficialSaft140Xsd(xml: string) {
-  const probe = spawnSync('xmllint', ['--version'], {
-    encoding: 'utf8',
-  });
-
-  if (probe.error) {
-    throw new Error(
-      'xmllint is required for SAF-T XSD validation. On Debian/Ubuntu/Linux Mint install package libxml2-utils.'
-    );
-  }
-
-  const tempDir = await fs.mkdtemp(
-    path.join(os.tmpdir(), 'frappe-books-saft-')
-  );
-  const xsdPath = path.join(
-    tempDir,
-    'Norwegian_SAF-T_Financial_Schema_v_1.40.xsd'
-  );
-  const xmlPath = path.join(tempDir, 'Norwegian_SAF-T_Financial_1.40.xml');
-
-  try {
-    const response = await fetch(SAFT_140_XSD_URL);
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch official SAF-T 1.40 XSD: HTTP ${response.status}`
-      );
-    }
-
-    await fs.writeFile(xsdPath, await response.text(), 'utf8');
-    await fs.writeFile(xmlPath, xml, 'utf8');
-
-    const validation = spawnSync(
-      'xmllint',
-      ['--noout', '--schema', xsdPath, xmlPath],
-      { encoding: 'utf8' }
-    );
-
-    return {
-      valid: validation.status === 0,
-      output: [validation.stdout, validation.stderr]
-        .filter(Boolean)
-        .join('\n')
-        .trim(),
-    };
-  } finally {
-    await fs.rm(tempDir, { recursive: true, force: true });
-  }
 }
 
 test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t) => {
@@ -271,7 +216,11 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     '1.40',
     'export targets SAF-T Financial 1.40'
   );
-  t.equal(result.numberOfEntries, 3, 'three posted invoices become three transactions');
+  t.equal(
+    result.numberOfEntries,
+    3,
+    'three posted invoices become three transactions'
+  );
   t.equal(result.totalDebit, 3937.5, 'SAF-T total debit is NOK 3,937.50');
   t.equal(result.totalCredit, 3937.5, 'SAF-T total credit is NOK 3,937.50');
 
@@ -290,9 +239,7 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     'writes Norway as audit-file country'
   );
   t.ok(
-    result.xml.includes(
-      '<RegistrationNumber>123456785</RegistrationNumber>'
-    ),
+    result.xml.includes('<RegistrationNumber>123456785</RegistrationNumber>'),
     'writes company organization number'
   );
   t.ok(
@@ -306,9 +253,7 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     'writes selection start date'
   );
   t.ok(
-    result.xml.includes(
-      `<SelectionEndDate>${year}-12-31</SelectionEndDate>`
-    ),
+    result.xml.includes(`<SelectionEndDate>${year}-12-31</SelectionEndDate>`),
     'writes selection end date'
   );
   t.ok(
@@ -376,8 +321,7 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   );
 
   t.ok(
-    result.xml.includes('<MasterFiles>') &&
-      result.xml.includes('<Customers>'),
+    result.xml.includes('<MasterFiles>') && result.xml.includes('<Customers>'),
     'exports SAF-T master files and customers'
   );
   t.ok(
@@ -447,9 +391,7 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   );
 
   t.ok(
-    salesTransactionXml.includes(
-      '<AccountID>30000</AccountID>'
-    ) &&
+    salesTransactionXml.includes('<AccountID>30000</AccountID>') &&
       salesTransactionXml.includes('<TaxInformation>') &&
       salesTransactionXml.includes('<TaxCode>NO-OUT-25</TaxCode>') &&
       salesTransactionXml.includes('<TaxBase>1000.00</TaxBase>') &&
@@ -471,9 +413,7 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   );
 
   t.ok(
-    purchaseTransactionXml.includes(
-      '<AccountID>67000</AccountID>'
-    ) &&
+    purchaseTransactionXml.includes('<AccountID>67000</AccountID>') &&
       purchaseTransactionXml.includes('<TaxInformation>') &&
       purchaseTransactionXml.includes('<TaxCode>NO-IN-25</TaxCode>') &&
       purchaseTransactionXml.includes('<TaxBase>1000.00</TaxBase>') &&
@@ -578,8 +518,7 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   );
   t.equal(
     starterAccountNumbers.filter(
-      (accountNumber) =>
-        !NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT[accountNumber]
+      (accountNumber) => !NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT[accountNumber]
     ).length,
     0,
     'starter chart has a SAF-T grouping for every numbered account'
@@ -636,6 +575,13 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     'office supplies map to official office and communications grouping'
   );
 
+  // restore the current VAT template after historical-mapping test
+  await outputTax.set({
+    taxCode: 'NO-OUT-25',
+    standardTaxCode: '3',
+  });
+  await outputTax.sync();
+
   const xsdValidation = await validateAgainstOfficialSaft140Xsd(result.xml);
   t.equal(
     xsdValidation.valid,
@@ -644,13 +590,6 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
       ? 'generated XML validates against Skatteetaten SAF-T Financial 1.40 XSD'
       : `SAF-T 1.40 XSD validation failed: ${xsdValidation.output}`
   );
-
-  // restore the current VAT template after historical-mapping test
-  await outputTax.set({
-    taxCode: 'NO-OUT-25',
-    standardTaxCode: '3',
-  });
-  await outputTax.sync();
 });
 
 test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', async (t) => {
@@ -737,13 +676,13 @@ test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', a
 
   t.ok(
     creditXml.includes('<VoucherType>SCN</VoucherType>') &&
-      creditXml.includes('<VoucherDescription>Sales credit note</VoucherDescription>'),
+      creditXml.includes(
+        '<VoucherDescription>Sales credit note</VoucherDescription>'
+      ),
     'sales credit note has a distinct SAF-T voucher type'
   );
   t.ok(
-    creditXml.includes(
-      `<SourceDocumentID>${invoice.name}</SourceDocumentID>`
-    ),
+    creditXml.includes(`<SourceDocumentID>${invoice.name}</SourceDocumentID>`),
     'credit-note lines reference the corrected invoice'
   );
   t.ok(
@@ -770,8 +709,7 @@ test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', a
   t.ok(
     paymentXml.includes(
       `<SourceDocumentID>${invoice.name}</SourceDocumentID>`
-    ) &&
-      paymentXml.includes('<CustomerID>987654325</CustomerID>'),
+    ) && paymentXml.includes('<CustomerID>987654325</CustomerID>'),
     'payment subledger line references both customer and source invoice'
   );
 
@@ -823,9 +761,7 @@ test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', a
     'sub-period SAF-T exports only payment and credit-note transactions'
   );
   t.ok(
-    !subPeriod.xml.includes(
-      `<TransactionID>${invoice.name}</TransactionID>`
-    ) &&
+    !subPeriod.xml.includes(`<TransactionID>${invoice.name}</TransactionID>`) &&
       subPeriod.xml.includes(
         `<TransactionID>${payment.name}</TransactionID>`
       ) &&
@@ -1113,10 +1049,8 @@ test('Norwegian SAF-T carries pre-period postings into in-period reversals', asy
     softwareVersion: '0.37.0-test',
   });
 
-  const originalTransactionId =
-    `<TransactionID>${journalEntry.name}</TransactionID>`;
-  const reversalPrefix =
-    `<TransactionID>${journalEntry.name}-REV-`;
+  const originalTransactionId = `<TransactionID>${journalEntry.name}</TransactionID>`;
+  const reversalPrefix = `<TransactionID>${journalEntry.name}-REV-`;
 
   t.ok(
     !result.xml.includes(originalTransactionId),
@@ -1172,7 +1106,11 @@ test('Norwegian VAT report exposes SAF-T 1.40 XML export action', async (t) => {
     .find((candidate) => candidate.label === 'SAF-T Financial 1.40 XML');
 
   t.ok(action, 'Norwegian VAT report exposes SAF-T 1.40 XML export');
-  t.equal(action?.group, 'Export', 'SAF-T export is grouped with report exports');
+  t.equal(
+    action?.group,
+    'Export',
+    'SAF-T export is grouped with report exports'
+  );
   t.equal(action?.type, 'primary', 'SAF-T export is a primary report action');
 });
 
