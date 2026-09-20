@@ -2,6 +2,7 @@ import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
+import { Party } from 'models/baseModels/Party/Party';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
 import { getPrintEntryLabel } from 'src/utils/printLabels';
 import { getNorwegianInvoiceCurrencyDisclosure } from 'regional/noInvoice';
@@ -1327,18 +1328,131 @@ test('Norwegian financial statements reconcile current-year activity', async (t)
   );
 });
 
-test('Norwegian cancelled postings remain immutable and auditable', async (t) => {
+test('Norwegian cancelled payments restore outstanding balances and preserve audit entries', async (t) => {
+  const year = new Date().getFullYear();
+  const postingDate = new Date();
+  postingDate.setHours(12, 0, 0, 0);
+  const dueDate = new Date(postingDate);
+  dueDate.setDate(dueDate.getDate() + 14);
+
   await fyo.singles.AccountingSettings?.setAndSync(
     'accountingLockDate',
-    new Date('2026-02-28T00:00:00.000Z')
+    new Date(`${year - 1}-12-31T00:00:00.000Z`)
   );
 
   const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
     account: 'Kundefordringer - 15000',
     party: 'Norsk Testkunde AS',
-    date: new Date('2026-09-19T12:00:00.000Z'),
-    dueDate: new Date('2026-10-03T00:00:00.000Z'),
-    deliveryDate: new Date('2026-09-19T12:00:00.000Z'),
+    date: postingDate,
+    dueDate,
+    deliveryDate: postingDate,
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: 'Konsulenttjeneste',
+        quantity: 1,
+        rate: 1600,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await invoice.runFormulas();
+  await invoice.sync();
+  await invoice.submit();
+
+  const customer = (await fyo.doc.getDoc(
+    ModelNameEnum.Party,
+    'Norsk Testkunde AS'
+  )) as Party;
+  await customer.load();
+  const outstandingBeforePayment = customer.outstandingAmount?.float;
+
+  const payment = invoice.getPayment() as Payment;
+  await payment.set({
+    date: postingDate,
+    paymentMethod: 'Bank',
+    paymentAccount: 'Test Bank',
+    referenceId: 'BANK-CANCEL-001',
+    clearanceDate: postingDate,
+  });
+  await payment.runFormulas();
+  await payment.sync();
+  await payment.submit();
+
+  await invoice.load();
+  t.equal(
+    invoice.outstandingAmount?.float,
+    0,
+    'submitted payment settles the invoice before cancellation'
+  );
+
+  const originalPaymentEntries = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['name', 'reverts'],
+      filters: { referenceName: payment.name! },
+    }
+  );
+  t.ok(
+    originalPaymentEntries.length > 0,
+    'submitted payment creates accounting ledger entries'
+  );
+
+  await payment.cancel('Bank payment was reversed during reconciliation');
+
+  await invoice.load();
+  t.equal(
+    invoice.outstandingAmount?.float,
+    2000,
+    'cancelling the payment restores the full invoice outstanding amount'
+  );
+
+  await customer.load();
+  t.equal(
+    customer.outstandingAmount?.float,
+    outstandingBeforePayment,
+    'cancelling the payment restores the customer outstanding balance'
+  );
+
+  const cancelledPaymentEntries = await fyo.db.getAllRaw(
+    ModelNameEnum.AccountingLedgerEntry,
+    {
+      fields: ['name', 'reverts'],
+      filters: { referenceName: payment.name! },
+    }
+  );
+  t.equal(
+    cancelledPaymentEntries.length,
+    originalPaymentEntries.length * 2,
+    'payment cancellation preserves originals and adds matching reversals'
+  );
+  t.equal(
+    cancelledPaymentEntries.filter((entry) => Boolean(entry.reverts)).length,
+    originalPaymentEntries.length,
+    'every original payment ledger entry has a linked reversal'
+  );
+  t.equal(
+    payment.get('cancellationReason'),
+    'Bank payment was reversed during reconciliation',
+    'cancelled payment keeps its reconciliation reason'
+  );
+});
+
+test('Norwegian cancelled postings remain immutable and auditable', async (t) => {
+  const year = new Date().getFullYear();
+
+  await fyo.singles.AccountingSettings?.setAndSync(
+    'accountingLockDate',
+    new Date(`${year}-02-28T00:00:00.000Z`)
+  );
+
+  const invoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Norsk Testkunde AS',
+    date: new Date(`${year}-09-19T12:00:00.000Z`),
+    dueDate: new Date(`${year}-10-03T00:00:00.000Z`),
+    deliveryDate: new Date(`${year}-09-19T12:00:00.000Z`),
     deliveryPlace: 'Oslo',
     items: [
       {

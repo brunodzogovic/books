@@ -24,6 +24,8 @@ of the interface language: both English and Bokmål are supported.
 - Return invoices print with a distinct Credit Note / Kreditnota label.
 - Sales invoices, cancellations and credit notes retain a monotonic machine
   number sequence, with submitted document numbers protected from renaming.
+- Cancelling a posted payment restores invoice and party outstanding balances
+  while preserving original ledger entries and linked reversal entries.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
