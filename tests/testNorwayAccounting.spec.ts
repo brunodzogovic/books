@@ -3,7 +3,7 @@ import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
-import { getPrintTemplatePropValues } from 'src/utils/printTemplates';
+import { getPrintEntryLabel } from 'src/utils/printLabels';
 import { getNorwegianInvoiceCurrencyDisclosure } from 'regional/noInvoice';
 import { ProfitAndLoss } from 'reports/ProfitAndLoss/ProfitAndLoss';
 import { BalanceSheet } from 'reports/BalanceSheet/BalanceSheet';
@@ -647,9 +647,8 @@ test('Norwegian credit-note refunds settle through bank', async (t) => {
     'sales credit note is fully refunded'
   );
 
-  const salesCreditPrintValues = await getPrintTemplatePropValues(salesCredit);
   t.equal(
-    salesCreditPrintValues.doc.entryLabel,
+    getPrintEntryLabel(salesCredit),
     'Credit Note',
     'printed return document is labelled as a credit note'
   );

@@ -16,6 +16,7 @@ import { Money } from 'pesa';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
 import { getNorwegianInvoiceCurrencyDisclosure } from 'regional/noInvoice';
+import { getPrintEntryLabel } from './printLabels';
 
 export type PrintTemplateHint = {
   [key: string]: string | PrintTemplateHint | PrintTemplateHint[];
@@ -486,8 +487,7 @@ async function getPrintTemplateDocValues(doc: Doc, fieldnames?: string[]) {
 
   values.submitted = doc.submitted;
   values.entryType = doc.schema.name;
-  values.entryLabel =
-    doc instanceof Invoice && doc.isReturn ? doc.fyo.t`Credit Note` : doc.schema.label;
+  values.entryLabel = getPrintEntryLabel(doc);
 
   // Set Formatted Doc Link Data
   await doc.loadLinks();
