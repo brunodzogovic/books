@@ -37,10 +37,18 @@ async function execute(dm: DatabaseManager) {
   )?.[0]?.value;
 
   /**
-   * Versions after this should have the new schemas
+   * Versions after this should have the new schemas.
+   *
+   * A freshly-created on-disk database has no stored app version yet, but it
+   * is already created from the current schema. Treating that database as a
+   * pre-0.5 legacy database rebuilds it before setup has written its country
+   * settings, which can discard regional columns. Only run this legacy patch
+   * without a version when the old schema shape is actually present.
    */
-
-  if (version && Version.gt(version, '0.4.3-beta.0')) {
+  if (
+    (version && Version.gt(version, '0.4.3-beta.0')) ||
+    (!version && (await hasUpdatedSchema(sourceKnex)))
+  ) {
     return;
   }
 
@@ -338,6 +346,14 @@ async function copyValues(
   }
 
   await destKnex.batchInsert(destTableName, values, 100);
+}
+
+async function hasUpdatedSchema(knex: Knex) {
+  const columns = (await knex.raw('PRAGMA table_info(Account)')) as {
+    name: string;
+  }[];
+  const columnNames = new Set(columns.map(({ name }) => name));
+  return columnNames.has('created') && !columnNames.has('creation');
 }
 
 async function getDestinationDM(sourceDbPath: string, countryCode: string) {
