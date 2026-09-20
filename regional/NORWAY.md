@@ -45,6 +45,8 @@ of the interface language: both English and Bokmål are supported.
 - Bokmål regression now covers the VAT/export cockpit and Norwegian sales-
   correction messages, so the accounting localization remains usable with
   either English or Bokmål UI.
+- XLSX and ODS report exports now preserve numeric cell types and Norwegian
+  text in local Office Open XML / OpenDocument containers, alongside CSV/JSON.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
@@ -133,8 +135,9 @@ Continue with acceptance evidence rather than assuming a feature is complete:
 3. VAT/reporting and invoice documents: verify the UI and printed output in
    English and Bokmål, distinguish a VAT summary from a filed VAT return, and
    review any legacy directly-cancelled sales documents before filing.
-4. Office interoperability: CSV, ODS and XLSX workflows for OnlyOffice and
-   EuroOffice, preserving numbers and non-ASCII text.
+4. Office interoperability: CSV, ODS and XLSX report exports are implemented
+   without cloud services or proprietary libraries. Continue acceptance testing
+   in OnlyOffice and EuroOffice, especially number/date handling and formulas.
 5. Packaging and dogfooding: install/run the produced Linux AppImage, exercise
    real UI export/save flows, and build a reviewed CirreniX reference dataset.
 6. Later integrations: bank imports/reconciliation, EHF/Peppol, KID,

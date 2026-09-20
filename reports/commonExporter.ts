@@ -5,6 +5,7 @@ import { getIsNullOrUndef } from 'utils';
 import { generateCSV } from 'utils/csvParser';
 import { Report } from './Report';
 import { ExportExtention, ReportCell } from './types';
+import { getSpreadsheetData } from './spreadsheetExporter';
 
 interface JSONExport {
   columns: { fieldname: string; label: string }[];
@@ -17,7 +18,7 @@ interface JSONExport {
 }
 
 export default function getCommonExportActions(report: Report): Action[] {
-  const exportExtention = ['csv', 'json'] as ExportExtention[];
+  const exportExtention = ['csv', 'xlsx', 'ods', 'json'] as ExportExtention[];
 
   return exportExtention.map((ext) => ({
     group: t`Export`,
@@ -40,12 +41,14 @@ async function exportReport(extention: ExportExtention, report: Report) {
     return;
   }
 
-  let data = '';
+  let data: string | Uint8Array = '';
 
   if (extention === 'csv') {
     data = getCsvFileData(report);
   } else if (extention === 'json') {
     data = getJsonData(report);
+  } else if (extention === 'xlsx' || extention === 'ods') {
+    data = getSpreadsheetData(report, extention);
   }
 
   if (!data.length) {
@@ -197,7 +200,7 @@ function getValueFromCell(cell: ReportCell, displayPrecision: number) {
 }
 
 export async function saveExportData(
-  data: string,
+  data: string | Uint8Array,
   filePath: string,
   message?: string
 ) {

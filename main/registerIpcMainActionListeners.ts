@@ -142,8 +142,12 @@ export default function registerIpcMainActionListeners(main: Main) {
 
   ipcMain.handle(
     IPC_ACTIONS.SAVE_DATA,
-    async (_, data: string, savePath: string) => {
-      return await fs.writeFile(savePath, data, { encoding: 'utf-8' });
+    async (_, data: string | Uint8Array, savePath: string) => {
+      if (typeof data === 'string') {
+        return await fs.writeFile(savePath, data, { encoding: 'utf-8' });
+      }
+
+      return await fs.writeFile(savePath, data);
     }
   );
 

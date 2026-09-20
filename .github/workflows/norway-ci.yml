@@ -61,6 +61,10 @@ jobs:
       - name: Norway office export regression
         run: yarn test tests/testNorwayExports.spec.ts
 
+      - name: Verify office export archives
+        shell: bash
+        run: command -v unzip
+
       - name: Norway SAF-T regression
         run: yarn test tests/testNorwaySaft.spec.ts
 

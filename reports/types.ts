@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 import { AccountRootType } from 'models/baseModels/Account/types';
 import { BaseField, FieldType, RawValue } from 'schemas/types';
 
-export type ExportExtention = 'csv' | 'json';
+export type ExportExtention = 'csv' | 'xlsx' | 'ods' | 'json';
 
 export interface ReportCell {
   bold?: boolean;

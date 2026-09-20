@@ -5,6 +5,7 @@ import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { ModelNameEnum } from 'models/types';
 import { getCsvData, getCsvFileData } from 'reports/commonExporter';
+import { getSpreadsheetData } from 'reports/spreadsheetExporter';
 import { NorwegianVAT } from 'reports/NorwegianVAT/NorwegianVAT';
 import test from 'tape';
 import { getTestDbPath, getTestFyo } from './helpers';
@@ -87,6 +88,8 @@ test('Norwegian VAT report exposes office-friendly exports', async (t) => {
 
   const actionLabels = report.getActions().map(({ label }) => label);
   t.ok(actionLabels.includes('CSV'), 'VAT report exposes CSV export');
+  t.ok(actionLabels.includes('XLSX'), 'VAT report exposes XLSX export');
+  t.ok(actionLabels.includes('ODS'), 'VAT report exposes ODS export');
   t.ok(actionLabels.includes('JSON'), 'VAT report keeps JSON export');
   t.ok(
     actionLabels.includes('SAF-T Financial 1.40 XML'),
@@ -115,6 +118,28 @@ test('Norwegian VAT report exposes office-friendly exports', async (t) => {
   t.ok(
     csv.includes('308.63'),
     'CSV preserves the VAT amount with configured display precision'
+  );
+
+  const xlsx = getSpreadsheetData(report, 'xlsx');
+  const ods = getSpreadsheetData(report, 'ods');
+  t.equal(xlsx[0], 0x50, 'XLSX begins with a ZIP signature');
+  t.equal(xlsx[1], 0x4b, 'XLSX has the PK ZIP signature');
+  t.equal(ods[0], 0x50, 'ODS begins with a ZIP signature');
+  t.equal(ods[1], 0x4b, 'ODS has the PK ZIP signature');
+
+  const xlsxText = new TextDecoder().decode(xlsx);
+  const odsText = new TextDecoder().decode(ods);
+  t.ok(
+    xlsxText.includes('Utgående MVA 25 %') &&
+      xlsxText.includes('<v>1234.5</v>') &&
+      xlsxText.includes('<v>308.63</v>'),
+    'XLSX stores Norwegian text and report values as spreadsheet cells'
+  );
+  t.ok(
+    odsText.includes('Utgående MVA 25 %') &&
+      odsText.includes('office:value="1234.5"') &&
+      odsText.includes('office:value="308.63"'),
+    'ODS stores Norwegian text and report values as spreadsheet cells'
   );
 });
 

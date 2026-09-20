@@ -129,7 +129,7 @@ const ipc = {
     )) as BackendResponse;
   },
 
-  async saveData(data: string, savePath: string) {
+  async saveData(data: string | Uint8Array, savePath: string) {
     await ipcRenderer.invoke(IPC_ACTIONS.SAVE_DATA, data, savePath);
   },
 
