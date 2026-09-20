@@ -1,9 +1,10 @@
-TEST_PATH=$@
+#!/usr/bin/env bash
+set -euo pipefail
 
 if [ $# -eq 0 ]
   then
-    TEST_PATH=./**/tests/**/*.spec.ts
+    set -- ./**/tests/**/*.spec.ts
 fi
 
 export IS_TEST=true
-./scripts/runner.sh ./node_modules/.bin/tape $TEST_PATH | ./node_modules/.bin/tap-spec
+./scripts/runner.sh ./node_modules/.bin/tape "$@" | ./node_modules/.bin/tap-spec
