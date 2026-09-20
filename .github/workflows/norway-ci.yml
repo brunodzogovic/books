@@ -59,11 +59,35 @@ jobs:
         run: yarn test tests/testNorwayDocuments.spec.ts
 
       - name: Norway office export regression
+        env:
+          NORWAY_EXPORT_ARTIFACT_DIR: ${{ runner.temp }}/norway-office
         run: yarn test tests/testNorwayExports.spec.ts
 
       - name: Verify office export archives
         shell: bash
-        run: command -v unzip
+        run: |
+          command -v unzip
+          unzip -t "$RUNNER_TEMP/norway-office/norwegian-vat.xlsx"
+          unzip -t "$RUNNER_TEMP/norway-office/norwegian-vat.ods"
+
+          if command -v libreoffice >/dev/null 2>&1; then
+            mkdir -p "$RUNNER_TEMP/norway-office/xlsx-check"
+            mkdir -p "$RUNNER_TEMP/norway-office/ods-check"
+            libreoffice --headless \
+              -env:UserInstallation=file://"$RUNNER_TEMP"/lo-profile-xlsx \
+              --convert-to csv \
+              --outdir "$RUNNER_TEMP/norway-office/xlsx-check" \
+              "$RUNNER_TEMP/norway-office/norwegian-vat.xlsx"
+            libreoffice --headless \
+              -env:UserInstallation=file://"$RUNNER_TEMP"/lo-profile-ods \
+              --convert-to csv \
+              --outdir "$RUNNER_TEMP/norway-office/ods-check" \
+              "$RUNNER_TEMP/norway-office/norwegian-vat.ods"
+            test -s "$RUNNER_TEMP/norway-office/xlsx-check/norwegian-vat.csv"
+            test -s "$RUNNER_TEMP/norway-office/ods-check/norwegian-vat.csv"
+            grep -q "Utgående MVA 25 %" "$RUNNER_TEMP/norway-office/xlsx-check/norwegian-vat.csv"
+            grep -q "Utgående MVA 25 %" "$RUNNER_TEMP/norway-office/ods-check/norwegian-vat.csv"
+          fi
 
       - name: Norway SAF-T regression
         run: yarn test tests/testNorwaySaft.spec.ts

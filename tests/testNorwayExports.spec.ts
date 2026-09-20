@@ -141,6 +141,14 @@ test('Norwegian VAT report exposes office-friendly exports', async (t) => {
       odsText.includes('office:value="308.63"'),
     'ODS stores Norwegian text and report values as spreadsheet cells'
   );
+
+  const artifactDir = process.env.NORWAY_EXPORT_ARTIFACT_DIR;
+  if (artifactDir) {
+    await fs.mkdir(artifactDir, { recursive: true });
+    await fs.writeFile(path.join(artifactDir, 'norwegian-vat.xlsx'), xlsx);
+    await fs.writeFile(path.join(artifactDir, 'norwegian-vat.ods'), ods);
+    t.ok(true, 'office export fixtures written for external compatibility checks');
+  }
 });
 
 

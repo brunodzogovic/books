@@ -47,6 +47,9 @@ of the interface language: both English and Bokmål are supported.
   either English or Bokmål UI.
 - XLSX and ODS report exports now preserve numeric cell types and Norwegian
   text in local Office Open XML / OpenDocument containers, alongside CSV/JSON.
+- CI validates both spreadsheet archives structurally and, when LibreOffice is
+  available on the self-hosted runner, opens and converts them headlessly while
+  checking that Norwegian VAT text survives the round trip.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
