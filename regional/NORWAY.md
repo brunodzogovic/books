@@ -49,7 +49,9 @@ of the interface language: both English and Bokmål are supported.
   text in local Office Open XML / OpenDocument containers, alongside CSV/JSON.
 - CI validates both spreadsheet archives structurally and, when LibreOffice is
   available on the self-hosted runner, opens and converts them headlessly while
-  checking that Norwegian VAT text survives the round trip.
+  checking that Norwegian VAT text survives the round trip. General-ledger date
+  cells retain spreadsheet-native date types in both XLSX and ODS rather than
+  being flattened to plain text.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.

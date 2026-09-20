@@ -69,10 +69,16 @@ jobs:
           command -v unzip
           unzip -t "$RUNNER_TEMP/norway-office/norwegian-vat.xlsx"
           unzip -t "$RUNNER_TEMP/norway-office/norwegian-vat.ods"
+          unzip -t "$RUNNER_TEMP/norway-office/norwegian-general-ledger.xlsx"
+          unzip -t "$RUNNER_TEMP/norway-office/norwegian-general-ledger.ods"
+          unzip -p "$RUNNER_TEMP/norway-office/norwegian-general-ledger.xlsx" xl/worksheets/sheet1.xml | grep -q 't="d"'
+          unzip -p "$RUNNER_TEMP/norway-office/norwegian-general-ledger.ods" content.xml | grep -q 'office:value-type="date"'
 
           if command -v libreoffice >/dev/null 2>&1; then
             mkdir -p "$RUNNER_TEMP/norway-office/xlsx-check"
             mkdir -p "$RUNNER_TEMP/norway-office/ods-check"
+            mkdir -p "$RUNNER_TEMP/norway-office/gl-xlsx-check"
+            mkdir -p "$RUNNER_TEMP/norway-office/gl-ods-check"
             libreoffice --headless \
               -env:UserInstallation=file://"$RUNNER_TEMP"/lo-profile-xlsx \
               --convert-to csv \
