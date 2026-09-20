@@ -23,8 +23,14 @@ process.env['VITE_PORT'] = 6969;
  */
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(dirname, '..', '..');
-const $$ = $({ stdio: 'inherit' });
+const $ = $({ stdio: 'inherit' });
+const viteRunner = $({
+  stdin: 'ignore',
+  stdout: 'inherit',
+  stderr: 'inherit',
+});
 let isReload = false;
+let isTerminating = false;
 
 /**
  * @type {null | import('execa').ExecaChildProcess<string>}
@@ -35,7 +41,13 @@ console.log(`running Frappe Books in dev mode\nroot: ${root}`);
 /**
  * @type {import('execa').ExecaChildProcess<string>}
  */
-const viteProcess = $$`yarn vite`;
+const viteProcess = viteRunner`${process.execPath} ${path.join(
+  root,
+  'node_modules',
+  'vite',
+  'bin',
+  'vite.js'
+)}`;
 /**
  * Create esbuild context that is used
  * to [re]build the main process code
@@ -64,6 +76,11 @@ const fswatcher = chokidar.watch([
  * Called on CTRL+C and kill
  */
 const terminate = async () => {
+  if (isTerminating) {
+    return;
+  }
+  isTerminating = true;
+
   await fswatcher.close();
   await ctx.dispose();
 
