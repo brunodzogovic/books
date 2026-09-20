@@ -10,8 +10,10 @@ export type NorwegianBankCsvMapping = {
   counterpartyAccount?: string;
 };
 
+export type NorwegianBankCsvDelimiter = ',' | ';' | '\t' | 'auto';
+
 export type NorwegianBankCsvOptions = {
-  delimiter?: ',' | ';' | '\t' | 'auto';
+  delimiter?: NorwegianBankCsvDelimiter;
   defaultCurrency?: string;
 };
 
@@ -24,6 +26,21 @@ export type NorwegianBankTransaction = {
   counterpartyName?: string;
   counterpartyAccount?: string;
 };
+
+export function getNorwegianBankStatementCsvHeaders(
+  text: string,
+  delimiter: NorwegianBankCsvDelimiter = 'auto'
+): string[] {
+  const normalized = text.replace(/^\uFEFF/, '').trim();
+  if (!normalized) {
+    return [];
+  }
+
+  const selectedDelimiter =
+    delimiter !== 'auto' ? delimiter : detectDelimiter(normalized);
+  const firstRow = parseDelimitedRows(normalized, selectedDelimiter)[0] ?? [];
+  return firstRow.map((value) => value.trim());
+}
 
 export function parseNorwegianBankStatementCsv(
   text: string,
@@ -105,13 +122,23 @@ function getColumnIndices(
     string
   ][]) {
     const wanted = normalizeHeader(requestedHeader);
-    const index = headers.indexOf(wanted);
-    if (index === -1) {
+    const matches = headers
+      .map((header, index) => (header === wanted ? index : -1))
+      .filter((index) => index !== -1);
+
+    if (!matches.length) {
       throw new ValidationError(
         `Bank statement column "${requestedHeader}" was not found.`
       );
     }
-    result[key] = index;
+
+    if (matches.length > 1) {
+      throw new ValidationError(
+        `Bank statement column "${requestedHeader}" is ambiguous because the header occurs more than once.`
+      );
+    }
+
+    result[key] = matches[0];
   }
 
   return result as ColumnIndices;

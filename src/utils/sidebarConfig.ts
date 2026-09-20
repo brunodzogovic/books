@@ -144,6 +144,12 @@ function getReportSidebar() {
         route: '/report/NorwegianVAT',
         hidden: () => fyo.singles.SystemSettings?.countryCode !== 'no',
       },
+      {
+        label: t`Bank Reconciliation`,
+        name: 'norwegian-bank-reconciliation',
+        route: '/report/NorwegianBankReconciliation',
+        hidden: () => fyo.singles.SystemSettings?.countryCode !== 'no',
+      },
     ],
   };
 }

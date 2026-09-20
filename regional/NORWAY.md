@@ -148,6 +148,16 @@ evidence and confidence, but never create or submit a payment automatically.
 Non-exact amounts are deliberately left unmatched for manual review at this
 stage.
 
+The Norwegian **Bank Reconciliation** report now exposes this as a review-first
+desktop workflow. A user loads a CSV, maps the bank's own column headers through
+dropdowns, reviews normalized transactions and sees ranked invoice candidates
+with confidence and evidence. A small set of unambiguous Norwegian/English
+header names is preselected when possible; the mapping remains visible and
+editable. The report loads open-invoice candidates once per refresh rather than
+querying them for every bank row, and foreign-currency rows are left for manual
+review. The review grid can be exported through the normal CSV/XLSX/ODS/JSON
+report exporters. It still does not create or submit accounting entries.
+
 ## Remaining roadmap checkpoints
 
 Continue with acceptance evidence rather than assuming a feature is complete:
@@ -165,8 +175,9 @@ Continue with acceptance evidence rather than assuming a feature is complete:
    in OnlyOffice and EuroOffice, especially number/date handling and formulas.
 5. Packaging and dogfooding: install/run the produced Linux AppImage, exercise
    real UI export/save flows, and build a reviewed CirreniX reference dataset.
-6. Later integrations: bank imports/reconciliation, EHF/Peppol, KID,
-   Brønnøysund lookups and tax-authority APIs. Keep these optional adapters.
+6. Later integrations: explicit payment creation from reviewed bank matches,
+   saved bank-import profiles, EHF/Peppol, KID, Brønnøysund lookups and
+   tax-authority APIs. Keep these optional adapters.
 
 Do not copy the proprietary NS 4102 standard. The starter chart remains an
 open, conventional subset. The bundled grouping list is Skatteetaten's

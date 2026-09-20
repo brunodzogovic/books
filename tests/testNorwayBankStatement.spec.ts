@@ -1,4 +1,5 @@
 import {
+  getNorwegianBankStatementCsvHeaders,
   parseNorwegianBankStatementCsv,
   NorwegianBankCsvMapping,
 } from 'regional/noBankStatement';
@@ -93,6 +94,34 @@ test('Norwegian bank CSV fails clearly on missing mapping and invalid values', (
       ),
     /invalid amount/,
     'invalid amount is rejected before import'
+  );
+  t.end();
+});
+
+
+test('Norwegian bank CSV exposes headers for explicit UI mapping', (t) => {
+  const csv = [
+    '\uFEFFDato;Beløp;Valuta;Referanse',
+    '20.09.2026;100,00;NOK;SINV-1001',
+  ].join('\n');
+
+  t.deepEqual(
+    getNorwegianBankStatementCsvHeaders(csv),
+    ['Dato', 'Beløp', 'Valuta', 'Referanse'],
+    'header discovery uses the same delimiter and quoting rules as import'
+  );
+  t.end();
+});
+
+test('Norwegian bank CSV rejects ambiguous duplicate mapped headers', (t) => {
+  t.throws(
+    () =>
+      parseNorwegianBankStatementCsv(
+        'Dato;Beløp;Beløp\n20.09.2026;100,00;200,00',
+        { bookingDate: 'Dato', amount: 'Beløp' }
+      ),
+    /column "Beløp" is ambiguous/,
+    'a duplicated requested header cannot silently select the first column'
   );
   t.end();
 });

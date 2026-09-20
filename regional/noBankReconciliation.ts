@@ -25,34 +25,39 @@ type RawOpenInvoice = {
   outstandingAmount: string | number | null;
 };
 
-export async function getNorwegianBankReconciliationSuggestions(
-  fyo: Fyo,
-  transaction: NorwegianBankTransaction
-): Promise<NorwegianBankMatchSuggestion[]> {
+export async function getNorwegianBankReconciliationCandidates(
+  fyo: Fyo
+): Promise<NorwegianBankMatchCandidate[]> {
+  const candidates: NorwegianBankMatchCandidate[] = [];
   const companyCurrency = String(
     fyo.singles.SystemSettings?.currency ?? 'NOK'
   ).toUpperCase();
 
-  if (transaction.currency.toUpperCase() !== companyCurrency) {
-    return [];
-  }
-
-  const candidates: NorwegianBankMatchCandidate[] = [];
   for (const schemaName of [
     ModelNameEnum.SalesInvoice,
     ModelNameEnum.PurchaseInvoice,
   ] as const) {
     const invoices = (await fyo.db.getAllRaw(schemaName, {
-      fields: ['name', 'party', 'outstandingAmount'],
+      fields: ['name', 'party', 'outstandingAmount', 'currency'],
       filters: {
         submitted: true,
         cancelled: false,
       },
-    })) as RawOpenInvoice[];
+    })) as (RawOpenInvoice & { currency?: string | null })[];
 
     for (const invoice of invoices) {
+      const invoiceCurrency = String(
+        invoice.currency ?? companyCurrency
+      ).toUpperCase();
+      if (invoiceCurrency !== companyCurrency) {
+        continue;
+      }
+
       const outstandingAmount = Number(invoice.outstandingAmount ?? 0);
-      if (!Number.isFinite(outstandingAmount) || Math.abs(outstandingAmount) < 0.005) {
+      if (
+        !Number.isFinite(outstandingAmount) ||
+        Math.abs(outstandingAmount) < 0.005
+      ) {
         continue;
       }
 
@@ -65,6 +70,22 @@ export async function getNorwegianBankReconciliationSuggestions(
     }
   }
 
+  return candidates;
+}
+
+export async function getNorwegianBankReconciliationSuggestions(
+  fyo: Fyo,
+  transaction: NorwegianBankTransaction
+): Promise<NorwegianBankMatchSuggestion[]> {
+  const companyCurrency = String(
+    fyo.singles.SystemSettings?.currency ?? 'NOK'
+  ).toUpperCase();
+
+  if (transaction.currency.toUpperCase() !== companyCurrency) {
+    return [];
+  }
+
+  const candidates = await getNorwegianBankReconciliationCandidates(fyo);
   return rankNorwegianBankReconciliationMatches(transaction, candidates);
 }
 
