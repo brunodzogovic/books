@@ -1219,9 +1219,31 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
   }
   t.equal(oldPostingBlocked, true, 'locked-period invoice cannot be submitted');
 
+  const openInvoice = fyo.doc.getNewDoc(ModelNameEnum.SalesInvoice, {
+    account: 'Kundefordringer - 15000',
+    party: 'Norsk Testkunde AS',
+    date: new Date(`${year}-02-05T12:00:00.000Z`),
+    dueDate: new Date(`${year}-02-19T00:00:00.000Z`),
+    deliveryDate: new Date(`${year}-02-05T12:00:00.000Z`),
+    deliveryPlace: 'Oslo',
+    items: [
+      {
+        item: 'Konsulenttjeneste',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Utgående MVA 25 %',
+      },
+    ],
+  }) as SalesInvoice;
+
+  await openInvoice.runFormulas();
+  await openInvoice.sync();
+  await openInvoice.submit();
+  t.equal(openInvoice.isSubmitted, true, 'posting after lock date is allowed');
+
   const openJournal = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
     entryType: 'Journal Entry',
-    date: new Date(`${year}-02-01T12:00:00.000Z`),
+    date: new Date(`${year}-02-10T12:00:00.000Z`),
     referenceNumber: 'LOCK-REV-001',
     userRemark: 'Period lock reversal test',
     accounts: [
@@ -1241,7 +1263,11 @@ test('Norwegian accounting period lock blocks old postings and reversals', async
   await openJournal.runFormulas();
   await openJournal.sync();
   await openJournal.submit();
-  t.equal(openJournal.isSubmitted, true, 'posting after lock date is allowed');
+  t.equal(
+    openJournal.isSubmitted,
+    true,
+    'journal entry after lock date is allowed before the lock advances'
+  );
 
   await fyo.singles.AccountingSettings?.setAndSync(
     'accountingLockDate',
