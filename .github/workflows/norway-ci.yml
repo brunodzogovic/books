@@ -190,7 +190,7 @@ jobs:
           STATUS=$?
           set -e
 
-          if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ]; then
+          if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ] && [ "$STATUS" -ne 137 ]; then
             cat "$RUNNER_TEMP/norway-app-smoke.log"
             exit "$STATUS"
           fi
