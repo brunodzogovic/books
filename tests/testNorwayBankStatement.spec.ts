@@ -38,6 +38,7 @@ test('Norwegian bank CSV normalizes common local formats', (t) => {
     'credit transaction keeps Norwegian text and normalizes amount/date/account'
   );
   t.equal(rows[1].amount, -2500, 'debit transaction keeps its negative sign');
+  t.end();
 });
 
 test('Norwegian bank CSV supports ISO dates, dot decimals and default NOK', (t) => {
@@ -60,6 +61,7 @@ test('Norwegian bank CSV supports ISO dates, dot decimals and default NOK', (t) 
   t.equal(rows[0].bookingDate, '2026-09-17', 'ISO date is preserved');
   t.equal(rows[0].amount, 1250.75, 'dot decimal is parsed');
   t.equal(rows[0].currency, 'NOK', 'missing currency column defaults to NOK');
+  t.end();
 });
 
 test('Norwegian bank CSV fails clearly on missing mapping and invalid values', (t) => {
