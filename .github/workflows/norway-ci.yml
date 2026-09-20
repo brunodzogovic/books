@@ -123,6 +123,27 @@ jobs:
           test -x squashfs-root/AppRun
           test -d squashfs-root/usr
 
+      - name: Smoke-run packaged AppImage
+        shell: bash
+        run: |
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            echo "xvfb-run not installed; archive/runtime structure checks remain authoritative."
+            exit 0
+          fi
+
+          mkdir -p "$RUNNER_TEMP/norway-app-home"
+          set +e
+          HOME="$RUNNER_TEMP/norway-app-home"             timeout 20s xvfb-run -a squashfs-root/AppRun --no-sandbox             >"$RUNNER_TEMP/norway-app-smoke.log" 2>&1
+          STATUS=$?
+          set -e
+
+          if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ]; then
+            cat "$RUNNER_TEMP/norway-app-smoke.log"
+            exit "$STATUS"
+          fi
+
+          echo "Packaged application started successfully (status $STATUS)."
+
       - name: Upload Linux AppImage
         uses: actions/upload-artifact@v4
         with:

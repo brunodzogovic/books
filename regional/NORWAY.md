@@ -39,7 +39,8 @@ of the interface language: both English and Bokmål are supported.
   Norwegian identity, custom SAF-T mappings, ledger data and SAF-T export intact.
 - Linux AppImage packaging is exercised on the self-hosted Linux Mint runner
   after the source build. CI also extracts the AppImage to verify its runtime
-  structure and uploads the package as a 14-day workflow artifact for testing.
+  structure, performs a headless packaged-app startup smoke when Xvfb is
+  available, and uploads the package as a 14-day workflow artifact for testing.
 - Negative ordinary sales invoices are blocked so reductions and reversals use
   the linked credit-note workflow and retain correction traceability.
 - Bokmål regression now covers the VAT/export cockpit and Norwegian sales-
