@@ -139,6 +139,9 @@ jobs:
       - name: Norway discount VAT regression
         run: yarn test tests/testNorwayDiscounts.spec.ts
 
+      - name: Norway bank CSV normalization regression
+        run: yarn test tests/testNorwayBankStatement.spec.ts
+
       - name: Norway persistence regression
         run: yarn test tests/testNorwayPersistence.spec.ts
 

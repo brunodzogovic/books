@@ -133,6 +133,15 @@ not by itself a claim that every sales-document rule is satisfied. The
 authoritative numbering requirement is Bokføringsforskriften § 5-1-3:
 https://lovdata.no/forskrift/2004-12-01-1558/§5-1-3
 
+## Bank-statement import groundwork
+
+Configurable bank-statement CSV normalization is now available as a local
+adapter in `regional/noBankStatement.ts`. It normalizes booking dates, signed
+amounts, currency, references, Norwegian text and counterparty account numbers
+without creating ledger entries automatically. Column names are explicitly
+mapped because Norwegian banks do not share one universal CSV layout. Automatic
+matching/reconciliation remains a later checkpoint.
+
 ## Remaining roadmap checkpoints
 
 Continue with acceptance evidence rather than assuming a feature is complete:
