@@ -22,6 +22,8 @@ of the interface language: both English and Bokmål are supported.
 - Distinct starter-chart revenue accounts and SAF-T groupings for zero-rated
   and outside-scope sales.
 - Return invoices print with a distinct Credit Note / Kreditnota label.
+- Sales invoices, cancellations and credit notes retain a monotonic machine
+  number sequence, with submitted document numbers protected from renaming.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
@@ -79,6 +81,19 @@ posted sales invoices, or retain cancellation with an explicit original-period
 correction workflow. Until that decision, cancellation/VAT-period behavior is
 unchanged. This remains a blocker for treating VAT reporting as dogfood-ready.
 
+## Sales-document numbering checkpoint
+
+Norwegian sales documents use Frappe Books' machine-generated NumberSeries.
+The regression in `tests/testNorwayDocuments.spec.ts` verifies that invoices
+receive sequential identifiers, cancellation does not recycle an assigned
+identifier, credit notes continue the same sales-document sequence, and a
+submitted document cannot be renamed.
+
+This is an implementation checkpoint for the controllable numbering mechanism,
+not by itself a claim that every sales-document rule is satisfied. The
+authoritative numbering requirement is Bokføringsforskriften § 5-1-3:
+https://lovdata.no/forskrift/2004-12-01-1558/§5-1-3
+
 ## Remaining roadmap checkpoints
 
 Continue with acceptance evidence rather than assuming a feature is complete:
@@ -111,6 +126,7 @@ Debian/Ubuntu/Linux Mint). From the repository root:
 nvm use
 yarn test tests/testNorwaySetup.spec.ts
 yarn test tests/testNorwayAccounting.spec.ts
+yarn test tests/testNorwayDocuments.spec.ts
 yarn test tests/testNorwaySaft.spec.ts
 yarn test tests/testNorwayYearEnd.spec.ts
 yarn build --nopackage
