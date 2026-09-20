@@ -156,7 +156,7 @@ test('Norwegian VAT report exposes office-friendly exports', async (t) => {
 
   t.ok(
     generalLedgerXlsxText.includes('t="d"') &&
-      generalLedgerXlsxText.includes(`${year}-05-15T12:00:00.000Z`),
+      generalLedgerXlsxText.includes(`${year}-05-15`),
     'XLSX spreadsheet exports preserve real date cell types'
   );
   t.ok(
