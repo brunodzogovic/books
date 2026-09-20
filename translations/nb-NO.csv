@@ -619,3 +619,12 @@
 "Search by code or description","Søk etter kode eller beskrivelse",""
 
 "Negative Norwegian sales invoices must be issued through the credit-note workflow.","Negative norske salgsfakturaer må utstedes via kreditnotaflyten.",""
+
+"SAF-T Financial 1.40 XML","SAF-T Financial 1.40 XML",""
+"SAF-T Export Successful","SAF-T-eksport fullført",""
+"Tax Template","MVA-mal",""
+"From Date","Fra dato",""
+"To Date","Til dato",""
+"Export","Eksport",""
+"Export Successful","Eksport fullført",""
+"Submitted Norwegian sales invoices cannot be cancelled. Issue a credit note instead.","Innsendte norske salgsfakturaer kan ikke annulleres. Utsted en kreditnota i stedet.",""

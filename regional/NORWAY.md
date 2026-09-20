@@ -42,6 +42,9 @@ of the interface language: both English and Bokmål are supported.
   structure and uploads the package as a 14-day workflow artifact for testing.
 - Negative ordinary sales invoices are blocked so reductions and reversals use
   the linked credit-note workflow and retain correction traceability.
+- Bokmål regression now covers the VAT/export cockpit and Norwegian sales-
+  correction messages, so the accounting localization remains usable with
+  either English or Bokmål UI.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.

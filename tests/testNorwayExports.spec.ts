@@ -1,3 +1,6 @@
+import { promises as fs } from 'fs';
+import path from 'path';
+import { parseCSV } from 'utils/csvParser';
 import setupInstance from 'src/setup/setupInstance';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { ModelNameEnum } from 'models/types';
@@ -113,6 +116,40 @@ test('Norwegian VAT report exposes office-friendly exports', async (t) => {
     csv.includes('308.63'),
     'CSV preserves the VAT amount with configured display precision'
   );
+});
+
+
+test('Norwegian Bokmål VAT/export UI coverage', async (t) => {
+  const csv = await fs.readFile(
+    path.join(__dirname, '../translations/nb-NO.csv'),
+    'utf8'
+  );
+  const languageMap = Object.fromEntries(
+    parseCSV(csv).map(([source, translation]) => [source, translation])
+  );
+
+  const expected = {
+    'Norwegian VAT Summary': 'Norsk MVA-sammendrag',
+    'SAF-T VAT Code': 'SAF-T MVA-kode',
+    'System VAT Code': 'Systemets MVA-kode',
+    'Tax Template': 'MVA-mal',
+    'VAT Basis': 'MVA-grunnlag',
+    'VAT Amount': 'MVA-beløp',
+    'From Date': 'Fra dato',
+    'To Date': 'Til dato',
+    Export: 'Eksport',
+    'SAF-T Export Successful': 'SAF-T-eksport fullført',
+    'Submitted Norwegian sales invoices cannot be cancelled. Issue a credit note instead.':
+      'Innsendte norske salgsfakturaer kan ikke annulleres. Utsted en kreditnota i stedet.',
+  } as Record<string, string>;
+
+  for (const [source, translation] of Object.entries(expected)) {
+    t.equal(
+      languageMap[source],
+      translation,
+      `Bokmål translates "${source}"`
+    );
+  }
 });
 
 test.onFinish(async () => {
