@@ -63,3 +63,6 @@ jobs:
 
       - name: Build application
         run: yarn build --nopackage
+
+      - name: Lint
+        run: yarn lint

@@ -1006,7 +1006,9 @@ test('Norwegian SAF-T preserves mixed-rate and zero-VAT classifications', async 
 
 test('Norwegian SAF-T carries pre-period postings into in-period reversals', async (t) => {
   const now = new Date();
-  const originalDate = new Date(now.getFullYear(), 7, 31, 12, 0, 0);
+  const originalDate = new Date(now);
+  originalDate.setDate(originalDate.getDate() - 1);
+  originalDate.setHours(12, 0, 0, 0);
 
   const journalEntry = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
     entryType: 'Journal Entry',

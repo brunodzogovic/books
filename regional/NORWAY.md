@@ -19,6 +19,9 @@ of the interface language: both English and Bokmål are supported.
   account data. The account selector is available in English and Bokmål.
 - Export rejection when two used accounts share a numeric SAF-T AccountID,
   including accounts present only through opening balances.
+- Distinct starter-chart revenue accounts and SAF-T groupings for zero-rated
+  and outside-scope sales.
+- Return invoices print with a distinct Credit Note / Kreditnota label.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
@@ -110,6 +113,8 @@ yarn test tests/testNorwaySetup.spec.ts
 yarn test tests/testNorwayAccounting.spec.ts
 yarn test tests/testNorwaySaft.spec.ts
 yarn test tests/testNorwayYearEnd.spec.ts
+yarn build --nopackage
+yarn lint
 ```
 
 The XML checks use local, unmodified, pinned official fixtures and require no
