@@ -734,12 +734,14 @@ test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) =
       tax: 'MVA 0 % (fritatt)',
       expectedTaxCode: 'NO-ZERO-DOM',
       expectedStandardCode: '5',
+      incomeAccount: 'Salgsinntekt, fritatt for MVA - 32000',
     },
     {
       itemName: 'Unntatt testtjeneste',
       tax: 'Unntatt MVA',
       expectedTaxCode: 'NO-OUTSIDE',
       expectedStandardCode: '6',
+      incomeAccount: 'Salgsinntekt, unntatt MVA - 32500',
     },
   ];
 
@@ -751,7 +753,7 @@ test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) =
       unit: 'Unit',
       rate: 10000,
       tax: vatCase.tax,
-      incomeAccount: 'Salgsinntekt, fritatt for MVA - 32000',
+      incomeAccount: vatCase.incomeAccount,
       expenseAccount: 'Varekostnad - 40000',
     });
     await item.sync();
@@ -820,6 +822,10 @@ test('Norwegian zero-rated and outside-scope sales remain distinct', async (t) =
       vatAccounts.length,
       0,
       `${vatCase.tax} produces no VAT ledger amount`
+    );
+    t.ok(
+      entries.some((entry) => entry.account === vatCase.incomeAccount),
+      `${vatCase.tax} posts to its dedicated revenue account`
     );
   }
 });

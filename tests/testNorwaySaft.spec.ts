@@ -509,8 +509,8 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
 
   t.equal(
     starterAccountNumbers.length,
-    61,
-    'Norwegian SME starter chart exposes 61 numbered accounts'
+    62,
+    'Norwegian SME starter chart exposes 62 numbered accounts'
   );
   t.equal(
     starterAccountNumbers.filter(
@@ -559,6 +559,14 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     }),
     { category: 'salgsinntekt', code: '3100' },
     'zero-rated sales map to zero-rate sales grouping'
+  );
+  t.deepEqual(
+    getNorwegianSaftGrouping({
+      name: 'Salgsinntekt, unntatt MVA - 32500',
+      rootType: 'Income',
+    }),
+    { category: 'salgsinntekt', code: '3200' },
+    'outside-scope sales map to outside-scope sales grouping'
   );
   t.deepEqual(
     getNorwegianSaftGrouping({
@@ -889,7 +897,7 @@ test('Norwegian SAF-T preserves mixed-rate and zero-VAT classifications', async 
     unit: 'Unit',
     rate: 1000,
     tax: 'Unntatt MVA',
-    incomeAccount: 'Salgsinntekt, fritatt for MVA - 32000',
+    incomeAccount: 'Salgsinntekt, unntatt MVA - 32500',
     expenseAccount: 'Varekostnad - 40000',
   });
   await outsideItem.sync();

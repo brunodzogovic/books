@@ -426,6 +426,7 @@ export const NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT: Record<
   '30000': { category: 'salgsinntekt', code: '3000' },
   '31000': { category: 'salgsinntekt', code: '3000' },
   '32000': { category: 'salgsinntekt', code: '3100' },
+  '32500': { category: 'salgsinntekt', code: '3200' },
   '39000': { category: 'annenDriftsinntekt', code: '3900' },
 
   '40000': { category: 'varekostnad', code: '4005' },

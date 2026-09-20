@@ -163,6 +163,10 @@
         "accountNumber": "32000",
         "accountType": "Income Account"
       },
+      "Salgsinntekt, unntatt MVA": {
+        "accountNumber": "32500",
+        "accountType": "Income Account"
+      },
       "Annen driftsrelatert inntekt": {
         "accountNumber": "39000",
         "accountType": "Income Account"
