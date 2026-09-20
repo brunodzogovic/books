@@ -107,7 +107,7 @@ test('outgoing bank payment uses payment method configured account', async (t) =
     paymentType: 'Pay',
     paymentMethod: 'Dedicated Bank Method',
   }) as Payment;
-  const account = await paymentDoc.formulas.account.formula();
+  const account = await paymentDoc.formulas.account!.formula();
 
   t.equal(
     account,
