@@ -78,7 +78,21 @@ jobs:
         run: |
           : > log_creds.txt
           yarn build --nosign --linux AppImage --x64 --publish never
-          test -n "$(find dist_electron/bundled -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+          APPIMAGE="$(find dist_electron/bundled -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+          test -n "$APPIMAGE"
+          chmod +x "$APPIMAGE"
+          rm -rf squashfs-root
+          "$APPIMAGE" --appimage-extract >/dev/null
+          test -x squashfs-root/AppRun
+          test -d squashfs-root/usr
+
+      - name: Upload Linux AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frappe-books-norway-linux-x64
+          path: dist_electron/bundled/*.AppImage
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Lint
         run: yarn lint

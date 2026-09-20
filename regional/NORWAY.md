@@ -36,7 +36,8 @@ of the interface language: both English and Bokmål are supported.
 - Closed database-file backup copies restore as independent company files with
   Norwegian identity, custom SAF-T mappings, ledger data and SAF-T export intact.
 - Linux AppImage packaging is exercised on the self-hosted Linux Mint runner
-  after the source build, so packaging failures are caught before dogfooding.
+  after the source build. CI also extracts the AppImage to verify its runtime
+  structure and uploads the package as a 14-day workflow artifact for testing.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
