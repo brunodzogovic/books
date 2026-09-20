@@ -139,8 +139,14 @@ Configurable bank-statement CSV normalization is now available as a local
 adapter in `regional/noBankStatement.ts`. It normalizes booking dates, signed
 amounts, currency, references, Norwegian text and counterparty account numbers
 without creating ledger entries automatically. Column names are explicitly
-mapped because Norwegian banks do not share one universal CSV layout. Automatic
-matching/reconciliation remains a later checkpoint.
+mapped because Norwegian banks do not share one universal CSV layout.
+
+Deterministic reconciliation suggestions in `regional/noBankReconciliation.ts`
+rank open invoices using cash direction, exact outstanding amount, invoice
+number in the bank reference and counterparty name. Suggestions include their
+evidence and confidence, but never create or submit a payment automatically.
+Non-exact amounts are deliberately left unmatched for manual review at this
+stage.
 
 ## Remaining roadmap checkpoints
 
