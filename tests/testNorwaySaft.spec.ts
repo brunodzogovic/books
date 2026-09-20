@@ -840,6 +840,84 @@ test('Norwegian SAF-T preserves payment, credit-note, and reversal semantics', a
   );
 });
 
+test('Norwegian SAF-T preserves purchase credit-note semantics', async (t) => {
+  const year = new Date().getFullYear();
+
+  const purchaseInvoice = fyo.doc.getNewDoc(ModelNameEnum.PurchaseInvoice, {
+    account: 'Leverandørgjeld - 24000',
+    party: 'SAF-T Testleverandør AS',
+    date: new Date(`${year}-06-10T12:00:00.000Z`),
+    items: [
+      {
+        item: 'SAF-T innkjøpt tjeneste',
+        quantity: 1,
+        rate: 1000,
+        tax: 'Inngående MVA 25 %',
+      },
+    ],
+  }) as PurchaseInvoice;
+
+  await purchaseInvoice.runFormulas();
+  await purchaseInvoice.sync();
+  await purchaseInvoice.submit();
+
+  const creditNote = (await purchaseInvoice.getReturnDoc()) as PurchaseInvoice;
+  await creditNote.set({
+    correctionReason: 'Supplier corrected the full invoiced amount',
+    date: new Date(`${year}-06-11T12:00:00.000Z`),
+  });
+  await creditNote.runFormulas();
+  await creditNote.sync();
+  await creditNote.submit();
+
+  const result = await buildNorwegianSaftFinancial140(fyo, {
+    fromDate: `${year}-01-01`,
+    toDate: `${year}-12-31`,
+    createdDate: `${year}-06-11`,
+    softwareVersion: '0.37.0-test',
+  });
+
+  const start = result.xml.indexOf(
+    `<TransactionID>${creditNote.name}</TransactionID>`
+  );
+  const end = result.xml.indexOf('</Transaction>', start);
+  const creditXml = result.xml.slice(start, end);
+
+  t.ok(
+    creditXml.includes('<VoucherType>PCN</VoucherType>') &&
+      creditXml.includes(
+        '<VoucherDescription>Purchase credit note</VoucherDescription>'
+      ),
+    'purchase credit note has a distinct SAF-T voucher type'
+  );
+  t.ok(
+    creditXml.includes(
+      `<SourceDocumentID>${purchaseInvoice.name}</SourceDocumentID>`
+    ),
+    'purchase credit note references the corrected supplier invoice'
+  );
+  t.ok(
+    creditXml.includes('Supplier corrected the full invoiced amount'),
+    'purchase credit note preserves its correction reason'
+  );
+  t.ok(
+    creditXml.includes('<CreditTaxAmount>') &&
+      creditXml.includes('<TaxCode>NO-IN-25</TaxCode>') &&
+      creditXml.includes('<TaxBase>1000.00</TaxBase>') &&
+      creditXml.includes('<Amount>250.00</Amount>'),
+    'purchase credit note preserves reversed input VAT semantics'
+  );
+
+  const validation = await validateAgainstOfficialSaft140Xsd(result.xml);
+  t.equal(
+    validation.valid,
+    true,
+    validation.valid
+      ? 'purchase-credit SAF-T export remains XSD-valid'
+      : `purchase-credit SAF-T XSD validation failed: ${validation.output}`
+  );
+});
+
 test('Norwegian SAF-T preserves mixed-rate and zero-VAT classifications', async (t) => {
   const year = new Date().getFullYear();
 

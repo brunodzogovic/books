@@ -26,6 +26,8 @@ of the interface language: both English and Bokmål are supported.
   number sequence, with submitted document numbers protected from renaming.
 - Cancelling a posted payment restores invoice and party outstanding balances
   while preserving original ledger entries and linked reversal entries.
+- SAF-T distinguishes both sales and purchase credit notes (SCN/PCN), links
+  them to corrected documents, and preserves reversed VAT semantics.
 
 These are software regression checkpoints, not an accountant's approval of a
 company's books or a claim of complete statutory compliance.
