@@ -158,7 +158,8 @@ jobs:
               timeout 20s xvfb-run -a squashfs-root/AppRun --no-sandbox \
               >"$RUNNER_TEMP/norway-app-smoke.log" 2>&1
           else
-            HOME="$RUNNER_TEMP/norway-app-home" \
+            APPDIR="$PWD/squashfs-root" \
+              HOME="$RUNNER_TEMP/norway-app-home" \
               timeout 20s squashfs-root/AppRun \
               --no-sandbox \
               --disable-gpu \
