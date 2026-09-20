@@ -1,11 +1,15 @@
 import { t } from 'fyo';
 import { Action } from 'fyo/model/types';
 import { ValidationError } from 'fyo/utils/errors';
+import { ModelNameEnum } from 'models/types';
 import getCommonExportActions from 'reports/commonExporter';
 import { Report } from 'reports/Report';
 import { ColumnField, ReportRow } from 'reports/types';
 import { Field, SelectOption } from 'schemas/types';
+import { handleErrorWithDialog } from 'src/errorHandling';
+import { getFormRoute, routeTo } from 'src/utils/ui';
 import {
+  getNorwegianBankDraftPaymentData,
   getNorwegianBankReconciliationCandidates,
   NorwegianBankMatchConfidence,
   NorwegianBankMatchSuggestion,
@@ -29,6 +33,12 @@ type NorwegianBankReviewRow = {
   candidateCount: number;
   confidence: NorwegianBankMatchConfidence | 'manual';
   evidence: string;
+  nextStep: string;
+};
+
+type BankPaymentMethodOption = {
+  name: string;
+  account?: string | null;
 };
 
 const HEADER_ALIASES = {
@@ -62,11 +72,32 @@ export class NorwegianBankReconciliation extends Report {
   counterpartyNameColumn?: string;
   counterpartyAccountColumn?: string;
   defaultCurrency = 'NOK';
+  bankPaymentMethod?: string;
+  bankPaymentMethods: BankPaymentMethodOption[] = [];
 
-  setDefaultFilters() {
+  async setDefaultFilters() {
     this.defaultCurrency ||= String(
       this.fyo.singles.SystemSettings?.currency ?? 'NOK'
     ).toUpperCase();
+
+    const methods = (await this.fyo.db.getAllRaw(ModelNameEnum.PaymentMethod, {
+      fields: ['name', 'account'],
+      filters: { type: 'Bank' },
+    })) as BankPaymentMethodOption[];
+
+    this.bankPaymentMethods = methods
+      .filter(({ name }) => typeof name === 'string' && name.length > 0)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const selectedIsValid = this.bankPaymentMethods.some(
+      ({ name }) => name === this.bankPaymentMethod
+    );
+    if (!selectedIsValid) {
+      this.bankPaymentMethod =
+        this.bankPaymentMethods.length === 1
+          ? this.bankPaymentMethods[0].name
+          : undefined;
+    }
   }
 
   getActions(): Action[] {
@@ -101,6 +132,12 @@ export class NorwegianBankReconciliation extends Report {
         fieldtype: 'Data',
         label: t`Source File`,
         readOnly: true,
+      },
+      {
+        fieldname: 'bankPaymentMethod',
+        fieldtype: 'Select',
+        label: t`Bank Payment Method`,
+        options: this.getBankPaymentMethodOptions(),
       },
       {
         fieldname: 'bookingDateColumn',
@@ -167,6 +204,7 @@ export class NorwegianBankReconciliation extends Report {
       { fieldname: 'candidateCount', fieldtype: 'Int', label: t`Candidates`, align: 'right', width: 0.7 },
       { fieldname: 'confidence', fieldtype: 'Data', label: t`Confidence`, width: 0.9 },
       { fieldname: 'evidence', fieldtype: 'Data', label: t`Evidence`, width: 2.2 },
+      { fieldname: 'nextStep', fieldtype: 'Data', label: t`Next Step`, width: 1.4 },
     ];
   }
 
@@ -193,7 +231,11 @@ export class NorwegianBankReconciliation extends Report {
           transaction.currency.toUpperCase() === companyCurrency
             ? rankNorwegianBankReconciliationMatches(transaction, candidates)
             : [];
-        return this.getReportRow(this.getReviewRow(transaction, suggestions));
+        return this.getReportRow(
+          this.getReviewRow(transaction, suggestions),
+          transaction,
+          suggestions
+        );
       });
     } finally {
       this.loading = false;
@@ -229,6 +271,16 @@ export class NorwegianBankReconciliation extends Report {
       ...this.headers.map((header) => ({
         label: header || t`Unnamed column`,
         value: header,
+      })),
+    ];
+  }
+
+  private getBankPaymentMethodOptions(): SelectOption[] {
+    return [
+      { label: t`Select bank payment method`, value: '' },
+      ...this.bankPaymentMethods.map(({ name, account }) => ({
+        label: account ? `${name} · ${account}` : name,
+        value: name,
       })),
     ];
   }
@@ -295,11 +347,20 @@ export class NorwegianBankReconciliation extends Report {
       evidence: top
         ? top.reasons.map(translateEvidence).join(', ')
         : t`No exact invoice match; review manually.`,
+      nextStep: !top
+        ? t`Manual review`
+        : this.canCreateDraftPayment(suggestions)
+        ? t`Create draft payment`
+        : t`Resolve ambiguity`,
     };
   }
 
-  private getReportRow(row: NorwegianBankReviewRow): ReportRow {
-    return {
+  private getReportRow(
+    row: NorwegianBankReviewRow,
+    transaction: NorwegianBankTransaction,
+    suggestions: NorwegianBankMatchSuggestion[]
+  ): ReportRow {
+    const reportRow: ReportRow = {
       cells: [
         { rawValue: row.bookingDate, value: this.fyo.format(row.bookingDate, 'Date'), width: 1 },
         { rawValue: row.amount, value: this.fyo.format(row.amount, 'Float'), align: 'right', width: 1 },
@@ -311,8 +372,69 @@ export class NorwegianBankReconciliation extends Report {
         { rawValue: row.candidateCount, value: String(row.candidateCount), align: 'right', width: 0.7 },
         { rawValue: row.confidence, value: translateConfidence(row.confidence), width: 0.9 },
         { rawValue: row.evidence, value: row.evidence, width: 2.2 },
+        { rawValue: row.nextStep, value: row.nextStep, width: 1.4 },
       ],
     };
+
+    if (this.canCreateDraftPayment(suggestions)) {
+      reportRow.onClick = async () => {
+        await this.openDraftPayment(transaction, suggestions[0]);
+      };
+    }
+
+    return reportRow;
+  }
+
+  private canCreateDraftPayment(
+    suggestions: NorwegianBankMatchSuggestion[]
+  ): boolean {
+    const top = suggestions[0];
+    if (!top) {
+      return false;
+    }
+
+    return suggestions.length === 1 || top.confidence !== 'low';
+  }
+
+  private async openDraftPayment(
+    transaction: NorwegianBankTransaction,
+    suggestion: NorwegianBankMatchSuggestion
+  ): Promise<void> {
+    try {
+      if (!this.bankPaymentMethod) {
+        throw new ValidationError(
+          t`Select a bank payment method before creating a draft payment.`
+        );
+      }
+
+      const paymentMethod = await this.fyo.doc.getDoc(
+        ModelNameEnum.PaymentMethod,
+        this.bankPaymentMethod
+      );
+      if (paymentMethod.get('type') !== 'Bank') {
+        throw new ValidationError(
+          t`Selected bank payment method must be a Bank payment method.`
+        );
+      }
+      if (!paymentMethod.get('account')) {
+        throw new ValidationError(
+          t`Selected bank payment method must have a bank account configured.`
+        );
+      }
+
+      const data = getNorwegianBankDraftPaymentData(
+        transaction,
+        suggestion,
+        this.bankPaymentMethod
+      );
+      const payment = this.fyo.doc.getNewDoc(ModelNameEnum.Payment, data);
+      await payment.runFormulas();
+
+      const route = getFormRoute(ModelNameEnum.Payment, payment.name!);
+      await routeTo(route);
+    } catch (error) {
+      await handleErrorWithDialog(error, undefined, false, true);
+    }
   }
 }
 

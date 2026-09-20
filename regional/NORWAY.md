@@ -156,7 +156,13 @@ header names is preselected when possible; the mapping remains visible and
 editable. The report loads open-invoice candidates once per refresh rather than
 querying them for every bank row, and foreign-currency rows are left for manual
 review. The review grid can be exported through the normal CSV/XLSX/ODS/JSON
-report exporters. It still does not create or submit accounting entries.
+report exporters. A reviewed, sufficiently unambiguous match can now open an
+**unsaved Payment draft** using the bank booking date, positive allocated amount,
+party, matched invoice and bank reference. The user must explicitly select a
+Bank-type Payment Method that has a bank GL account configured. The draft is
+never saved or submitted automatically, so the normal Payment validation and
+human review remain in the posting path. Amount-only ambiguous matches stay
+review-only until the user resolves them.
 
 ## Remaining roadmap checkpoints
 
@@ -175,9 +181,9 @@ Continue with acceptance evidence rather than assuming a feature is complete:
    in OnlyOffice and EuroOffice, especially number/date handling and formulas.
 5. Packaging and dogfooding: install/run the produced Linux AppImage, exercise
    real UI export/save flows, and build a reviewed CirreniX reference dataset.
-6. Later integrations: explicit payment creation from reviewed bank matches,
-   saved bank-import profiles, EHF/Peppol, KID, Brønnøysund lookups and
-   tax-authority APIs. Keep these optional adapters.
+6. Later integrations: richer reconciliation allocation for partial/multi-invoice
+   payments, saved bank-import profiles, EHF/Peppol, KID, Brønnøysund lookups
+   and tax-authority APIs. Keep these optional adapters.
 
 Do not copy the proprietary NS 4102 standard. The starter chart remains an
 open, conventional subset. The bundled grouping list is Skatteetaten's

@@ -89,6 +89,37 @@ export async function getNorwegianBankReconciliationSuggestions(
   return rankNorwegianBankReconciliationMatches(transaction, candidates);
 }
 
+export function getNorwegianBankDraftPaymentData(
+  transaction: NorwegianBankTransaction,
+  suggestion: NorwegianBankMatchSuggestion,
+  paymentMethod: string
+) {
+  const postingDate = new Date(
+    `${transaction.bookingDate}T00:00:00.000Z`
+  );
+  const amount = Math.abs(transaction.amount);
+  const referenceId =
+    transaction.reference?.trim() || transaction.description?.trim() || undefined;
+
+  return {
+    party: suggestion.party,
+    date: postingDate,
+    paymentType: transaction.amount > 0 ? ('Receive' as const) : ('Pay' as const),
+    paymentMethod,
+    clearanceDate: postingDate,
+    referenceDate: postingDate,
+    referenceId,
+    amount,
+    for: [
+      {
+        referenceType: suggestion.schemaName,
+        referenceName: suggestion.invoiceName,
+        amount,
+      },
+    ],
+  };
+}
+
 export function rankNorwegianBankReconciliationMatches(
   transaction: NorwegianBankTransaction,
   candidates: NorwegianBankMatchCandidate[]

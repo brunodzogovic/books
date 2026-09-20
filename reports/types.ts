@@ -22,6 +22,7 @@ export interface ReportRow {
   isEmpty?: boolean;
   folded?: boolean;
   foldedBelow?: boolean;
+  onClick?: () => void | Promise<void>;
 }
 export type ReportData = ReportRow[];
 export interface ColumnField extends Omit<BaseField, 'fieldtype'> {

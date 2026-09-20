@@ -53,7 +53,7 @@
             }"
             :class="[
               r !== pageEnd - 1 ? 'border-b dark:border-gray-800' : '',
-              row.isGroup
+              row.isGroup || row.onClick
                 ? 'hover:bg-gray-50 dark:hover:bg-gray-890 cursor-pointer'
                 : '',
             ]"
@@ -150,7 +150,12 @@ export default defineComponent({
       this.pageStart = start;
       this.pageEnd = end;
     },
-    onRowClick(clickedRow, r) {
+    async onRowClick(clickedRow, r) {
+      if (clickedRow.onClick) {
+        await clickedRow.onClick();
+        return;
+      }
+
       if (!clickedRow.isGroup) {
         return;
       }

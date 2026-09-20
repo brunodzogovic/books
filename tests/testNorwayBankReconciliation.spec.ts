@@ -1,5 +1,6 @@
 import { ModelNameEnum } from 'models/types';
 import {
+  getNorwegianBankDraftPaymentData,
   rankNorwegianBankReconciliationMatches,
   NorwegianBankMatchCandidate,
 } from 'regional/noBankReconciliation';
@@ -124,5 +125,73 @@ test('bank reconciliation refuses near amounts instead of auto-guessing', (t) =>
     candidates
   );
   t.equal(suggestions.length, 0, 'non-exact amount is left unmatched for manual review');
+  t.end();
+});
+
+test('reviewed bank match creates safe draft payment values', (t) => {
+  const transaction = tx(
+    12500,
+    'Payment SINV-1001 KID 42',
+    'Økonomi Kunde AS'
+  );
+  const suggestion = rankNorwegianBankReconciliationMatches(
+    transaction,
+    candidates
+  )[0];
+  const draft = getNorwegianBankDraftPaymentData(
+    transaction,
+    suggestion,
+    'Bank - Operating'
+  );
+
+  t.equal(draft.party, 'Økonomi Kunde AS', 'party comes from reviewed invoice match');
+  t.equal(draft.paymentType, 'Receive', 'incoming bank amount becomes a receipt');
+  t.equal(draft.paymentMethod, 'Bank - Operating', 'explicit bank payment method is preserved');
+  t.equal(draft.amount, 12500, 'draft payment amount is positive');
+  t.equal(draft.for[0].referenceName, 'SINV-1001', 'matched invoice is linked');
+  t.equal(draft.for[0].amount, 12500, 'allocation uses the bank amount');
+  t.equal(draft.referenceId, 'Payment SINV-1001 KID 42', 'bank reference is preserved');
+  t.equal(
+    draft.date.toISOString(),
+    '2026-09-20T00:00:00.000Z',
+    'booking date becomes the draft posting date'
+  );
+  t.end();
+});
+
+test('draft payment direction follows bank cash flow for credit notes', (t) => {
+  const customerRefundTransaction = tx(
+    -500,
+    'SINV-CREDIT-1',
+    'Refund Kunde AS'
+  );
+  const customerRefund = rankNorwegianBankReconciliationMatches(
+    customerRefundTransaction,
+    candidates
+  )[0];
+  const customerDraft = getNorwegianBankDraftPaymentData(
+    customerRefundTransaction,
+    customerRefund,
+    'Bank - Operating'
+  );
+  t.equal(customerDraft.paymentType, 'Pay', 'customer refund creates outgoing payment');
+  t.equal(customerDraft.amount, 500, 'customer refund draft amount stays positive');
+
+  const supplierRefundTransaction = tx(
+    700,
+    'PINV-CREDIT-1',
+    'Refund Leverandør AS'
+  );
+  const supplierRefund = rankNorwegianBankReconciliationMatches(
+    supplierRefundTransaction,
+    candidates
+  )[0];
+  const supplierDraft = getNorwegianBankDraftPaymentData(
+    supplierRefundTransaction,
+    supplierRefund,
+    'Bank - Operating'
+  );
+  t.equal(supplierDraft.paymentType, 'Receive', 'supplier refund creates incoming receipt');
+  t.equal(supplierDraft.amount, 700, 'supplier refund draft amount stays positive');
   t.end();
 });
