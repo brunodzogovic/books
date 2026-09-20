@@ -42,9 +42,32 @@ test('Norwegian company data survives close and reopen', async (t) => {
       name: 'Cloud platform services - 67998',
       parentAccount: 'Andre driftskostnader',
       rootType: 'Expense',
-      saftGrouping: 'annenDriftskostnad|6700',
     });
     await customAccount.sync();
+    await customAccount.setAndSync(
+      'saftGrouping',
+      'annenDriftskostnad|6700'
+    );
+
+    const storedBeforeClose = await first.db.get(
+      ModelNameEnum.Account,
+      customAccount.name!
+    );
+    t.equal(
+      storedBeforeClose.saftGrouping,
+      'annenDriftskostnad|6700',
+      'custom SAF-T grouping is persisted before close'
+    );
+
+    const organizationBeforeClose = await first.db.getSingleValues({
+      parent: ModelNameEnum.AccountingSettings,
+      fieldname: 'organizationNumber',
+    });
+    t.equal(
+      organizationBeforeClose[0]?.value,
+      '123456785',
+      'organization number is persisted before close'
+    );
 
     const entry = first.doc.getNewDoc(ModelNameEnum.JournalEntry, {
       entryType: 'Journal Entry',
@@ -87,6 +110,21 @@ test('Norwegian company data survives close and reopen', async (t) => {
         reopened.singles.AccountingSettings?.companyName,
         'CirreniX Reopen Test AS',
         'reopened database restores company identity'
+      );
+
+      const reopenedOrganization = await reopened.db.getSingleValues({
+        parent: ModelNameEnum.AccountingSettings,
+        fieldname: 'organizationNumber',
+      });
+      t.equal(
+        reopenedOrganization[0]?.value,
+        '123456785',
+        'raw organization number survives reopen'
+      );
+      t.equal(
+        reopened.singles.AccountingSettings?.get('organizationNumber'),
+        '123456785',
+        'reopened accounting settings expose organization number'
       );
       t.equal(
         reopened.getField(ModelNameEnum.Account, 'saftGrouping')?.fieldtype,
