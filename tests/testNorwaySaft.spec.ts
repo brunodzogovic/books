@@ -1,6 +1,8 @@
 import setupInstance from 'src/setup/setupInstance';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { rejects } from 'assert';
+import saftGroupingOptions from 'fixtures/noSaftGroupingOptions.json';
 import { validateAgainstOfficialSaft140Xsd } from './saftTestHelpers';
 import { SalesInvoice } from 'models/baseModels/SalesInvoice/SalesInvoice';
 import { PurchaseInvoice } from 'models/baseModels/PurchaseInvoice/PurchaseInvoice';
@@ -519,6 +521,11 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
   );
 
   const officialGroupingPairs = await getOfficialGroupingPairs();
+  t.deepEqual(
+    saftGroupingOptions.map(({ value }) => value).sort(),
+    [...officialGroupingPairs].sort(),
+    'custom-account choices match the complete pinned official grouping codelist'
+  );
   t.ok(
     officialGroupingPairs.size > 0,
     'official Skatteetaten 2025-2026 grouping codelist is readable'
@@ -1107,6 +1114,95 @@ test('Norwegian VAT report exposes SAF-T 1.40 XML export action', async (t) => {
     'SAF-T export is grouped with report exports'
   );
   t.equal(action?.type, 'primary', 'SAF-T export is a primary report action');
+});
+
+test('Norwegian custom accounts require a valid explicit SAF-T grouping', async (t) => {
+  const year = new Date().getFullYear();
+  const account = fyo.doc.getNewDoc(ModelNameEnum.Account, {
+    name: 'Custom cloud services - 67999',
+    parentAccount: 'Andre driftskostnader',
+    rootType: 'Expense',
+  });
+  await account.sync();
+
+  const entry = fyo.doc.getNewDoc(ModelNameEnum.JournalEntry, {
+    entryType: 'Journal Entry',
+    date: new Date(`${year}-06-15T12:00:00.000Z`),
+    referenceNumber: 'CUSTOM-ACCOUNT-001',
+    userRemark: 'Custom cloud services expense',
+    accounts: [
+      { account: account.name, debit: 125, credit: 0 },
+      { account: 'Test Bank', debit: 0, credit: 125 },
+    ],
+  }) as JournalEntry;
+  await entry.runFormulas();
+  await entry.sync();
+  await entry.submit();
+
+  const options = { fromDate: `${year}-01-01`, toDate: `${year}-12-31` };
+  await rejects(
+    () => buildNorwegianSaftFinancial140(fyo, options),
+    /mapping is missing for account Custom cloud services.*Chart of Accounts/
+  );
+  t.pass('export identifies the unmapped used account and where to map it');
+
+  await rejects(async () => {
+    await account.set('saftGrouping', 'salgsinntekt|6700');
+    await account.sync();
+  }, /Invalid value/);
+  t.pass('saving rejects a real code paired with the wrong category');
+
+  await account.setAndSync('saftGrouping', 'annenDriftskostnad|6700');
+  const stored = await fyo.db.get(ModelNameEnum.Account, account.name!);
+  t.equal(
+    stored.saftGrouping,
+    'annenDriftskostnad|6700',
+    'mapping is persisted'
+  );
+
+  const result = await buildNorwegianSaftFinancial140(fyo, options);
+  t.ok(
+    result.xml.includes(
+      '<AccountID>67999</AccountID>\n        <AccountDescription>Custom cloud services</AccountDescription>\n        <GroupingCategory>annenDriftskostnad</GroupingCategory>\n        <GroupingCode>6700</GroupingCode>\n        <AccountType>GL</AccountType>\n        <OpeningDebitBalance>0.00</OpeningDebitBalance>\n        <ClosingDebitBalance>125.00</ClosingDebitBalance>'
+    ),
+    'custom account exports its explicit grouping and actual balance'
+  );
+  const validation = await validateAgainstOfficialSaft140Xsd(result.xml);
+  t.equal(
+    validation.valid,
+    true,
+    `custom-account export is XSD-valid: ${validation.output}`
+  );
+
+  t.deepEqual(
+    getNorwegianSaftGrouping({
+      name: 'Custom bank',
+      accountType: 'Bank',
+      saftGrouping: 'balanseverdiForOmloepsmiddel|1950',
+    }),
+    { category: 'balanseverdiForOmloepsmiddel', code: '1950' },
+    'an explicit valid mapping takes precedence over account-type defaults'
+  );
+
+  // Imported or legacy rows must not bypass validation at export time.
+  await fyo.db.update(ModelNameEnum.Account, {
+    name: account.name,
+    saftGrouping: 'salgsinntekt|6700',
+  });
+  try {
+    await rejects(
+      () => buildNorwegianSaftFinancial140(fyo, options),
+      /Invalid SAF-T grouping for account Custom cloud services/
+    );
+    t.pass(
+      'export rejects an invalid mapping even if it bypassed document validation'
+    );
+  } finally {
+    await fyo.db.update(ModelNameEnum.Account, {
+      name: account.name,
+      saftGrouping: 'annenDriftskostnad|6700',
+    });
+  }
 });
 
 test.onFinish(async () => {

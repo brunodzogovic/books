@@ -1,0 +1,23 @@
+{
+  "name": "Account",
+  "fields": [
+    {
+      "fieldname": "saftGrouping",
+      "label": "SAF-T Grouping",
+      "fieldtype": "AutoComplete",
+      "default": "",
+      "section": "Norway",
+      "placeholder": "Search by code or description",
+      "description": "Select an official reporting group for this account. Leave blank to use the starter-chart or account-type mapping.",
+      "options": [],
+      "allowCustom": false
+    }
+  ],
+  "quickEditFields": [
+    "rootType",
+    "parentAccount",
+    "accountType",
+    "isGroup",
+    "saftGrouping"
+  ]
+}

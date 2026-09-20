@@ -3,6 +3,11 @@ import { ValidationError } from 'fyo/utils/errors';
 import { Invoice } from 'models/baseModels/Invoice/Invoice';
 import { Payment } from 'models/baseModels/Payment/Payment';
 import { JournalEntry } from 'models/baseModels/JournalEntry/JournalEntry';
+import saftGroupingOptions from 'fixtures/noSaftGroupingOptions.json';
+
+const validSaftGroupings = new Set(
+  saftGroupingOptions.map(({ value }) => value)
+);
 
 const SAF_T_NAMESPACE = 'urn:StandardAuditFile-Taxation-Financial:NO';
 export const NORWEGIAN_SAF_T_VERSION = '1.40';
@@ -79,6 +84,7 @@ type SaftAccount = {
   accountType?: string;
   rootType?: string;
   isGroup?: boolean | number;
+  saftGrouping?: string | null;
 };
 
 type SaftGrouping = {
@@ -180,19 +186,15 @@ export async function buildNorwegianSaftFinancial140(
   );
 
   if (!moneyEquals(totalDebit, totalCredit)) {
-    throw new ValidationError(
-      t`SAF-T general ledger totals are not balanced.`
-    );
+    throw new ValidationError(t`SAF-T general ledger totals are not balanced.`);
   }
 
   const createdDate = normalizeDate(options.createdDate ?? new Date());
-  const softwareCompanyName =
-    options.softwareCompanyName?.trim() || 'CirreniX';
+  const softwareCompanyName = options.softwareCompanyName?.trim() || 'CirreniX';
   const softwareId =
     options.softwareId?.trim() || 'Frappe Books Norwegian Localization';
   const softwareVersion =
-    options.softwareVersion?.trim() ||
-    String(fyo.store.appVersion ?? '0.37.0');
+    options.softwareVersion?.trim() || String(fyo.store.appVersion ?? '0.37.0');
 
   const header = buildHeaderXml({
     createdDate,
@@ -265,9 +267,7 @@ function buildHeaderXml(values: {
   ];
 
   if (values.email) {
-    contactLines.push(
-      `        <Email>${escapeXml(values.email)}</Email>`
-    );
+    contactLines.push(`        <Email>${escapeXml(values.email)}</Email>`);
   }
   contactLines.push('      </Contact>');
 
@@ -309,12 +309,14 @@ async function buildGeneralLedgerAccountsXml(
   toDate: string
 ): Promise<string[]> {
   const accountRows = (await fyo.db.getAllRaw('Account', {
-    fields: ['name', 'accountType', 'rootType', 'isGroup'],
+    fields: ['name', 'accountType', 'rootType', 'isGroup', 'saftGrouping'],
     orderBy: 'name',
     order: 'asc',
   })) as unknown as SaftAccount[];
 
-  const accountMap = new Map(accountRows.map((account) => [account.name, account]));
+  const accountMap = new Map(
+    accountRows.map((account) => [account.name, account])
+  );
   const usedAccountNames = [
     ...new Set(
       rawRows
@@ -350,7 +352,9 @@ async function buildGeneralLedgerAccountsXml(
 
     lines.push(
       '      <Account>',
-      `        <AccountID>${escapeXml(getSaftAccountId(accountName))}</AccountID>`,
+      `        <AccountID>${escapeXml(
+        getSaftAccountId(accountName)
+      )}</AccountID>`,
       `        <AccountDescription>${escapeXml(
         getSaftAccountDescription(accountName)
       )}</AccountDescription>`,
@@ -451,6 +455,17 @@ export const NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT: Record<
  * number as that code.
  */
 export function getNorwegianSaftGrouping(account: SaftAccount): SaftGrouping {
+  if (account.saftGrouping) {
+    if (!validSaftGroupings.has(account.saftGrouping)) {
+      throw new ValidationError(
+        t`Invalid SAF-T grouping for account ${account.name}: ${account.saftGrouping}.`
+      );
+    }
+
+    const [category, code] = account.saftGrouping.split('|');
+    return { category, code };
+  }
+
   const accountId = getSaftAccountId(account.name);
 
   const accountTypeMap: Record<string, SaftGrouping> = {
@@ -486,7 +501,7 @@ export function getNorwegianSaftGrouping(account: SaftAccount): SaftGrouping {
   }
 
   throw new ValidationError(
-    t`SAF-T grouping mapping is missing for account ${account.name}.`
+    t`SAF-T grouping mapping is missing for account ${account.name}. Select a SAF-T Grouping in Chart of Accounts.`
   );
 }
 
@@ -535,8 +550,9 @@ async function loadSaftTaxes(
 
     const tax = await fyo.doc.getDoc('Tax', row.name);
     const details =
-      (tax.get('details') as { get(fieldname: string): unknown }[] | undefined) ??
-      [];
+      (tax.get('details') as
+        | { get(fieldname: string): unknown }[]
+        | undefined) ?? [];
     const firstDetail = details.find(
       (detail) => typeof detail.get('rate') === 'number'
     );
@@ -634,12 +650,7 @@ async function buildMasterFilesXml(
     ({ role }) => role === 'Supplier' || role === 'Both'
   );
 
-  const taxes = await loadSaftTaxes(
-    fyo,
-    rawRows,
-    fromDate,
-    toDate
-  );
+  const taxes = await loadSaftTaxes(fyo, rawRows, fromDate, toDate);
 
   const lines = ['  <MasterFiles>'];
 
@@ -650,7 +661,11 @@ async function buildMasterFilesXml(
     toDate
   );
   if (generalLedgerAccounts.length) {
-    lines.push('    <GeneralLedgerAccounts>', ...generalLedgerAccounts, '    </GeneralLedgerAccounts>');
+    lines.push(
+      '    <GeneralLedgerAccounts>',
+      ...generalLedgerAccounts,
+      '    </GeneralLedgerAccounts>'
+    );
   }
 
   if (customers.length) {
@@ -757,9 +772,7 @@ function getPartyBalance(
   }
 
   const partyRows = rows.filter(
-    (row) =>
-      row.party === party.name &&
-      row.account === party.defaultAccount
+    (row) => row.party === party.name && row.account === party.defaultAccount
   );
 
   const opening = roundMoney(
@@ -939,10 +952,7 @@ function buildLineXml(
     context,
     partyXml.length > 0
   );
-  const taxInformationXml = buildTaxInformationXml(
-    row,
-    taxInformation
-  );
+  const taxInformationXml = buildTaxInformationXml(row, taxInformation);
 
   return [
     '        <Line>',
@@ -985,12 +995,11 @@ async function getTransactionContext(
       group.referenceName
     )) as Invoice;
 
-    sourceDocumentId = String(invoice.get('returnAgainst') ?? '').trim() || undefined;
+    sourceDocumentId =
+      String(invoice.get('returnAgainst') ?? '').trim() || undefined;
     isCreditNote = !!sourceDocumentId;
     correctionReason = String(invoice.get('correctionReason') ?? '').trim();
-    cancellationReason = String(
-      invoice.get('cancellationReason') ?? ''
-    ).trim();
+    cancellationReason = String(invoice.get('cancellationReason') ?? '').trim();
 
     if (isCreditNote && correctionReason) {
       extraDescription = correctionReason;
@@ -1011,9 +1020,7 @@ async function getTransactionContext(
       sourceDocumentOnSubledgerOnly = true;
     }
 
-    cancellationReason = String(
-      payment.get('cancellationReason') ?? ''
-    ).trim();
+    cancellationReason = String(payment.get('cancellationReason') ?? '').trim();
   } else if (group.referenceType === 'JournalEntry') {
     const journalEntry = (await fyo.doc.getDoc(
       group.referenceType,
@@ -1023,9 +1030,7 @@ async function getTransactionContext(
     referenceNumber =
       String(journalEntry.get('referenceNumber') ?? '').trim() ||
       group.referenceName;
-    extraDescription = String(
-      journalEntry.get('userRemark') ?? ''
-    ).trim();
+    extraDescription = String(journalEntry.get('userRemark') ?? '').trim();
     cancellationReason = String(
       journalEntry.get('cancellationReason') ?? ''
     ).trim();
@@ -1275,11 +1280,7 @@ function buildTaxAmountStructureXml(
     `              <Amount>${formatMoney(tax.taxAmount)}</Amount>`,
   ];
 
-  if (
-    tax.currency &&
-    tax.exchangeRate &&
-    tax.foreignTaxAmount !== undefined
-  ) {
+  if (tax.currency && tax.exchangeRate && tax.foreignTaxAmount !== undefined) {
     lines.push(
       `              <CurrencyCode>${escapeXml(tax.currency)}</CurrencyCode>`,
       `              <CurrencyAmount>${formatLongMoney(
@@ -1351,9 +1352,7 @@ function groupTransactions(rows: RawLedgerRow[]): TransactionGroup[] {
     let group = grouped.get(key);
     if (!group) {
       group = {
-        id: isReversal
-          ? `${referenceName}-REV-${date}`
-          : referenceName,
+        id: isReversal ? `${referenceName}-REV-${date}` : referenceName,
         date,
         referenceType,
         referenceName,

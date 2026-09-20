@@ -1,4 +1,10 @@
 import DatabaseCore from 'backend/database/core';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { translateSchema } from 'fyo/utils/translation';
+import { OptionField } from 'schemas/types';
+import { parseCSV } from 'utils/csvParser';
+import { schemaTranslateables } from 'utils/translationHelpers';
 import { assertDoesNotThrow } from 'backend/database/tests/helpers';
 import { getDefaultMetaFieldValueMap } from 'backend/helpers';
 import { DateTime } from 'luxon';
@@ -41,6 +47,21 @@ test('setup Norwegian company', async (t) => {
 
   t.equal(fyo.singles.SystemSettings?.currency, 'NOK');
   t.equal(fyo.singles.SystemSettings?.countryCode, 'no');
+  t.equal(
+    fyo.getField('Account', 'saftGrouping')?.fieldtype,
+    'AutoComplete',
+    'Norwegian accounts expose a searchable SAF-T grouping choice'
+  );
+  t.ok(
+    fyo.schemaMap.Account?.quickEditFields?.includes('saftGrouping'),
+    'SAF-T grouping can be edited from Chart of Accounts'
+  );
+  t.notOk(
+    getSchemas('in', []).Account?.fields.some(
+      ({ fieldname }) => fieldname === 'saftGrouping'
+    ),
+    'SAF-T grouping does not affect non-Norwegian account schemas'
+  );
   t.equal(fyo.singles.AccountingSettings?.organizationNumber, '123456785');
   t.equal(fyo.singles.AccountingSettings?.organizationForm, 'AS');
   t.equal(fyo.singles.AccountingSettings?.vatRegistered, true);
@@ -154,7 +175,11 @@ test('setup Norwegian company', async (t) => {
 
   for (const [name, taxCode, standardTaxCode] of taxMappings) {
     const tax = await fyo.doc.getDoc('Tax', name);
-    t.equal(tax?.get('taxCode'), taxCode, `${name} has stable Norwegian tax code`);
+    t.equal(
+      tax?.get('taxCode'),
+      taxCode,
+      `${name} has stable Norwegian tax code`
+    );
     t.equal(
       tax?.get('standardTaxCode'),
       standardTaxCode,
@@ -191,7 +216,11 @@ test('Norwegian VAT metadata migrates an existing populated Tax table', async (t
     .where({ name: 'Legacy Norwegian Tax' })
     .select('taxCode', 'standardTaxCode');
 
-  t.equal(rows[0]?.taxCode, '', 'legacy Tax row receives empty taxCode default');
+  t.equal(
+    rows[0]?.taxCode,
+    '',
+    'legacy Tax row receives empty taxCode default'
+  );
   t.equal(
     rows[0]?.standardTaxCode,
     '',
@@ -199,6 +228,80 @@ test('Norwegian VAT metadata migrates an existing populated Tax table', async (t
   );
 
   await db.close();
+});
+
+test('Norwegian SAF-T choices keep stable codes in English and Bokmål', async (t) => {
+  const schemas = cloneDeep(getSchemas('no', []));
+  const field = schemas.Account!.fields.find(
+    ({ fieldname }) => fieldname === 'saftGrouping'
+  ) as OptionField;
+  const englishValues = field.options.map(({ value }) => value);
+  t.equal(
+    field.options.find(({ value }) => value === 'annenDriftskostnad|6700')
+      ?.label,
+    '6700 - Accountancy and consultancy services, etc.',
+    'English UI has the official English grouping description'
+  );
+  const csv = await fs.readFile(
+    path.join(__dirname, '../translations/nb-NO.csv'),
+    'utf8'
+  );
+  const languageMap = Object.fromEntries(
+    parseCSV(csv).map(([source, translation]) => [source, { translation }])
+  );
+  translateSchema(schemas, languageMap, schemaTranslateables);
+  t.equal(
+    field.label,
+    'SAF-T-gruppering',
+    'Bokmål UI translates the field label'
+  );
+  t.equal(
+    field.options.find(({ value }) => value === 'annenDriftskostnad|6700')
+      ?.label,
+    '6700 - Regnskapstjenester, rådgivning med mer',
+    'Bokmål UI has the official Norwegian grouping description'
+  );
+  t.deepEqual(
+    field.options.map(({ value }) => value),
+    englishValues,
+    'changing UI language preserves every accounting mapping value'
+  );
+});
+
+test('Norwegian SAF-T grouping migrates existing account data', async (t) => {
+  const db = new DatabaseCore();
+  await db.connect();
+  try {
+    const oldSchemaMap = cloneDeep(getSchemas('no', []));
+    oldSchemaMap.Account!.fields = oldSchemaMap.Account!.fields.filter(
+      ({ fieldname }) => fieldname !== 'saftGrouping'
+    );
+    db.setSchemaMap(oldSchemaMap);
+    await db.migrate();
+    await db.insert('Account', {
+      name: 'Legacy custom account',
+      rootType: 'Expense',
+      lft: 0,
+      rgt: 0,
+      isGroup: false,
+      ...getDefaultMetaFieldValueMap(),
+    });
+    db.setSchemaMap(getSchemas('no', []));
+    await db.migrate();
+    const account = await db.get('Account', 'Legacy custom account');
+    t.equal(
+      account.saftGrouping,
+      '',
+      'existing accounts receive an empty mapping'
+    );
+    t.equal(
+      account.rootType,
+      'Expense',
+      'migration preserves existing account data'
+    );
+  } finally {
+    await db.close();
+  }
 });
 
 test.onFinish(async () => {

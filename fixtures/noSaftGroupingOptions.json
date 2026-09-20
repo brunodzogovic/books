@@ -1,0 +1,2130 @@
+[
+  {
+    "value": "balanseverdiForAnleggsmiddel|1000",
+    "label": "1000 - Development"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1020",
+    "label": "1020 - Long-term concessions, patents, licenses, rights, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1070",
+    "label": "1070 - Deferred tax asset"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1080",
+    "label": "1080 - Goodwill"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1101",
+    "label": "1101 - Captalized exploration costs"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1102",
+    "label": "1102 - Fields under development"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1103",
+    "label": "1103 - Production facility and pipeline"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1104",
+    "label": "1104 - Removal and shutdown assets"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1105",
+    "label": "1105 - Commercial estates"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1115",
+    "label": "1115 - Buildings, installations, hotels, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1117",
+    "label": "1117 - Electrotechnical equipment in power enterprises, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1120",
+    "label": "1120 - Fixed technical installations in buildings"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1130",
+    "label": "1130 - Installations and machines under construction"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1140",
+    "label": "1140 - Agricultural and forestry properties"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1150",
+    "label": "1150 - Plots and other land areas"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1160",
+    "label": "1160 - Housing incl. housing plots, cabins, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1180",
+    "label": "1180 - Investment properties"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1205",
+    "label": "1205 - Cars, machinery and fixtures and fittings"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1221",
+    "label": "1221 - Ships, rigs, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1225",
+    "label": "1225 - Aircrafts, helicopters, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1238",
+    "label": "1238 - Vans and trucks, buses, etc., and vans with zero emissions"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1280",
+    "label": "1280 - Office equipment, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1290",
+    "label": "1290 - Other fixed assets"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1295",
+    "label": "1295 - Fixed assets depreciated on a straight-line basis"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1296",
+    "label": "1296 - Negative profit and loss account"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1298",
+    "label": "1298 - Negative timber account"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1299",
+    "label": "1299 - Negative agriculture account"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1312",
+    "label": "1312 - Investments in subsidiaries and companies in a group assessed as a partnership"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1313",
+    "label": "1313 - Investments in other subsidiaries and companies in a group"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1320",
+    "label": "1320 - Loans to enterprises within the same group"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1331",
+    "label": "1331 - Investments in associated companies assessed as a partnership"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1332",
+    "label": "1332 - Investments in other associated companies"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1340",
+    "label": "1340 - Loans to associated companies and jointly controlled enterprises"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1350",
+    "label": "1350 - Investments in shares, holdings and units in securities funds"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1360",
+    "label": "1360 - Bonds"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1370",
+    "label": "1370 - Receivables from personal owners, board members, etc."
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1380",
+    "label": "1380 - Claims towards/receivables from employees"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1390",
+    "label": "1390 - Other non-current receivables"
+  },
+  {
+    "value": "balanseverdiForAnleggsmiddel|1395",
+    "label": "1395 - Net pension funds"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1400",
+    "label": "1400 - Inventory"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1401",
+    "label": "1401 - Stock of self-manufactured goods for use in own agricultural activity"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1470",
+    "label": "1470 - Reduced withdrawal of petroleum products"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1490",
+    "label": "1490 - Biological assets"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1500",
+    "label": "1500 - Accounts receivable"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1501",
+    "label": "1501 - Trade debtors relating to companies in the same group"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1530",
+    "label": "1530 - Earned, non-invoiced operating revenues"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1560",
+    "label": "1560 - Other receivables from companies in the same group"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1565",
+    "label": "1565 - Current receivables concerning personal owners/board members, etc."
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1570",
+    "label": "1570 - Other current claims/receivables"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1780",
+    "label": "1780 - Claims for paid-up company capital"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1800",
+    "label": "1800 - Non-market based shares and units in securities funds"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1810",
+    "label": "1810 - Market-based shares and units in securities funds"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1830",
+    "label": "1830 - Market-based bonds, certificates, etc."
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1840",
+    "label": "1840 - Other bonds and certificates"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1880",
+    "label": "1880 - Other financial instruments"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1895",
+    "label": "1895 - Ownership interest in a business assessed as a partnership"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1900",
+    "label": "1900 - Cash"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1920",
+    "label": "1920 - Bank deposits"
+  },
+  {
+    "value": "balanseverdiForOmloepsmiddel|1950",
+    "label": "1950 - Deposits on a tax deduction account"
+  },
+  {
+    "value": "langsiktigGjeld|2100",
+    "label": "2100 - Pension liabilities"
+  },
+  {
+    "value": "langsiktigGjeld|2120",
+    "label": "2120 - Deferred tax"
+  },
+  {
+    "value": "langsiktigGjeld|2130",
+    "label": "2130 - Derivatives"
+  },
+  {
+    "value": "langsiktigGjeld|2160",
+    "label": "2160 - Unearned income"
+  },
+  {
+    "value": "langsiktigGjeld|2180",
+    "label": "2180 - Provisions for liabilities"
+  },
+  {
+    "value": "langsiktigGjeld|2185",
+    "label": "2185 - Provisions for removal and closure obligations"
+  },
+  {
+    "value": "langsiktigGjeld|2200",
+    "label": "2200 - Convertible loans"
+  },
+  {
+    "value": "langsiktigGjeld|2210",
+    "label": "2210 - Bond loans"
+  },
+  {
+    "value": "langsiktigGjeld|2220",
+    "label": "2220 - Long-term debt to banks and other credit institutions"
+  },
+  {
+    "value": "langsiktigGjeld|2250",
+    "label": "2250 - Debt to employees and personal owners"
+  },
+  {
+    "value": "langsiktigGjeld|2260",
+    "label": "2260 - Debt to companies in the same group"
+  },
+  {
+    "value": "langsiktigGjeld|2280",
+    "label": "2280 - Contributions by silent partners and subordinated loan capital"
+  },
+  {
+    "value": "langsiktigGjeld|2290",
+    "label": "2290 - Other long-term debt"
+  },
+  {
+    "value": "kortsiktigGjeld|2310",
+    "label": "2310 - Convertible loans"
+  },
+  {
+    "value": "kortsiktigGjeld|2320",
+    "label": "2320 - Bond loans"
+  },
+  {
+    "value": "kortsiktigGjeld|2330",
+    "label": "2330 - Derivatives"
+  },
+  {
+    "value": "kortsiktigGjeld|2380",
+    "label": "2380 - Short-term debt to banks and other credit institutions"
+  },
+  {
+    "value": "kortsiktigGjeld|2400",
+    "label": "2400 - Debt to suppliers"
+  },
+  {
+    "value": "kortsiktigGjeld|2460",
+    "label": "2460 - Debts to suppliers that are companies in the same group"
+  },
+  {
+    "value": "kortsiktigGjeld|2470",
+    "label": "2470 - Additional withdrawal of petroleum products"
+  },
+  {
+    "value": "kortsiktigGjeld|2500",
+    "label": "2500 - Payable tax, not assessed"
+  },
+  {
+    "value": "kortsiktigGjeld|2510",
+    "label": "2510 - Payable tax, assessed"
+  },
+  {
+    "value": "kortsiktigGjeld|2600",
+    "label": "2600 - Deducted tax and other deductions"
+  },
+  {
+    "value": "kortsiktigGjeld|2740",
+    "label": "2740 - Unpaid value added tax"
+  },
+  {
+    "value": "kortsiktigGjeld|2770",
+    "label": "2770 - Unpaid employers national insurance contributions"
+  },
+  {
+    "value": "kortsiktigGjeld|2790",
+    "label": "2790 - Other public taxes and duties"
+  },
+  {
+    "value": "kortsiktigGjeld|2800",
+    "label": "2800 - Provisions for dividend"
+  },
+  {
+    "value": "kortsiktigGjeld|2900",
+    "label": "2900 - Advances from customers"
+  },
+  {
+    "value": "kortsiktigGjeld|2910",
+    "label": "2910 - Debt to employees and personal owners"
+  },
+  {
+    "value": "kortsiktigGjeld|2920",
+    "label": "2920 - Debt to companies in the same group"
+  },
+  {
+    "value": "kortsiktigGjeld|2949",
+    "label": "2949 - Unpaid salary and holiday pay, etc."
+  },
+  {
+    "value": "kortsiktigGjeld|2950",
+    "label": "2950 - Unpaid interest on debt"
+  },
+  {
+    "value": "kortsiktigGjeld|2970",
+    "label": "2970 - Unearned income"
+  },
+  {
+    "value": "kortsiktigGjeld|2980",
+    "label": "2980 - Provisions for liabilities"
+  },
+  {
+    "value": "kortsiktigGjeld|2981",
+    "label": "2981 - Transferred retroactive payment for payment"
+  },
+  {
+    "value": "kortsiktigGjeld|2990",
+    "label": "2990 - Other short-term debt"
+  },
+  {
+    "value": "egenkapital|2000",
+    "label": "2000 - Share capital/Equity other enterprises"
+  },
+  {
+    "value": "egenkapital|2010",
+    "label": "2010 - Own shares"
+  },
+  {
+    "value": "egenkapital|2015",
+    "label": "2015 - Jointly owned share capital"
+  },
+  {
+    "value": "egenkapital|2020",
+    "label": "2020 - Premium"
+  },
+  {
+    "value": "egenkapital|2030",
+    "label": "2030 - Other contributed equity"
+  },
+  {
+    "value": "egenkapital|2041",
+    "label": "2041 - Retroactive payments reserve"
+  },
+  {
+    "value": "egenkapital|2042",
+    "label": "2042 - Member's capital accounts"
+  },
+  {
+    "value": "egenkapital|2043",
+    "label": "2043 - Fund for valuation differences"
+  },
+  {
+    "value": "egenkapital|2045",
+    "label": "2045 - Fund for unrealised gains"
+  },
+  {
+    "value": "egenkapital|2050",
+    "label": "2050 - Positive equity"
+  },
+  {
+    "value": "egenkapital|2055",
+    "label": "2055 - Provisions for dividend – IFRS"
+  },
+  {
+    "value": "egenkapital|2080",
+    "label": "2080 - Negative equity"
+  },
+  {
+    "value": "egenkapital|2095",
+    "label": "2095 - Negative balance"
+  },
+  {
+    "value": "egenkapital|2096",
+    "label": "2096 - Positive profit and loss account"
+  },
+  {
+    "value": "egenkapital|2097",
+    "label": "2097 - Provisions for conditional gain"
+  },
+  {
+    "value": "egenkapital|2098",
+    "label": "2098 - Positive timber account"
+  },
+  {
+    "value": "egenkapital|2099",
+    "label": "2099 - Positive agriculture account"
+  },
+  {
+    "value": "egenkapital|9.21.11",
+    "label": "9.21.11 - Company capital – Share capital/equity capital"
+  },
+  {
+    "value": "egenkapital|9.21.12",
+    "label": "9.21.12 - Company capital – Own shares and equity certificates"
+  },
+  {
+    "value": "egenkapital|9.21.30",
+    "label": "9.21.30 - Company capital – premium"
+  },
+  {
+    "value": "egenkapital|9.21.40",
+    "label": "9.21.40 - Company capital – equalisation reserves"
+  },
+  {
+    "value": "egenkapital|9.23.00",
+    "label": "9.23.00 - Primary capital"
+  },
+  {
+    "value": "egenkapital|9.23.20",
+    "label": "9.23.20 - Savings bank funds/associations reserves"
+  },
+  {
+    "value": "egenkapital|9.23.30",
+    "label": "9.23.30 - Compensation fund"
+  },
+  {
+    "value": "egenkapital|9.23.40",
+    "label": "9.23.40 - Donations fund"
+  },
+  {
+    "value": "egenkapital|9.25.00",
+    "label": "9.25.00 - Fund bond capital"
+  },
+  {
+    "value": "egenkapital|9.26.00",
+    "label": "9.26.00 - Other contributed equity"
+  },
+  {
+    "value": "egenkapital|9.28.31",
+    "label": "9.28.31 - Other equity – Fund for unrealised gains"
+  },
+  {
+    "value": "egenkapital|9.28.33",
+    "label": "9.28.33 - Other equity – Fund for valuation differences"
+  },
+  {
+    "value": "egenkapital|9.28.60",
+    "label": "9.28.60 - Other equity – Risk equalisation reserve"
+  },
+  {
+    "value": "egenkapital|9.28.76",
+    "label": "9.28.76 - Other equity – Provisions for natural damage capital"
+  },
+  {
+    "value": "egenkapital|9.28.77",
+    "label": "9.28.77 - Other equity – Provisions for the non-life Insurance Guarantee Scheme"
+  },
+  {
+    "value": "egenkapital|9.28.90",
+    "label": "9.28.90 - Other equity – Other"
+  },
+  {
+    "value": "egenkapital|9.28.99",
+    "label": "9.28.99 - Other equity - Non-disposed result (net) – quarter only"
+  },
+  {
+    "value": "salgsinntekt|3000",
+    "label": "3000 - Sales and withdrawals subject to VAT"
+  },
+  {
+    "value": "salgsinntekt|3001",
+    "label": "3001 - Sales revenue and withdrawals of oil"
+  },
+  {
+    "value": "salgsinntekt|3002",
+    "label": "3002 - Sales revenue and withdrawals of dry gas"
+  },
+  {
+    "value": "salgsinntekt|3003",
+    "label": "3003 - Sales revenue and withdrawals of wet gas"
+  },
+  {
+    "value": "salgsinntekt|3004",
+    "label": "3004 - Tariff revenue pipeline"
+  },
+  {
+    "value": "salgsinntekt|3005",
+    "label": "3005 - Tariff revenue processing"
+  },
+  {
+    "value": "salgsinntekt|3006",
+    "label": "3006 - Re-invoicing of hours"
+  },
+  {
+    "value": "salgsinntekt|3007",
+    "label": "3007 - Re-invoicing of other costs"
+  },
+  {
+    "value": "salgsinntekt|3008",
+    "label": "3008 - Change in more/less withdrawal of petroleum products"
+  },
+  {
+    "value": "salgsinntekt|3100",
+    "label": "3100 - Sales and withdrawals with zero rate VAT"
+  },
+  {
+    "value": "salgsinntekt|3200",
+    "label": "3200 - Sales and withdrawals outside the scope of the VAT Act"
+  },
+  {
+    "value": "salgsinntekt|3300",
+    "label": "3300 - Excise duties on sales"
+  },
+  {
+    "value": "annenDriftsinntekt|3400",
+    "label": "3400 - Government subsidies and reimbursements"
+  },
+  {
+    "value": "annenDriftsinntekt|3500",
+    "label": "3500 - Change in unearned income"
+  },
+  {
+    "value": "annenDriftsinntekt|3600",
+    "label": "3600 - Income from renting out property"
+  },
+  {
+    "value": "annenDriftsinntekt|3650",
+    "label": "3650 - Renting out hunting and fishing rights, etc."
+  },
+  {
+    "value": "annenDriftsinntekt|3695",
+    "label": "3695 - Other rental income"
+  },
+  {
+    "value": "annenDriftsinntekt|3700",
+    "label": "3700 - Commission"
+  },
+  {
+    "value": "annenDriftsinntekt|3710",
+    "label": "3710 - Licence, patent and royalty income"
+  },
+  {
+    "value": "annenDriftsinntekt|3850",
+    "label": "3850 - Changes in value of investment properties according to IFRS"
+  },
+  {
+    "value": "annenDriftsinntekt|3870",
+    "label": "3870 - Changes in value of biological assets according to IFRS"
+  },
+  {
+    "value": "annenDriftsinntekt|3880",
+    "label": "3880 - Gain from disposal of intangible assets and fixed tangible assets"
+  },
+  {
+    "value": "annenDriftsinntekt|3885",
+    "label": "3885 - Gain from disposal of financial fixed assets"
+  },
+  {
+    "value": "annenDriftsinntekt|3886",
+    "label": "3886 - Gain on the transfer of licences for petroleum activities"
+  },
+  {
+    "value": "annenDriftsinntekt|3890",
+    "label": "3890 - Income from profit and loss account"
+  },
+  {
+    "value": "annenDriftsinntekt|3895",
+    "label": "3895 - Income from a balance"
+  },
+  {
+    "value": "annenDriftsinntekt|3900",
+    "label": "3900 - Other operating revenues"
+  },
+  {
+    "value": "annenDriftsinntekt|3910",
+    "label": "3910 - Income from a timber account"
+  },
+  {
+    "value": "annenDriftsinntekt|3911",
+    "label": "3911 - Income from a agriculture account"
+  },
+  {
+    "value": "varekostnad|4001",
+    "label": "4001 - Exploration costs"
+  },
+  {
+    "value": "varekostnad|4002",
+    "label": "4002 - Development costs"
+  },
+  {
+    "value": "varekostnad|4003",
+    "label": "4003 - Production costs"
+  },
+  {
+    "value": "varekostnad|4004",
+    "label": "4004 - Handling fee / Service fee / Trading fee"
+  },
+  {
+    "value": "varekostnad|4005",
+    "label": "4005 - Cost of goods including change in stock"
+  },
+  {
+    "value": "varekostnad|4007",
+    "label": "4007 - Change in more/less withdrawal of petroleum products"
+  },
+  {
+    "value": "varekostnad|4008",
+    "label": "4008 - Removal and shutdown costs"
+  },
+  {
+    "value": "varekostnad|4295",
+    "label": "4295 - The change in stock of complete and incomplete self-manufactured goods"
+  },
+  {
+    "value": "varekostnad|4500",
+    "label": "4500 - Hired labour"
+  },
+  {
+    "value": "varekostnad|4995",
+    "label": "4995 - Change in stock of self-manufactured fixed assets"
+  },
+  {
+    "value": "loennskostnad|5000",
+    "label": "5000 - Salary and holiday pay, etc."
+  },
+  {
+    "value": "loennskostnad|5300",
+    "label": "5300 - Other remunerations carrying a reporting obligation"
+  },
+  {
+    "value": "loennskostnad|5400",
+    "label": "5400 - Employer’s national insurance contributions"
+  },
+  {
+    "value": "loennskostnad|5420",
+    "label": "5420 - Pension costs subject to a reporting obligation"
+  },
+  {
+    "value": "loennskostnad|5600",
+    "label": "5600 - Remuneration for work performed by owners in a partnership (ANS etc.)"
+  },
+  {
+    "value": "loennskostnad|5900",
+    "label": "5900 - Other personnel costs"
+  },
+  {
+    "value": "loennskostnad|5950",
+    "label": "5950 - Own pension scheme"
+  },
+  {
+    "value": "annenDriftskostnad|6000",
+    "label": "6000 - Depreciation of fixed assets"
+  },
+  {
+    "value": "annenDriftskostnad|6001",
+    "label": "6001 - Depreciation of production installations and pipelines"
+  },
+  {
+    "value": "annenDriftskostnad|6002",
+    "label": "6002 - Depreciation of removal and shut-down assets"
+  },
+  {
+    "value": "annenDriftskostnad|6004",
+    "label": "6004 - Other depreciation"
+  },
+  {
+    "value": "annenDriftskostnad|6050",
+    "label": "6050 - Write-downs of tangible fixed assets and intangible assets"
+  },
+  {
+    "value": "annenDriftskostnad|6051",
+    "label": "6051 - Write-downs of production equipment and pipeline"
+  },
+  {
+    "value": "annenDriftskostnad|6052",
+    "label": "6052 - Write-downs of captalized exploration costs"
+  },
+  {
+    "value": "annenDriftskostnad|6053",
+    "label": "6053 - Write-downs of plant under construction"
+  },
+  {
+    "value": "annenDriftskostnad|6054",
+    "label": "6054 - Other write-downs"
+  },
+  {
+    "value": "annenDriftskostnad|6100",
+    "label": "6100 - Shipping and transport costs related to sales"
+  },
+  {
+    "value": "annenDriftskostnad|6110",
+    "label": "6110 - Shipping and transport costs related to oil"
+  },
+  {
+    "value": "annenDriftskostnad|6120",
+    "label": "6120 - Shipping and transport costs related to dry gas"
+  },
+  {
+    "value": "annenDriftskostnad|6130",
+    "label": "6130 - Shipping and transport costs related to LNG"
+  },
+  {
+    "value": "annenDriftskostnad|6140",
+    "label": "6140 - Shipping and transport costs related to wet gas"
+  },
+  {
+    "value": "annenDriftskostnad|6200",
+    "label": "6200 - Power and fuel, etc. for manufacture"
+  },
+  {
+    "value": "annenDriftskostnad|6300",
+    "label": "6300 - Rental of premises"
+  },
+  {
+    "value": "annenDriftskostnad|6340",
+    "label": "6340 - Electricity and heating"
+  },
+  {
+    "value": "annenDriftskostnad|6350",
+    "label": "6350 - IT costs"
+  },
+  {
+    "value": "annenDriftskostnad|6395",
+    "label": "6395 - Refuse collection, water, sewage, cleaning, etc."
+  },
+  {
+    "value": "annenDriftskostnad|6400",
+    "label": "6400 - Rental of machines, fixtures and fittings, etc."
+  },
+  {
+    "value": "annenDriftskostnad|6440",
+    "label": "6440 - Long-term rental/leasing of vehicle"
+  },
+  {
+    "value": "annenDriftskostnad|6500",
+    "label": "6500 - Tools, fixtures and fittings etc. for direct expense deduction"
+  },
+  {
+    "value": "annenDriftskostnad|6600",
+    "label": "6600 - Building repairs and maintenance"
+  },
+  {
+    "value": "annenDriftskostnad|6695",
+    "label": "6695 - Repairs and maintenance of equipment, etc."
+  },
+  {
+    "value": "annenDriftskostnad|6700",
+    "label": "6700 - Accountancy and consultancy services, etc."
+  },
+  {
+    "value": "annenDriftskostnad|6750",
+    "label": "6750 - Group company services"
+  },
+  {
+    "value": "annenDriftskostnad|6751",
+    "label": "6751 - Cost reduction hours re-invoiced"
+  },
+  {
+    "value": "annenDriftskostnad|6752",
+    "label": "6752 - Cost reduction other costs re-invoiced"
+  },
+  {
+    "value": "annenDriftskostnad|6995",
+    "label": "6995 - Office equipment, electronic communication, postage, etc."
+  },
+  {
+    "value": "annenDriftskostnad|6998",
+    "label": "6998 - Private use of electronic communication"
+  },
+  {
+    "value": "annenDriftskostnad|7000",
+    "label": "7000 - Fuel"
+  },
+  {
+    "value": "annenDriftskostnad|7020",
+    "label": "7020 - Maintenance"
+  },
+  {
+    "value": "annenDriftskostnad|7040",
+    "label": "7040 - Insurance and taxes"
+  },
+  {
+    "value": "annenDriftskostnad|7080",
+    "label": "7080 - Deductions for the use of a private vehicle in the business activity"
+  },
+  {
+    "value": "annenDriftskostnad|7099",
+    "label": "7099 - Private use of a commercial vehicle"
+  },
+  {
+    "value": "annenDriftskostnad|7155",
+    "label": "7155 - Travel, subsistence and car allowances carrying a reporting obligation"
+  },
+  {
+    "value": "annenDriftskostnad|7165",
+    "label": "7165 - Travel and subsistence expenses, not subject to a reporting obligation"
+  },
+  {
+    "value": "annenDriftskostnad|7295",
+    "label": "7295 - Commission costs"
+  },
+  {
+    "value": "annenDriftskostnad|7330",
+    "label": "7330 - Marketing costs"
+  },
+  {
+    "value": "annenDriftskostnad|7350",
+    "label": "7350 - Deductible business entertainment costs"
+  },
+  {
+    "value": "annenDriftskostnad|7370",
+    "label": "7370 - Business entertainment costs"
+  },
+  {
+    "value": "annenDriftskostnad|7400",
+    "label": "7400 - Deductible membership fees"
+  },
+  {
+    "value": "annenDriftskostnad|7420",
+    "label": "7420 - Deductible costs for gifts"
+  },
+  {
+    "value": "annenDriftskostnad|7440",
+    "label": "7440 - Gifts"
+  },
+  {
+    "value": "annenDriftskostnad|7490",
+    "label": "7490 - Membership fees"
+  },
+  {
+    "value": "annenDriftskostnad|7500",
+    "label": "7500 - Insurance premiums"
+  },
+  {
+    "value": "annenDriftskostnad|7501",
+    "label": "7501 - Operational insurance"
+  },
+  {
+    "value": "annenDriftskostnad|7502",
+    "label": "7502 - Development insurance"
+  },
+  {
+    "value": "annenDriftskostnad|7503",
+    "label": "7503 - Other insurance"
+  },
+  {
+    "value": "annenDriftskostnad|7565",
+    "label": "7565 - Warranty and servicing costs"
+  },
+  {
+    "value": "annenDriftskostnad|7600",
+    "label": "7600 - License, patent and royalties"
+  },
+  {
+    "value": "annenDriftskostnad|7650",
+    "label": "7650 - Research and development cost"
+  },
+  {
+    "value": "annenDriftskostnad|7651",
+    "label": "7651 - Grants for scientific research, etc. cf. Tax Act § 6-42"
+  },
+  {
+    "value": "annenDriftskostnad|7700",
+    "label": "7700 - Other costs"
+  },
+  {
+    "value": "annenDriftskostnad|7701",
+    "label": "7701 - CO2 tax"
+  },
+  {
+    "value": "annenDriftskostnad|7830",
+    "label": "7830 - Losses on receivables"
+  },
+  {
+    "value": "annenDriftskostnad|7860",
+    "label": "7860 - Losses on contracts"
+  },
+  {
+    "value": "annenDriftskostnad|7880",
+    "label": "7880 - Losses on the disposal of intangible assets and fixed tangible assets"
+  },
+  {
+    "value": "annenDriftskostnad|7885",
+    "label": "7885 - Losses on the disposal of financial fixed assets"
+  },
+  {
+    "value": "annenDriftskostnad|7886",
+    "label": "7886 - Loss on the transfer of licenses for petroleum activities"
+  },
+  {
+    "value": "annenDriftskostnad|7890",
+    "label": "7890 - Deductions from profit and loss accounts"
+  },
+  {
+    "value": "annenDriftskostnad|7897",
+    "label": "7897 - Change in tax losses on receivables"
+  },
+  {
+    "value": "annenDriftskostnad|7910",
+    "label": "7910 - Transferred to timber account from this year’s profit and loss"
+  },
+  {
+    "value": "annenDriftskostnad|7911",
+    "label": "7911 - Expense recognition timber account"
+  },
+  {
+    "value": "annenDriftskostnad|7912",
+    "label": "7912 - Transferred to agriculture account from this year´s profit and loss"
+  },
+  {
+    "value": "annenDriftskostnad|7913",
+    "label": "7913 - Expense recognition agriculture account"
+  },
+  {
+    "value": "finansinntekt|8005",
+    "label": "8005 - Net positive share in profits regarding investments in subsidiaries, associated companies and jointly controlled enterprises"
+  },
+  {
+    "value": "finansinntekt|8030",
+    "label": "8030 - Interest income from enterprises in the same group"
+  },
+  {
+    "value": "finansinntekt|8050",
+    "label": "8050 - Other interest income"
+  },
+  {
+    "value": "finansinntekt|8054",
+    "label": "8054 - Guarantee income from enterprises in the same group"
+  },
+  {
+    "value": "finansinntekt|8059",
+    "label": "8059 - Guarantee income"
+  },
+  {
+    "value": "finansinntekt|8060",
+    "label": "8060 - Gains on fluctuations of currency exchange rates"
+  },
+  {
+    "value": "finansinntekt|8074",
+    "label": "8074 - Profits made on the sale of shares, equity certificates and units in funds"
+  },
+  {
+    "value": "finansinntekt|8075",
+    "label": "8075 - Financial income from enterprises in the same group"
+  },
+  {
+    "value": "finansinntekt|8079",
+    "label": "8079 - Other financial income"
+  },
+  {
+    "value": "finansinntekt|8080",
+    "label": "8080 - Increase in value of financial instruments carried at fair value"
+  },
+  {
+    "value": "finansinntekt|8090",
+    "label": "8090 - Income from other investments/dividends"
+  },
+  {
+    "value": "finansinntekt|8091",
+    "label": "8091 - 3% of net tax-free income in accordance with the exemption method and 3% of dividends to a partner from businesses assessed as partnerships"
+  },
+  {
+    "value": "finanskostnad|8100",
+    "label": "8100 - Reduction in value of financial instruments carried at fair value"
+  },
+  {
+    "value": "finanskostnad|8105",
+    "label": "8105 - Net negative share in profits regarding investments in subsidiaries, associated companies and jointly controlled enterprises"
+  },
+  {
+    "value": "finanskostnad|8115",
+    "label": "8115 - Write-down of financial assets"
+  },
+  {
+    "value": "finanskostnad|8120",
+    "label": "8120 - Calculated interest, removal and shutdown obligation"
+  },
+  {
+    "value": "finanskostnad|8130",
+    "label": "8130 - Interest paid to group companies"
+  },
+  {
+    "value": "finanskostnad|8150",
+    "label": "8150 - Other interest expenses"
+  },
+  {
+    "value": "finanskostnad|8154",
+    "label": "8154 - Guarantee costs for companies in the same group"
+  },
+  {
+    "value": "finanskostnad|8159",
+    "label": "8159 - Other guarantee costs"
+  },
+  {
+    "value": "finanskostnad|8160",
+    "label": "8160 - Losses from currency fluctuations"
+  },
+  {
+    "value": "finanskostnad|8174",
+    "label": "8174 - Losses on the sale of shares, equity certificates and units in funds"
+  },
+  {
+    "value": "finanskostnad|8175",
+    "label": "8175 - Financial expenses for companies in the same group"
+  },
+  {
+    "value": "finanskostnad|8179",
+    "label": "8179 - Other financial costs"
+  },
+  {
+    "value": "skattekostnad|8300",
+    "label": "8300 - Tax payable on the profit/loss on ordinary activities"
+  },
+  {
+    "value": "skattekostnad|8321",
+    "label": "8321 - Increase in deferred tax/decrease in deferred tax asset on the profit/loss on ordinary activities"
+  },
+  {
+    "value": "skattekostnad|8322",
+    "label": "8322 - Decrease in deferred tax/increase in deferred tax asset on the profit/loss on ordinary activities"
+  },
+  {
+    "value": "skattekostnad|8323",
+    "label": "8323 - Under-allocated tax from last year"
+  },
+  {
+    "value": "skattekostnad|8324",
+    "label": "8324 - Over-allocated tax from last year"
+  },
+  {
+    "value": "skattekostnad|7.80.0.10",
+    "label": "7.80.0.10 - Current tax"
+  },
+  {
+    "value": "skattekostnad|7.80.0.10.00",
+    "label": "7.80.0.10.00 - Current tax"
+  },
+  {
+    "value": "skattekostnad|7.80.7.89",
+    "label": "7.80.7.89 - Under-/over allocated tax from previous years/Changed tax liability when tax is deferred"
+  },
+  {
+    "value": "skattekostnad|7.80.7.89.00",
+    "label": "7.80.7.89.00 - Changed tax liability when tax is deferred"
+  },
+  {
+    "value": "skattekostnad|8.91.7.89.00",
+    "label": "8.91.7.89.00 - Tax on income/expense that is not reclassified"
+  },
+  {
+    "value": "skattekostnad|8.91.7.89",
+    "label": "8.91.7.89 - Tax on other income and expenses that are not reclassified"
+  },
+  {
+    "value": "skattekostnad|8.92.7.89.00",
+    "label": "8.92.7.89.00 - Tax on income/expense that may be reclassified"
+  },
+  {
+    "value": "skattekostnad|8.92.7.89",
+    "label": "8.92.7.89 - Tax on other income and expenses that may be reclassified"
+  },
+  {
+    "value": "resultatDisponeringForSAF-T|8800",
+    "label": "8800 - Appropriation of profit/allocation of loss"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8901.1",
+    "label": "8901.1 - Change in revaluation surplus"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8901.2",
+    "label": "8901.2 - Actuarial profit and loss on benefit schemes"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8901.3",
+    "label": "8901.3 - Other income and expenses from associated enterprises"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8901.4",
+    "label": "8901.4 - Net profit and loss on equity instruments"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8901.5",
+    "label": "8901.5 - Change in fair value due to own credit risk"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8909.1",
+    "label": "8909.1 - Tax related to items that will not be reclassified"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8902.1",
+    "label": "8902.1 - Conversion differences currency"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8902.2",
+    "label": "8902.2 - Change in fair value of hedging instrument upon cash flow hedging"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8902.3",
+    "label": "8902.3 - Net profit and loss on financial assets measured at fair value"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8902.4",
+    "label": "8902.4 - Net change in expenses upon hedging"
+  },
+  {
+    "value": "resultatkomponentForIFRSForetak|8909.2",
+    "label": "8909.2 - Tax related to items that may be reclassified"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.05.0.10",
+    "label": "1.05.0.10 - Overdue premiums"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.05.0.20",
+    "label": "1.05.0.20 - Ceded reinsurance premiums (negative if expense)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.05.0.50",
+    "label": "1.05.0.50 - Earned gross premiums"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.05.0.60",
+    "label": "1.05.0.60 - Reinsurance share of earned gross premium"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.07.0.00",
+    "label": "1.07.0.00 - Transfer of premium reserve, pension capital, pension fund, etc. from others"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.0.00",
+    "label": "1.11.0.00 - Interest income, etc."
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.0.40.00",
+    "label": "1.11.0.40.00 - Interest income, etc. – Financial derivatives"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.0.90.00",
+    "label": "1.11.0.90.00 - Interest income, etc. – Other assets"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.0.91.00",
+    "label": "1.11.0.91.00 - Interest income, etc. – Insurance-related income"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.0.99.00",
+    "label": "1.11.0.99.00 - Interest income, etc. – Other interest income"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.1.16.00",
+    "label": "1.11.1.16.00 - Interest income, etc. – Bank deposits"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.2.30.00",
+    "label": "1.11.2.30.00 - Interest income, etc.  – Interest-bearing tradeable securities"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.11.3.50.00",
+    "label": "1.11.3.50.00 - Interest income, etc. – Loans"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.12.0.00.00",
+    "label": "1.12.0.00.00 - Credit commission income"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.20.0.10.00",
+    "label": "1.20.0.10.00 - Provision and fee income – Intermediation of payments"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.20.0.20.00",
+    "label": "1.20.0.20.00 - Provision and fee income – Net guarantee commission income"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.20.0.90.00",
+    "label": "1.20.0.90.00 - Provision and fee income – Other commissions and charges/fees"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.30.2.20",
+    "label": "1.30.2.20 - Dividend, group contributions and other earnings-based yield"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.30.2.20.51",
+    "label": "1.30.2.20.51 - Interest fund/Dividend, group contributions and other earnings-based yield – Interest fund"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.30.2.20.91",
+    "label": "1.30.2.20.91 - Shares and units after the equity method, etc. / Dividend, group contributions and earnings-based yield – Shares and units after the equity method, etc."
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.30.2.20.99",
+    "label": "1.30.2.20.99 - Other shares and units, etc. / Dividend, group contributions and earnings-based yield – Other shares and units, etc."
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.60.0.40.00",
+    "label": "1.60.0.40.00 - Net value changes, profit/loss on currency and financial instruments – Currency and financial derivatives (assets and debt)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.60.0.96.00",
+    "label": "1.60.0.96.00 - Net value changes, profit/loss on currency and financial instruments – Other financial assets"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.60.0.97.00",
+    "label": "1.60.0.97.00 - Net value changes, profit/loss on currency and financial instruments – Financial liabilities, not including derivatives"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.60.2.20.00",
+    "label": "1.60.2.20.00 - Net value changes, profit/loss on currency and financial instruments – Shares, units and equity certificates"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.60.2.30.00",
+    "label": "1.60.2.30.00 - Net value changes, profit/loss on currency and financial instruments – Interest-bearing, tradeable securities"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.60.3.50.00",
+    "label": "1.60.3.50.00 - Net value changes, profit/loss on currency and financial instruments – Loans"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.62.0.00",
+    "label": "1.62.0.00 - Net value changes (negative if net negative value changes)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.62.0.40.00",
+    "label": "1.62.0.40.00 - Net value changes and write-downs – Currency and financial derivatives (assets and debt)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.62.0.99.00",
+    "label": "1.62.0.99.00 - Net value changes and write-downs – Other financial assets/liabilities, not including derivatives"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.62.2.20.00",
+    "label": "1.62.2.20.00 - Net value changes and write-downs – Shares, units, equity certificates"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.62.2.30.00",
+    "label": "1.62.2.30.00 - Net value changes and write-downs – Interest-bearing, tradeable securities"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.62.3.50.00",
+    "label": "1.62.3.50.00 - Net value changes and write-downs – Loans"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.62.5.91.00",
+    "label": "1.62.5.91.00 - Net value changes and write-downs – Buildings and other real property"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.63.0.00",
+    "label": "1.63.0.00 - Net realised profit or loss (negative if net realised loss)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.63.0.40.00",
+    "label": "1.63.0.40.00 - Net realised profit/loss – Currency and financial derivatives (assets and debt)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.63.0.99.00",
+    "label": "1.63.0.99.00 - Net realised profit/loss – Other financial assets/liabilities, not including derivatives"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.63.2.20.00",
+    "label": "1.63.2.20.00 - Net realised profit/loss – Shares, units, equity certificates"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.63.2.30.00",
+    "label": "1.63.2.30.00 - Net realised profit/loss – Interest-bearing, tradeable securities"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.63.3.50.00",
+    "label": "1.63.3.50.00 - Net realised profit/loss – Loans"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|1.63.5.91.00",
+    "label": "1.63.5.91.00 - Net realised profit/loss – Buildings and other real property"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.73.0.00",
+    "label": "2.73.0.00 - Operating revenue from owned property"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.73.0.00.00",
+    "label": "2.73.0.00.00 - Other income – Operating revenue from owned property"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.78.0.40",
+    "label": "2.78.0.40 - Commission, administrative fees and other income"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.78.0.40.00",
+    "label": "2.78.0.40.00 - Commission, administrative fees and other income (not technical)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.78.0.60",
+    "label": "2.78.0.60 - Commission from financial services"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.78.0.60.00",
+    "label": "2.78.0.60.00 - Commission from financial services (not technical)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.78.0.80",
+    "label": "2.78.0.80 - Management fees from group companies"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.78.0.80.00",
+    "label": "2.78.0.80.00 - Management fees from group companies (not technical)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.79.0.00",
+    "label": "2.79.0.00 - Other income"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.79.0.00.00",
+    "label": "2.79.0.00.00 - Other income – Other income (not technical)"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.79.0.10.00",
+    "label": "2.79.0.10.00 - Other income – Negative goodwill accounted for in profit and loss"
+  },
+  {
+    "value": "bankOgForsikringsinntekt|2.79.0.90.00",
+    "label": "2.79.0.90.00 - Other income – Other"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.05.0.10",
+    "label": "4.05.0.10 - Paid compensation, gross"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.05.0.20",
+    "label": "4.05.0.20 - Reinsurance share"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.07.0.00",
+    "label": "4.07.0.00 - Transfer of premium reserve, pension capital, pension fund, and additional provisions and buffer funds for other insurance undertakings/pension undertakings"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.08.0.00",
+    "label": "4.08.0.00 - Recognised changes in insurance liabilities (negative prefix if income)"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.08.8.73",
+    "label": "4.08.8.73 - Change in provisions for uncovered risk"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.09.0.00",
+    "label": "4.09.0.00 - Funds allocated to insurance contracts"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.00",
+    "label": "4.11.0.00 - Interest expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.30.10",
+    "label": "4.11.0.30.10 - Interest expenses – Bonds with preferential rights"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.30.90",
+    "label": "4.11.0.30.90 - Interest expenses – Other securities debts"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.40",
+    "label": "4.11.0.40 - Interest income, financial derivatives"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.40.00",
+    "label": "4.11.0.40.00 - Interest income – financial derivatives"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.90.00",
+    "label": "4.11.0.90.00 - Interest expenses – Other loans"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.50.00",
+    "label": "4.11.0.50.00 - Interest expenses – Other liabilities"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.91",
+    "label": "4.11.0.91 - Liabilities related to investments/financial derivatives"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.0.99",
+    "label": "4.11.0.99 - Interest expenses other interest expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.6.10.00",
+    "label": "4.11.6.10.00 - Interest expenses – Deposits"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.11.8.00",
+    "label": "4.11.8.00 - Interest expenses, subordinated loan capital"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.13.0.00.00",
+    "label": "4.13.0.00.00 - Contribution to the Guarantee Fund"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.20.0.10.00",
+    "label": "4.20.0.10.00 - Commission and fee expenses, brokerage – Intermediation of payments"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.20.0.20.00",
+    "label": "4.20.0.20.00 - Commission and fee expenses, brokerage – Net guarantee commission expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|4.20.0.90.00",
+    "label": "4.20.0.90.00 - Commission and fee expenses, brokerage – Other commissions and charges/fees"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.00.0.00",
+    "label": "5.00.0.00 - Insurance-related operating expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|9.00.0.00",
+    "label": "9.00.0.00 - Other expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.10",
+    "label": "5.51.0.10 - Salary and payments in kind to employees, director’s fees"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.11.00",
+    "label": "5.51.0.11.00 - Salary and personnel expenses – Salary and payments in kind to employees, not including personnel insurance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.19.00",
+    "label": "5.51.0.19.00 - Salary and personnel expenses – Director's fees, remuneration for holding office and other fees subject to employer’s national insurance contribution"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.20",
+    "label": "5.51.0.20 - Other fees classified as salary"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.20.00",
+    "label": "5.51.0.20.00 - Salary and personnel expenses – Other fees that are classified as salary"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.30.00",
+    "label": "5.51.0.30.00 - Salary and personnel expenses – Pension expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.40.00",
+    "label": "5.51.0.40.00 - Salary and personnel expenses – Personnel insurance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.50",
+    "label": "5.51.0.50 - Employer’s national insurance contributions and financial activity tax"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.50.00",
+    "label": "5.51.0.50.00 - Salary and personnel expenses – Employer’s national insurance contributions and financial activity tax"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.90.00",
+    "label": "5.51.0.90.00 - Salary and personnel expenses – Other personnel expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.51.0.99",
+    "label": "5.51.0.99 - Other personnel expenses"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.71.0.00",
+    "label": "5.71.0.00 - Expenses for electricity and insurance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.71.0.10.00",
+    "label": "5.71.0.10.00 - Expenses for electricity, including the network charge"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.71.0.20.00",
+    "label": "5.71.0.20.00 - Expenses for insurance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.73.0.00",
+    "label": "5.73.0.00 - Operating expenses, owned property"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.73.0.10.00",
+    "label": "5.73.0.10.00 - Operating expenses, owned property – Repair and maintenance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.73.0.90.00",
+    "label": "5.73.0.90.00 - Operating expenses, owned property – Other, not including electricity and insurance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.00",
+    "label": "5.78.0.00 - Commission, fees and other expences for external services"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.10.00",
+    "label": "5.78.0.10.00 - Other expenses for external services – Audit and accounting"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.20.00",
+    "label": "5.78.0.20.00 - Other expenses for external services – Legal assistance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.30.00",
+    "label": "5.78.0.30.00 - Other expenses for external services – ICT"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.40",
+    "label": "5.78.0.40 - Commission to agents, etc."
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.40.00",
+    "label": "5.78.0.40.00 - Other expenses for external services – Sales, advertising and representation"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.51",
+    "label": "5.78.0.51 - Issued commission for issued reinsurance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.52",
+    "label": "5.78.0.52 - Received commission for issued reinsurance"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.71.00",
+    "label": "5.78.0.71.00 - Other expenses for external services – Premises rental"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.73.00",
+    "label": "5.78.0.73.00 - Other expenses for external services – Lease of machinery, fixtures and means of transportation"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.80.00",
+    "label": "5.78.0.80.00 - Other expenses for external services – Management fee to group companies"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.90.10",
+    "label": "5.78.0.90.10 - Fees to staffing companies, not considered salary"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.78.0.90.90",
+    "label": "5.78.0.90.90 - Other expenses for external services – Other"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.79.0.00",
+    "label": "5.79.0.00 - Other operating expenses and other"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.79.0.10.00",
+    "label": "5.79.0.10.00 - Other operating expenses – Licenses, IT software and other IT hardware"
+  },
+  {
+    "value": "bankOgForsikringskostnad|5.79.0.90.00",
+    "label": "5.79.0.90.00 - Other operating expenses – Other"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.61.0.10.00",
+    "label": "6.61.0.10.00 - Depreciation on non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.61.0.20.00",
+    "label": "6.61.0.20.00 - Write-down on non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.61.0.40.00",
+    "label": "6.61.0.40.00 - Net changes in value on non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.61.0.60.00",
+    "label": "6.61.0.60.00 - Profit/loss on non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.62.5.00",
+    "label": "6.62.5.00 - Depreciation and write-downs and changes in value on non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.63.5.00",
+    "label": "6.63.5.00 - Realised profit/loss, non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.66.2.30.00",
+    "label": "6.66.2.30.00 - Credit loss on interest-bearing tradeable securities"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.66.3.50.11",
+    "label": "6.66.3.50.11 - Confirmed losses on loans recognised at fair value"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.66.3.50.19",
+    "label": "6.66.3.50.19 - Other credit losses on loans recognised at fair value"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.66.3.50.21",
+    "label": "6.66.3.50.21 - Confirmed losses on loans recognised at amortized cost"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.66.3.50.29",
+    "label": "6.66.3.50.29 - Other credit losses on loans recognised at amortized cost"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.68.7.86.00",
+    "label": "6.68.7.86.00 - Credit losses on unutilized credit lines"
+  },
+  {
+    "value": "bankOgForsikringskostnad|6.68.7.87.00",
+    "label": "6.68.7.87.00 - Credit losses on guarantees"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.10.00",
+    "label": "8.91.0.10.00 - Other income and expenses that will not be reclassified – From equity instruments"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.30",
+    "label": "8.91.0.30 - Changes in estimates relating to defined-benefit pension schemes"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.30.00",
+    "label": "8.91.0.30.00 - Other income and expenses that will not be reclassified – Changes in estimates relating to defined-benefit pension schemes"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.60",
+    "label": "8.91.0.60 - From other financial assets and liabilities"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.60.00",
+    "label": "8.91.0.60.00 - Other income and expenses that will not be reclassified – From other financial assets and liabilities"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.70.00",
+    "label": "8.91.0.70.00 - Other income and expenses that will not be reclassified – From non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.71",
+    "label": "8.91.0.71 - Value regulation on property, plant and equipment"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.72",
+    "label": "8.91.0.72 - From other non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomIkkeBlirOmklassifisertTilResultatet|8.91.0.80",
+    "label": "8.91.0.80 - Adjustments in insurance liabilities – only life insurance"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.20",
+    "label": "8.92.0.20 - From investments in interest-bearing securities classified to a fair value over OCI – only non-life insurance that follows IFRS 9"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.20.00",
+    "label": "8.92.0.20.00 - Other income and expenses that may be reclassified – From interest-bearing securities"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.21",
+    "label": "8.92.0.21 - Profit and loss on financial assets that are for sale"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.40",
+    "label": "8.92.0.40 - Effective share of net profit on hedging instruments in cash flow hedge"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.40.00",
+    "label": "8.92.0.40.00 - Other income and expenses that may be reclassified – Effective share of net profit on hedging instruments in cash flow hedge"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.50.00",
+    "label": "8.92.0.50.00 - Other income and expenses that may be reclassified – Net currency profits on foreign currency translation"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.60",
+    "label": "8.92.0.60 - From other financial assets and liabilities"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.60.00",
+    "label": "8.92.0.60.00 - Other income and expenses that may be reclassified – From other financial assets and liabilities"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.70",
+    "label": "8.92.0.70 - From non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.70.00",
+    "label": "8.92.0.70.00 - Other income and expenses that may be reclassified – From non-financial assets"
+  },
+  {
+    "value": "bankOgForsikringsinntektEllerKostnadSomKanBliOmklassifisertTilResultatet|8.92.0.80",
+    "label": "8.92.0.80 - Adjustments in insurance liabilities – only life insurance"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.01.0.00.00",
+    "label": "9.01.0.00.00 - Impact of changes in accounting policies and correction of errors in opening  balance (may be negative)"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.03.0.10.00",
+    "label": "9.03.0.10.00 - Total profit/loss year to date (negative if deficit)"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.03.0.90.00",
+    "label": "9.03.0.90.00 - Net income over extended profit/loss (OCI) (negative if net cost)"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.05.9.21.00",
+    "label": "9.05.9.21.00 - Issues, repurchase, capital reduction and other changes – Share capital/owner capital"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.05.9.25.00",
+    "label": "9.05.9.25.00 - Issues, repurchase, capital reduction and other changes – Hybrid capital"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.08.0.10.00",
+    "label": "9.08.0.10.00 - Other equity transactions – Distributions of gifts"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.08.0.40.00",
+    "label": "9.08.0.40.00 - Other equity transactions – Interest on hybrid capital"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.08.0.50.00",
+    "label": "9.08.0.50.00 - Other equity transactions – Dividend/interest on owner capital"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.08.0.60.10",
+    "label": "9.08.0.60.10 - Other equity transactions – Ceded group contribution"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.08.0.60.20",
+    "label": "9.08.0.60.20 - Other equity transactions – Received group contribution"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.08.0.70.00",
+    "label": "9.08.0.70.00 - Other equity transactions – Customer dividends"
+  },
+  {
+    "value": "endringIEgenkapitalInnenBankOgForsikring|9.08.0.90.00",
+    "label": "9.08.0.90.00 - Other equity transactions – Other"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|1.11.00",
+    "label": "1.11.00 - Cash"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|1.16.00",
+    "label": "1.16.00 - Bank deposits"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.20.40",
+    "label": "2.20.40 - Hybrid capital classified as equity capital"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.20.51",
+    "label": "2.20.51 - Units in interest funds"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.20.56",
+    "label": "2.20.56 - Units in shares and combination funds"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.20.80",
+    "label": "2.20.80 - Shares and units in property companies"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.20.90",
+    "label": "2.20.90 - Equity certificates and other shares and units"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.30.00",
+    "label": "2.30.00 - Interest-bearing, tradeable securities, etc. not including units in interest funds"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.30.10",
+    "label": "2.30.10 - Bonds with preferential rights"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.30.40",
+    "label": "2.30.40 - Hybrid capital classified as subordinated loan capital"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.30.91",
+    "label": "2.30.91 - Other securities with maturity up to and including 12 months"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.30.92",
+    "label": "2.30.92 - Other securities with maturity over 12 months"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|2.40.00",
+    "label": "2.40.00 - Financial derivatives (can be negative)"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.51.11",
+    "label": "3.51.11 - Loans, gross recognised value – Factoring"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.51.15",
+    "label": "3.51.15 - Loans, gross recognised value – Credit cards"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.51.19",
+    "label": "3.51.19 - Loans, gross recognised value – Other flexible loans/flexible credits"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.51.30",
+    "label": "3.51.30 - Loans, gross recognised value – Leasing"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.51.50",
+    "label": "3.51.50 - Loans, gross recognised value – Amortizing loan"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.51.80",
+    "label": "3.51.80 - Loans – Securities loan/repo loan / Loans, gross recognised value – Repo agreement (repurchase agreement)"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.51.90",
+    "label": "3.51.90 - Loans – Other loans"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.56.00",
+    "label": "3.56.00 - Loans – Loss write-downs (can be negative)"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.56.10",
+    "label": "3.56.10 - Loss write-downs on loans, 12 months expected credit loss on “fresh” loans (step 1)"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.56.30",
+    "label": "3.56.30 - Write-down as a result of a significant increase in credit risk, without a loss event (step 2)"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.56.50",
+    "label": "3.56.50 - Write-down as a result of a significant increase in credit risk, with a loss event (step 3)"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.60.00",
+    "label": "3.60.00 - Reinsurance share of gross insurance liabilities in life insurance"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|3.70.00",
+    "label": "3.70.00 - Reinsurance share of gross insurance liabilities in non-life insurance"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|4.82.50",
+    "label": "4.82.50 - Other receivables – Unsettled securities trading"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|4.82.90",
+    "label": "4.82.90 - Other receivables – Other current receivables"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|4.89.10",
+    "label": "4.89.10 - Other assets – Reinsurance reserves"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|4.89.20",
+    "label": "4.89.20 - Other assets – Assets relating to tax"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|4.89.70",
+    "label": "4.89.70 - Net pension funds"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|4.89.90",
+    "label": "4.89.90 - Other assets – Other assets"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|5.91.10",
+    "label": "5.91.10 - Buildings and other real property, not including shares in property companies – Investment property"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|5.91.30",
+    "label": "5.91.30 - Buildings and other real property, not including shares in property companies – properties used by owners"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|5.91.50",
+    "label": "5.91.50 - Acquired properties"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|5.94.00",
+    "label": "5.94.00 - Machines, equipment and vehicles"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|5.96.00",
+    "label": "5.96.00 - Right to lease"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|5.97.10",
+    "label": "5.97.10 - Intangible assets – Goodwill"
+  },
+  {
+    "value": "balanseverdiForBankOgForsikringseiendel|5.97.90",
+    "label": "5.97.90 - Intangible assets – Other intangible assets"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.16.10",
+    "label": "6.16.10 - Deposits – Current accounts"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.16.20",
+    "label": "6.16.20 - Deposits – Savings accounts, etc. without lock-in period"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.17.10",
+    "label": "6.17.10 - Deposits with a period of notice up to and including 3 months after a lock-in period up to and including 2 years"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.17.90",
+    "label": "6.17.90 - Deposits with a period of notice over 3 months after a lock-in period of over 2 years"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.18.10",
+    "label": "6.18.10 - Tax deduction accounts"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.18.30",
+    "label": "6.18.30 - Home savings accounts for young people (BSU account with tax deduction)"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.18.40",
+    "label": "6.18.40 - Accounts linked to pension savings schemes"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|6.18.90",
+    "label": "6.18.90 - Other deposits linked to purposes with no period of notice or lock-in period"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.30.11",
+    "label": "7.30.11 - Bonds with preferential rights (only credit institutions), gross"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.30.12",
+    "label": "7.30.12 - Own holding in bonds with preferential rights"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.30.91",
+    "label": "7.30.91 - Other securities debt, gross"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.30.92",
+    "label": "7.30.92 - Own holding in other bonds"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.40.00",
+    "label": "7.40.00 - Financial derivatives"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.50.80",
+    "label": "7.50.80 - Loans – securities/repo loans"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.50.90",
+    "label": "7.50.90 - Loans – liquidity loans/other loans (bank)"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.82.20",
+    "label": "7.82.20 - Tax deductions in connection with own employees"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.82.50",
+    "label": "7.82.50 - Other debt – Unsettled securities trading"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.82.81",
+    "label": "7.82.81 - Other debt – Dividend/equity certificate interest, last year"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.82.82",
+    "label": "7.82.82 - Group contributions, last year"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.82.90",
+    "label": "7.82.90 - Other debt – Other current debt"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.86.10",
+    "label": "7.86.10 - 12 months expected credit loss on “fresh” loans and guarantees (step 1)"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.86.30",
+    "label": "7.86.30 - Loss provisions as a result of a significant increase in credit risk, without a loss event (step 2)"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.86.50",
+    "label": "7.86.50 - Loss provisions as a result of a significant increase in credit risk, with a loss event (step 3)"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.87.00",
+    "label": "7.87.00 - Loss provisions for guarantees at fair value"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.89.10",
+    "label": "7.89.10 - Other liabilities – Premium reserve from reinsurance undertakings"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.89.21",
+    "label": "7.89.21 - Other liabilities – Current tax liabilities"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.89.22",
+    "label": "7.89.22 - Other liabilities – Deferred tax liabilities"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.89.70",
+    "label": "7.89.70 - Other liabilities – Pension liabilities"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.89.80",
+    "label": "7.89.80 - Other liabilities – Liabilities related to rental agreements"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|7.89.90",
+    "label": "7.89.90 - Other liabilities – Other liabilities"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.31.00",
+    "label": "8.31.00 - Subordinated loan capital in the form of hybrid capital, net"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.39.00",
+    "label": "8.39.00 - Subordinated loan capital in the form of interest-bearing, tradeable securities, net"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.39.10",
+    "label": "8.39.10 - Subordinated loan capital, senior non-preferred bond loans, net"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.39.90",
+    "label": "8.39.90 - Subordinated loan capital, Other loans in the form of tradeable securities, net"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.50.00",
+    "label": "8.50.00 - Other subordinated loan capital"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.61.00",
+    "label": "8.61.00 - Premium reserve and pension cost, etc."
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.62.00",
+    "label": "8.62.00 - Additional provisions"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.63.00",
+    "label": "8.63.00 - Adjustment fund"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.64.00",
+    "label": "8.64.00 - Buffer fund"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.65.00",
+    "label": "8.65.00 - Buffer provisions and adjustment fund"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.66.00",
+    "label": "8.66.00 - Premium fund/deposit fund"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.67.00",
+    "label": "8.67.00 - Pensioner’s surplus fund and pension regulation fund"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.68.00",
+    "label": "8.68.00 - Technical provisions for non-life insurance activities"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.69.00",
+    "label": "8.69.00 - Undistributed surplus funds for insurance contracts"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.71.00",
+    "label": "8.71.00 - Provisions for non-earned net premium"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.73.00",
+    "label": "8.73.00 - Provisions for uncovered risk"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.75.00",
+    "label": "8.75.00 - Provision for remaining risk (only under IFRS)"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.76.00",
+    "label": "8.76.00 - Provision for incurred losses (only under IFRS)"
+  },
+  {
+    "value": "gjeldInnenBankOgForsikring|8.78.00",
+    "label": "8.78.00 - Gross provisions for insurance liabilities"
+  }
+]

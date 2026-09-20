@@ -8,8 +8,17 @@ import Payment from './Payment.json';
 import JournalEntry from './JournalEntry.json';
 import SalesInvoiceItem from './SalesInvoiceItem.json';
 import PurchaseInvoiceItem from './PurchaseInvoiceItem.json';
+import Account from './Account.json';
+import saftGroupingOptions from 'fixtures/noSaftGroupingOptions.json';
 
 export default [
+  {
+    ...Account,
+    fields: Account.fields.map((field) => ({
+      ...field,
+      options: saftGroupingOptions,
+    })),
+  },
   AccountingSettings,
   Party,
   SalesInvoice,
