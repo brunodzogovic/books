@@ -41,6 +41,10 @@ of the interface language: both English and Bokmål are supported.
   after the source build. CI also extracts the AppImage to verify its runtime
   structure, performs a headless packaged-app startup smoke when Xvfb is
   available, and uploads the package as a 14-day workflow artifact for testing.
+- CI also emits a 14-day accountant-review artifact bundle containing the
+  realistic CirreniX reference SAF-T XML, a machine-readable reconciliation
+  summary, and the generated CSV/XLSX/ODS office exports. This is review
+  evidence, not accountant approval.
 - Negative ordinary sales invoices are blocked so reductions and reversals use
   the linked credit-note workflow and retain correction traceability.
 - Bokmål regression now covers the VAT/export cockpit and Norwegian sales-

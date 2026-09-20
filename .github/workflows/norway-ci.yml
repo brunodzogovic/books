@@ -101,6 +101,7 @@ jobs:
       - name: Norway full-year regression
         env:
           TEST_DB_PATH: ${{ runner.temp }}/cirrenix-norway-reference.books.db
+          NORWAY_REFERENCE_ARTIFACT_DIR: ${{ runner.temp }}/norway-reference-review
         run: yarn test tests/testNorwayYearEnd.spec.ts
 
       - name: Verify Norwegian reference database
@@ -122,6 +123,16 @@ jobs:
         with:
           name: cirrenix-norway-reference-database
           path: ${{ runner.temp }}/cirrenix-norway-reference.books.db
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload Norwegian accountant-review bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: cirrenix-norway-accountant-review
+          path: |
+            ${{ runner.temp }}/norway-reference-review/*
+            ${{ runner.temp }}/norway-office/*
           if-no-files-found: error
           retention-days: 14
 

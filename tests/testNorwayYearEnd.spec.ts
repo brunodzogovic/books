@@ -1,3 +1,5 @@
+import { promises as fs } from 'fs';
+import path from 'path';
 import { BalanceSheet } from 'reports/BalanceSheet/BalanceSheet';
 import { ProfitAndLoss } from 'reports/ProfitAndLoss/ProfitAndLoss';
 import { getNorwegianVatSummary } from 'reports/NorwegianVAT/NorwegianVAT';
@@ -416,6 +418,47 @@ test('Norwegian realistic full-year SME accounting regression', async (t) => {
       ? 'full-year SAF-T export validates against the official 1.40 schema'
       : `full-year SAF-T XSD validation failed: ${xsdValidation.output}`
   );
+
+  const artifactDir = process.env.NORWAY_REFERENCE_ARTIFACT_DIR;
+  if (artifactDir) {
+    await fs.mkdir(artifactDir, { recursive: true });
+    await fs.writeFile(
+      path.join(artifactDir, 'SAF-T_Financial_1.40_CirreniX_Test_AS.xml'),
+      saft.xml,
+      'utf8'
+    );
+    await fs.writeFile(
+      path.join(artifactDir, 'reference-summary.json'),
+      JSON.stringify(
+        {
+          company: 'CirreniX Test AS',
+          fiscalYear: year,
+          currency: 'NOK',
+          transactionCount: saft.numberOfEntries,
+          totalDebit: saft.totalDebit,
+          totalCredit: saft.totalCredit,
+          vat: {
+            output25Basis: output25?.basis ?? 0,
+            output25Amount: output25?.vatAmount ?? 0,
+            input25Basis: input25?.basis ?? 0,
+            input25Amount: input25?.vatAmount ?? 0,
+          },
+          statements: {
+            income,
+            expense,
+            profit,
+            assets,
+            liabilities,
+            equity,
+          },
+        },
+        null,
+        2
+      ),
+      'utf8'
+    );
+    t.ok(true, 'reference SAF-T and review summary artifacts were written');
+  }
 
   await fyo.singles.AccountingSettings?.setAndSync(
     'accountingLockDate',
