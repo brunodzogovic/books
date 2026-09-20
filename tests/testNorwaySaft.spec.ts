@@ -28,6 +28,29 @@ const dbPath = getTestDbPath();
 const SAFT_140_XSD_URL =
   'https://raw.githubusercontent.com/Skatteetaten/saf-t/05179521e435d82feb0b2d6c89a92a32a4f2d02f/SAF-T_Financial_1.4/Norwegian_SAF-T_Financial_Schema_v_1.40.xsd';
 
+const SAFT_GROUPING_2025_2026_URL =
+  'https://raw.githubusercontent.com/Skatteetaten/saf-t/05179521e435d82feb0b2d6c89a92a32a4f2d02f/Grouping%20Category%20Code%202025-2026/XML/naeringsspesifikasjon.xml';
+
+async function getOfficialGroupingPairs(): Promise<Set<string>> {
+  const response = await fetch(SAFT_GROUPING_2025_2026_URL);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch official SAF-T grouping codelist: HTTP ${response.status}`
+    );
+  }
+
+  const xml = await response.text();
+  const pairs = new Set<string>();
+
+  for (const match of xml.matchAll(
+    /<Account>[\s\S]*?<GroupingCategory>([^<]+)<\/GroupingCategory>[\s\S]*?<GroupingCode>([^<]+)<\/GroupingCode>[\s\S]*?<\/Account>/g
+  )) {
+    pairs.add(`${match[1]}|${match[2]}`);
+  }
+
+  return pairs;
+}
+
 async function validateAgainstOfficialSaft140Xsd(xml: string) {
   const probe = spawnSync('xmllint', ['--version'], {
     encoding: 'utf8',
@@ -560,6 +583,24 @@ test('Norwegian SAF-T Financial 1.40 exports balanced general ledger', async (t)
     ).length,
     0,
     'starter chart has a SAF-T grouping for every numbered account'
+  );
+
+  const officialGroupingPairs = await getOfficialGroupingPairs();
+  t.ok(
+    officialGroupingPairs.size > 0,
+    'official Skatteetaten 2025-2026 grouping codelist is readable'
+  );
+
+  const invalidStarterMappings = Object.entries(
+    NORWEGIAN_SME_SAFT_GROUPING_BY_ACCOUNT
+  ).filter(([, grouping]) =>
+    !officialGroupingPairs.has(`${grouping.category}|${grouping.code}`)
+  );
+
+  t.equal(
+    invalidStarterMappings.length,
+    0,
+    'all starter-chart grouping pairs exist in Skatteetaten 2025-2026 codelist'
   );
 
   t.deepEqual(
