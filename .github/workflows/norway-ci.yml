@@ -126,14 +126,22 @@ jobs:
       - name: Smoke-run packaged AppImage
         shell: bash
         run: |
-          if ! command -v xvfb-run >/dev/null 2>&1; then
-            echo "xvfb-run not installed; archive/runtime structure checks remain authoritative."
-            exit 0
-          fi
-
           mkdir -p "$RUNNER_TEMP/norway-app-home"
           set +e
-          HOME="$RUNNER_TEMP/norway-app-home"             timeout 20s xvfb-run -a squashfs-root/AppRun --no-sandbox             >"$RUNNER_TEMP/norway-app-smoke.log" 2>&1
+
+          if command -v xvfb-run >/dev/null 2>&1; then
+            HOME="$RUNNER_TEMP/norway-app-home" \
+              timeout 20s xvfb-run -a squashfs-root/AppRun --no-sandbox \
+              >"$RUNNER_TEMP/norway-app-smoke.log" 2>&1
+          else
+            HOME="$RUNNER_TEMP/norway-app-home" \
+              timeout 20s squashfs-root/AppRun \
+              --no-sandbox \
+              --disable-gpu \
+              --ozone-platform=headless \
+              >"$RUNNER_TEMP/norway-app-smoke.log" 2>&1
+          fi
+
           STATUS=$?
           set -e
 
