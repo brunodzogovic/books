@@ -1,0 +1,65 @@
+name: Norwegian Localization CI
+
+on:
+  push:
+    branches:
+      - feature/l10n-no
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: norwegian-l10n-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  norwegian-localization:
+    name: Norway localization regression
+    runs-on:
+      - self-hosted
+      - Linux
+      - elitebook-mint
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      - name: Set up Yarn
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.18 --activate
+          node --version
+          yarn --version
+
+      - name: Verify SAF-T validator
+        shell: bash
+        run: |
+          command -v xmllint
+          xmllint --version
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Norway setup regression
+        run: yarn test tests/testNorwaySetup.spec.ts
+
+      - name: Norway accounting regression
+        run: yarn test tests/testNorwayAccounting.spec.ts
+
+      - name: Norway SAF-T regression
+        run: yarn test tests/testNorwaySaft.spec.ts
+
+      - name: Norway full-year regression
+        run: yarn test tests/testNorwayYearEnd.spec.ts
+
+      - name: Build application
+        run: yarn build --nopackage
