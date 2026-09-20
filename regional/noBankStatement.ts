@@ -208,7 +208,7 @@ function parseBankAmount(value: string | undefined, rowNumber: number): number {
 function detectDelimiter(text: string): ',' | ';' | '\t' {
   const firstLine = text.split(/\r?\n/, 1)[0] ?? '';
   const candidates = [',', ';', '\t'] as const;
-  let best = candidates[0];
+  let best: ',' | ';' | '\t' = candidates[0];
   let bestCount = -1;
 
   for (const delimiter of candidates) {
