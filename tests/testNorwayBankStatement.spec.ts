@@ -94,4 +94,5 @@ test('Norwegian bank CSV fails clearly on missing mapping and invalid values', (
     /invalid amount/,
     'invalid amount is rejected before import'
   );
+  t.end();
 });
