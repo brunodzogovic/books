@@ -145,6 +145,9 @@ jobs:
       - name: Norway bank reconciliation suggestion regression
         run: yarn test tests/testNorwayBankReconciliation.spec.ts
 
+      - name: Payment method account regression
+        run: yarn test models/baseModels/tests/testPayment.spec.ts
+
       - name: Norway persistence regression
         run: yarn test tests/testNorwayPersistence.spec.ts
 
