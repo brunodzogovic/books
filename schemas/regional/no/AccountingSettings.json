@@ -83,6 +83,15 @@
       "fieldtype": "Date",
       "section": "Norway",
       "description": "Prevents posting, reversal, or cancellation of accounting transactions on or before this date."
+    },
+    {
+      "fieldname": "bankImportProfiles",
+      "label": "Bank Import Profiles",
+      "fieldtype": "Text",
+      "hidden": true,
+      "readOnly": true,
+      "section": "Norway",
+      "description": "Saved Norwegian bank CSV mapping profiles stored as JSON."
     }
   ],
   "quickEditFields": [

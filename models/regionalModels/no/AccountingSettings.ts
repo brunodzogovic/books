@@ -11,6 +11,7 @@ export class AccountingSettings extends BaseAccountingSettings {
   postalCode?: string;
   city?: string;
   accountingLockDate?: Date;
+  bankImportProfiles?: string;
 
   validations: ValidationMap = {
     email: validateEmail,

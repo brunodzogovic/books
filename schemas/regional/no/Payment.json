@@ -8,6 +8,15 @@
       "readOnly": true,
       "section": "References",
       "description": "Reason recorded when a posted Norwegian accounting document is cancelled or reversed."
+    },
+    {
+      "fieldname": "norwegianBankTransactionFingerprint",
+      "label": "Bank Transaction Fingerprint",
+      "fieldtype": "Data",
+      "readOnly": true,
+      "hidden": true,
+      "section": "References",
+      "description": "Deterministic identifier used by Norwegian bank reconciliation to prevent accidental duplicate processing."
     }
   ]
 }

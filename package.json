@@ -17,7 +17,8 @@
     "test": "scripts/test.sh",
     "uitest": "node uitest/index.mjs | tap-spec",
     "lint": "eslint . --ext ts,vue",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "norway:verify": "bash scripts/verify-norway.sh"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.4.2",
