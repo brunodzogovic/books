@@ -170,8 +170,8 @@ test('bank reconciliation supports explicit partial invoice matches', (t) => {
   );
   t.equal(
     suggestions[0]?.confidence,
-    'high',
-    'reference plus party evidence makes partial match strong'
+    'medium',
+    'reference plus party evidence makes partial match reviewable'
   );
   t.ok(
     suggestions[0]?.reasons.includes('partial amount within outstanding balance'),
@@ -390,6 +390,7 @@ test('bank transaction fingerprint is stable and identity-sensitive', (t) => {
     currency: 'NOK',
     reference: 'faktura 42',
     counterpartyName: 'økonomi kunde as',
+    counterpartyAccount: 'NO12345678901',
   };
   const changed = { ...normalized, amount: 12500.01 };
 

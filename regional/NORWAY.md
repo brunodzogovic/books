@@ -1,6 +1,6 @@
 # CirreniX Norwegian localization
 
-Work on `feature/l10n-no`. The roadmap comes from **Plan norsk lokalisering**
+Development is integrated directly on the fork's `master` branch and validated locally on the self-hosted Linux workstation. The roadmap comes from **Plan norsk lokalisering**
 in the **CirreniX startup** project (ChatGPT conversation
 `6aaed0d9-e828-83ed-aaeb-b7e69c6c8bac`). Keep Norwegian accounting independent
 of the interface language: both English and Bokmål are supported.
@@ -142,28 +142,41 @@ without creating ledger entries automatically. Column names are explicitly
 mapped because Norwegian banks do not share one universal CSV layout.
 
 Deterministic reconciliation suggestions in `regional/noBankReconciliation.ts`
-rank open invoices using cash direction, exact outstanding amount, invoice
-number in the bank reference and counterparty name. Suggestions include their
-evidence and confidence, but never create or submit a payment automatically.
-Non-exact amounts are deliberately left unmatched for manual review at this
-stage.
+rank open invoices using cash direction, outstanding amount, invoice number in
+the bank reference and counterparty name. Exact payments remain preferred, but
+explicit partial-payment candidates are now supported when the bank amount is
+below the outstanding balance. Partial drafts are blocked unless Frappe Books'
+partial-payment setting is enabled. Overpayments are never guessed.
 
-The Norwegian **Bank Reconciliation** report now exposes this as a review-first
+The matcher also searches bounded same-party combinations of two to four open
+invoices whose outstanding balances exactly equal one bank transaction. It
+never combines different parties or mixes incompatible cash directions. This
+allows a single bank transfer to settle several invoices while keeping one
+Payment and an auditable allocation table.
+
+The Norwegian **Bank Reconciliation** report exposes this as a review-first
 desktop workflow. A user loads a CSV, maps the bank's own column headers through
 dropdowns, reviews normalized transactions and sees ranked invoice candidates
-with confidence and evidence. A small set of unambiguous Norwegian/English
-header names is preselected when possible; the mapping remains visible and
-editable. The report loads open-invoice candidates once per refresh rather than
-querying them for every bank row, and foreign-currency rows are left for manual
-review. The review grid can be exported through the normal CSV/XLSX/ODS/JSON
-report exporters. A reviewed, sufficiently unambiguous match can now open an
-**unsaved Payment draft** using the bank booking date, positive allocated amount,
-party, matched invoice and bank reference. The user must explicitly select a
-Bank-type Payment Method whose configured GL account is itself a Bank account.
-The draft is
-never saved or submitted automatically, so the normal Payment validation and
-human review remain in the posting path. Amount-only ambiguous matches stay
-review-only until the user resolves them.
+with confidence, evidence and a reconciliation status. Norwegian/English header
+aliases are preselected where unambiguous, and mappings can now be saved as
+company-specific profiles together with the selected Bank Payment Method.
+Profiles are stored in the accounting database, survive backup/restore, and are
+auto-applied only when their header signature uniquely matches the loaded file.
+
+Reviewed matches open **unsaved Payment drafts** using the bank booking date,
+positive allocated amount, party, invoice allocation and bank reference.
+Ambiguous rows are clickable and present the top reviewed choices instead of
+silently choosing one. Exact same-party multi-invoice allocations produce one
+draft Payment with several references. Partial matches produce a partial draft
+only when partial payments are enabled. Foreign-currency rows remain manual.
+
+Every generated draft carries a deterministic Norwegian bank-transaction
+fingerprint. Saved non-cancelled Payments reject a second Payment carrying the
+same fingerprint, and later bank imports show the transaction as already
+processed. A cancelled Payment does not permanently consume the fingerprint, so
+a replacement can be reviewed after reversal. The user must still explicitly
+select a Bank-type Payment Method whose configured GL account is a Bank account.
+No reconciliation path saves or submits a Payment automatically.
 
 ## Remaining roadmap checkpoints
 
@@ -182,9 +195,9 @@ Continue with acceptance evidence rather than assuming a feature is complete:
    in OnlyOffice and EuroOffice, especially number/date handling and formulas.
 5. Packaging and dogfooding: install/run the produced Linux AppImage, exercise
    real UI export/save flows, and build a reviewed CirreniX reference dataset.
-6. Later integrations: richer reconciliation allocation for partial/multi-invoice
-   payments, saved bank-import profiles, EHF/Peppol, KID, Brønnøysund lookups
-   and tax-authority APIs. Keep these optional adapters.
+6. Later integrations: bank-fee/write-off review, stronger KID-aware matching,
+   EHF/Peppol, Brønnøysund lookups and tax-authority APIs. Keep these optional
+   adapters; never invent fees or write-offs automatically.
 
 Do not copy the proprietary NS 4102 standard. The starter chart remains an
 open, conventional subset. The bundled grouping list is Skatteetaten's
@@ -194,20 +207,23 @@ years without checking the applicable official list.
 ## Validation
 
 Use the Node version in `.nvmrc` and install `xmllint` (`libxml2-utils` on
-Debian/Ubuntu/Linux Mint). From the repository root:
+Debian/Ubuntu/Linux Mint). The normal local acceptance gate is now one command:
 
 ```sh
 nvm use
-yarn test tests/testNorwaySetup.spec.ts
-yarn test tests/testNorwayAccounting.spec.ts
-yarn test tests/testNorwayDocuments.spec.ts
-yarn test tests/testNorwaySaft.spec.ts
-yarn test tests/testNorwayYearEnd.spec.ts
-yarn test tests/testNorwayPersistence.spec.ts
-yarn build --nopackage
-yarn build --nosign --linux AppImage --x64 --publish never
-yarn lint
+yarn norway:verify
 ```
+
+It runs the complete Norwegian regression set, the generic Payment account
+regression, the application build and lint. To add the Linux AppImage packaging
+gate:
+
+```sh
+yarn norway:verify --package
+```
+
+GitHub-hosted Actions are not required for Norwegian development; the repository
+can be validated entirely on the local/self-hosted Linux workstation.
 
 The XML checks use local, unmodified, pinned official fixtures and require no
 network downloads. Test process errors propagate through the output formatter.

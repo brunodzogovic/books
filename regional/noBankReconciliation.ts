@@ -424,14 +424,19 @@ export function findNorwegianBankMultiInvoiceAllocations(
 export function getNorwegianBankTransactionFingerprint(
   transaction: NorwegianBankTransaction
 ): string {
+  const referenceIdentity = normalizeFingerprintText(
+    transaction.reference ?? transaction.description ?? ''
+  );
+  const counterpartyIdentity = transaction.counterpartyAccount
+    ? transaction.counterpartyAccount.replace(/[^a-z0-9]/gi, '').toUpperCase()
+    : normalizeFingerprintText(transaction.counterpartyName ?? '');
+
   const canonical = [
     transaction.bookingDate,
     Math.round(transaction.amount * 100).toString(),
     transaction.currency.trim().toUpperCase(),
-    normalizeFingerprintText(transaction.reference ?? ''),
-    normalizeFingerprintText(transaction.description ?? ''),
-    normalizeFingerprintText(transaction.counterpartyName ?? ''),
-    normalizeFingerprintText(transaction.counterpartyAccount ?? ''),
+    referenceIdentity,
+    counterpartyIdentity,
   ].join('|');
 
   const parts = [
