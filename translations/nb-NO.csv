@@ -705,3 +705,4 @@
 "Delete Bank Mapping Profile","Slett bankkartleggingsprofil",""
 "Accounting settings are not available.","Regnskapsinnstillingene er ikke tilgjengelige.",""
 "Bank transaction has already been reconciled by payment ${duplicate.name}.","Banktransaksjonen er allerede avstemt med betaling ${duplicate.name}.",""
+"Transaction ID Column","Kolonne for transaksjons-ID",""

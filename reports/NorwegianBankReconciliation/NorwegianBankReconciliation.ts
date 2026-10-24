@@ -94,6 +94,13 @@ const HEADER_ALIASES = {
   amount: ['beløp', 'belop', 'amount'],
   currency: ['valuta', 'currency'],
   reference: ['referanse', 'reference', 'kid'],
+  transactionId: [
+    'transaksjonsid',
+    'transaction id',
+    'transactionid',
+    'arkivreferanse',
+    'archive reference',
+  ],
   description: ['beskrivelse', 'description', 'tekst'],
   counterpartyName: ['motpart', 'counterparty', 'navn'],
   counterpartyAccount: [
@@ -117,6 +124,7 @@ export class NorwegianBankReconciliation extends Report {
   amountColumn?: string;
   currencyColumn?: string;
   referenceColumn?: string;
+  transactionIdColumn?: string;
   descriptionColumn?: string;
   counterpartyNameColumn?: string;
   counterpartyAccountColumn?: string;
@@ -245,6 +253,12 @@ export class NorwegianBankReconciliation extends Report {
         fieldname: 'referenceColumn',
         fieldtype: 'Select',
         label: t`Reference Column`,
+        options: optionalOptions,
+      },
+      {
+        fieldname: 'transactionIdColumn',
+        fieldtype: 'Select',
+        label: t`Transaction ID Column`,
         options: optionalOptions,
       },
       {
@@ -488,6 +502,7 @@ export class NorwegianBankReconciliation extends Report {
 
     if (this.currencyColumn) mapping.currency = this.currencyColumn;
     if (this.referenceColumn) mapping.reference = this.referenceColumn;
+    if (this.transactionIdColumn) mapping.transactionId = this.transactionIdColumn;
     if (this.descriptionColumn) mapping.description = this.descriptionColumn;
     if (this.counterpartyNameColumn) {
       mapping.counterpartyName = this.counterpartyNameColumn;
@@ -512,6 +527,10 @@ export class NorwegianBankReconciliation extends Report {
     this.referenceColumn = inferHeader(
       this.headers,
       HEADER_ALIASES.reference
+    );
+    this.transactionIdColumn = inferHeader(
+      this.headers,
+      HEADER_ALIASES.transactionId
     );
     this.descriptionColumn = inferHeader(
       this.headers,

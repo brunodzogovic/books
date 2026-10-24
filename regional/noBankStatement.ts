@@ -8,6 +8,7 @@ export type NorwegianBankCsvMapping = {
   description?: string;
   counterpartyName?: string;
   counterpartyAccount?: string;
+  transactionId?: string;
 };
 
 export type NorwegianBankCsvDelimiter = ',' | ';' | '\t' | 'auto';
@@ -25,6 +26,8 @@ export type NorwegianBankTransaction = {
   description?: string;
   counterpartyName?: string;
   counterpartyAccount?: string;
+  transactionId?: string;
+  occurrence: number;
 };
 
 export function getNorwegianBankStatementCsvHeaders(
@@ -66,7 +69,7 @@ export function parseNorwegianBankStatementCsv(
   const index = getColumnIndices(headers, mapping);
   const defaultCurrency = (options.defaultCurrency ?? 'NOK').trim().toUpperCase();
 
-  return rows
+  const transactions = rows
     .slice(1)
     .filter((row) => row.some((value) => value.trim() !== ''))
     .map((row, rowOffset) => {
@@ -101,8 +104,26 @@ export function parseNorwegianBankStatementCsv(
         counterpartyAccount: normalizeAccount(
           getMappedValue(row, index.counterpartyAccount)
         ),
+        transactionId: cleanOptional(
+          getMappedValue(row, index.transactionId)
+        ),
+        occurrence: 1,
       };
     });
+
+  const occurrences = new Map<string, number>();
+  for (const transaction of transactions) {
+    if (transaction.transactionId) {
+      continue;
+    }
+
+    const identity = getBankTransactionOccurrenceIdentity(transaction);
+    const occurrence = (occurrences.get(identity) ?? 0) + 1;
+    occurrences.set(identity, occurrence);
+    transaction.occurrence = occurrence;
+  }
+
+  return transactions;
 }
 
 type MappingKey = keyof NorwegianBankCsvMapping;
@@ -311,4 +332,32 @@ function parseDelimitedRows(text: string, delimiter: string): string[][] {
   row.push(value);
   rows.push(row);
   return rows;
+}
+
+function getBankTransactionOccurrenceIdentity(
+  transaction: NorwegianBankTransaction
+): string {
+  const referenceIdentity = normalizeIdentityText(
+    transaction.reference ?? transaction.description ?? ''
+  );
+  const counterpartyIdentity = transaction.counterpartyAccount
+    ? transaction.counterpartyAccount.replace(/[^a-z0-9]/gi, '').toUpperCase()
+    : normalizeIdentityText(transaction.counterpartyName ?? '');
+
+  return [
+    transaction.bookingDate,
+    Math.round(transaction.amount * 100).toString(),
+    transaction.currency.trim().toUpperCase(),
+    referenceIdentity,
+    counterpartyIdentity,
+  ].join('|');
+}
+
+function normalizeIdentityText(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('nb-NO')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 }

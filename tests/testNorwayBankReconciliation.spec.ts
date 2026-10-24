@@ -54,6 +54,7 @@ function tx(
     currency: 'NOK',
     reference,
     counterpartyName,
+    occurrence: 1,
   };
 }
 
@@ -384,6 +385,7 @@ test('bank transaction fingerprint is stable and identity-sensitive', (t) => {
     description: 'Betaling',
     counterpartyName: 'Økonomi Kunde AS',
     counterpartyAccount: 'NO12 3456 7890 1',
+    occurrence: 1,
   };
   const normalized: NorwegianBankTransaction = {
     ...first,
@@ -393,6 +395,9 @@ test('bank transaction fingerprint is stable and identity-sensitive', (t) => {
     counterpartyAccount: 'NO12345678901',
   };
   const changed = { ...normalized, amount: 12500.01 };
+  const repeated = { ...normalized, occurrence: 2 };
+  const bankIdA = { ...normalized, transactionId: 'BANK-001', occurrence: 1 };
+  const bankIdB = { ...normalized, transactionId: 'BANK-002', occurrence: 1 };
 
   t.equal(
     getNorwegianBankTransactionFingerprint(first),
@@ -403,6 +408,20 @@ test('bank transaction fingerprint is stable and identity-sensitive', (t) => {
     getNorwegianBankTransactionFingerprint(normalized),
     getNorwegianBankTransactionFingerprint(changed),
     'material transaction change changes fingerprint'
+  );
+  t.notEqual(
+    getNorwegianBankTransactionFingerprint(normalized),
+    getNorwegianBankTransactionFingerprint(repeated),
+    'separate identical transaction occurrences receive different fingerprints'
+  );
+  t.notEqual(
+    getNorwegianBankTransactionFingerprint(bankIdA),
+    getNorwegianBankTransactionFingerprint(bankIdB),
+    'bank-provided transaction id is authoritative for otherwise identical rows'
+  );
+  t.ok(
+    getNorwegianBankTransactionFingerprint(bankIdA).startsWith('no-bank-v2-'),
+    'current fingerprint format is versioned'
   );
   t.end();
 });

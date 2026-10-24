@@ -35,10 +35,48 @@ test('Norwegian bank CSV normalizes common local formats', (t) => {
       description: 'Konsulentoppdrag, september',
       counterpartyName: 'Eksempel AS',
       counterpartyAccount: 'NO9386011117947',
+      transactionId: undefined,
+      occurrence: 1,
     },
     'credit transaction keeps Norwegian text and normalizes amount/date/account'
   );
   t.equal(rows[1].amount, -2500, 'debit transaction keeps its negative sign');
+  t.equal(rows[1].occurrence, 1, 'unique transactions receive occurrence one');
+  t.end();
+});
+
+test('Norwegian bank CSV preserves transaction ids and distinguishes identical rows', (t) => {
+  const withIds = [
+    'Dato;Beløp;Referanse;TransaksjonsID',
+    '20.09.2026;100,00;SINV-1;BANK-001',
+    '20.09.2026;100,00;SINV-1;BANK-002',
+  ].join('\n');
+
+  const idRows = parseNorwegianBankStatementCsv(withIds, {
+    bookingDate: 'Dato',
+    amount: 'Beløp',
+    reference: 'Referanse',
+    transactionId: 'TransaksjonsID',
+  });
+
+  t.equal(idRows[0].transactionId, 'BANK-001', 'bank transaction id is retained');
+  t.equal(idRows[1].transactionId, 'BANK-002', 'distinct bank id is retained');
+
+  const repeated = [
+    'Dato;Beløp;Referanse;Motpart',
+    '20.09.2026;100,00;SINV-1;Kunde AS',
+    '20.09.2026;100,00;SINV-1;Kunde AS',
+  ].join('\n');
+
+  const repeatedRows = parseNorwegianBankStatementCsv(repeated, {
+    bookingDate: 'Dato',
+    amount: 'Beløp',
+    reference: 'Referanse',
+    counterpartyName: 'Motpart',
+  });
+
+  t.equal(repeatedRows[0].occurrence, 1, 'first identical row receives occurrence one');
+  t.equal(repeatedRows[1].occurrence, 2, 'second identical row receives occurrence two');
   t.end();
 });
 

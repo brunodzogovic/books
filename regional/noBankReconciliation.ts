@@ -424,20 +424,36 @@ export function findNorwegianBankMultiInvoiceAllocations(
 export function getNorwegianBankTransactionFingerprint(
   transaction: NorwegianBankTransaction
 ): string {
-  const referenceIdentity = normalizeFingerprintText(
-    transaction.reference ?? transaction.description ?? ''
-  );
-  const counterpartyIdentity = transaction.counterpartyAccount
-    ? transaction.counterpartyAccount.replace(/[^a-z0-9]/gi, '').toUpperCase()
-    : normalizeFingerprintText(transaction.counterpartyName ?? '');
+  const amount = Math.round(transaction.amount * 100).toString();
+  const currency = transaction.currency.trim().toUpperCase();
 
-  const canonical = [
-    transaction.bookingDate,
-    Math.round(transaction.amount * 100).toString(),
-    transaction.currency.trim().toUpperCase(),
-    referenceIdentity,
-    counterpartyIdentity,
-  ].join('|');
+  let canonical: string;
+  if (transaction.transactionId?.trim()) {
+    canonical = [
+      'id',
+      normalizeFingerprintText(transaction.transactionId),
+      transaction.bookingDate,
+      amount,
+      currency,
+    ].join('|');
+  } else {
+    const referenceIdentity = normalizeFingerprintText(
+      transaction.reference ?? transaction.description ?? ''
+    );
+    const counterpartyIdentity = transaction.counterpartyAccount
+      ? transaction.counterpartyAccount.replace(/[^a-z0-9]/gi, '').toUpperCase()
+      : normalizeFingerprintText(transaction.counterpartyName ?? '');
+
+    canonical = [
+      'fallback',
+      transaction.bookingDate,
+      amount,
+      currency,
+      referenceIdentity,
+      counterpartyIdentity,
+      String(transaction.occurrence || 1),
+    ].join('|');
+  }
 
   const parts = [
     hash32(canonical, 0x811c9dc5),
@@ -445,7 +461,7 @@ export function getNorwegianBankTransactionFingerprint(
     hash32(canonical, 0x85ebca6b),
   ];
 
-  return `no-bank-v1-${parts
+  return `no-bank-v2-${parts
     .map((part) => part.toString(16).padStart(8, '0'))
     .join('')}`;
 }

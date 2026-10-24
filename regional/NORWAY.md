@@ -171,10 +171,15 @@ draft Payment with several references. Partial matches produce a partial draft
 only when partial payments are enabled. Foreign-currency rows remain manual.
 
 Every generated draft carries a deterministic Norwegian bank-transaction
-fingerprint. Saved non-cancelled Payments reject a second Payment carrying the
-same fingerprint, and later bank imports show the transaction as already
-processed. A cancelled Payment does not permanently consume the fingerprint, so
-a replacement can be reviewed after reversal. The user must still explicitly
+fingerprint. If the bank CSV exposes a transaction ID/archive reference, that
+identifier is used as the strongest identity input. Otherwise the fallback
+identity uses date, amount, currency, reference and counterparty, with an
+occurrence number so two genuinely separate but textually identical rows in one
+statement do not collapse into one transaction. Saved non-cancelled Payments
+reject a second Payment carrying the same fingerprint, and later bank imports
+show the transaction as already processed. A cancelled Payment does not
+permanently consume the fingerprint, so a replacement can be reviewed after
+reversal. The user must still explicitly
 select a Bank-type Payment Method whose configured GL account is a Bank account.
 No reconciliation path saves or submits a Payment automatically.
 
